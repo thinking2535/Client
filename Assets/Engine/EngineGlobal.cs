@@ -1,34 +1,32 @@
 ﻿using rso.physics;
 using bb;
 using System;
+using System.Collections.Generic;
+using rso.unity;
+using UnityEngine;
 
 public static class CEngineGlobal
 {
-    public const Int32 c_ContainerNumber = 0;
     public const Int32 c_StructureNumber = 1;
     public const Int32 c_BodyNumber = 2;
     public const Int32 c_BalloonNumber = 3;
     public const Int32 c_ParachuteNumber = 4;
-
-    public static bool IsAlive(this SCharacter Char_)
+    public const Int32 c_ArrowNumber = 5;
+    public const Int32 c_ItemNumber = 6;
+    public const Int32 c_LandNumber = 7;
+    public const Int32 c_DeadZoneNumber = 8;
+    public const Int32 c_OceanNumber = 9;
+    public static SByte GetFaceWithX(float x)
     {
-        return (Char_.BalloonCount >= 0);
+        return (x <= 0.0f ? (SByte)1 : (SByte)(-1));
     }
-    public static bool IsInvulerable(this SCharacter Char_, Int64 Tick_)
+    public static Int64 GetInvulnerableEndTick(Int64 tick)
     {
-        return (Tick_ < Char_.InvulnerableEndTick);
-    }
-    public static SByte GetFace(SPoint Pos_)
-    {
-        return (Pos_.X < global.c_ScreenCenterX ? (SByte)1 : (SByte)(-1));
-    }
-    public static Int64 GetInvulnerableEndTick(Int64 Tick_)
-    {
-        return (Tick_ + CGlobal.MetaData.ConfigMeta.InvulnerableDurationSec * 10000000);
+        return (tick + CGlobal.MetaData.ConfigMeta.InvulnerableDurationSec * 10000000);
     }
     public static SRectCollider2D GetPlayerRect()
     {
-        return new SRectCollider2D(new SPoint(global.c_PlayerWidth, global.c_PlayerHeight), new SPoint(0.0f, global.c_PlayerOffsetY), new SPoint(1.0f, 1.0f));
+        return new SRectCollider2D(new SPoint(global.c_PlayerWidth, global.c_PlayerHeight), new SPoint(0.0f, global.c_PlayerOffsetY));
     }
     public static float BalloonWidth(SByte BalloonCount_)
     {
@@ -45,11 +43,11 @@ public static class CEngineGlobal
     }
     public static SRectCollider2D GetBalloonRect(SByte BalloonCount_)
     {
-        return new SRectCollider2D(GetBalloonSize(BalloonCount_), new SPoint(0.0f, global.c_BalloonOffsetY), new SPoint(global.c_BalloonLocalScale, global.c_BalloonLocalScale));
+        return new SRectCollider2D(GetBalloonSize(BalloonCount_), new SPoint(0.0f, global.c_BalloonOffsetY));
     }
-    public static SRectCollider2D GetParachuteRect(float Scale_)
+    public static SRectCollider2D GetParachuteRect()
     {
-        return new SRectCollider2D(new SPoint(global.c_ParachuteWidth, global.c_ParachuteHeight), new SPoint(0.0f, global.c_ParachuteOffsetY), new SPoint(Scale_, Scale_));
+        return new SRectCollider2D(new SPoint(global.c_ParachuteWidth, global.c_ParachuteHeight), new SPoint(0.0f, global.c_ParachuteOffsetY));
     }
     public static bool IsScaling(this SPumpInfo PumpInfo_)
     {
@@ -59,27 +57,5 @@ public static class CEngineGlobal
     {
         return (ParachuteInfo_.Velocity != 0.0f ||
             (ParachuteInfo_.Scale > 0.0f && ParachuteInfo_.Scale < global.c_ParachuteLocalScale));
-    }
-    public static CEngineGameMode GetGameModeMulti(SBattleType BattleType_)
-    {
-        if (BattleType_.TeamCount == 2 && BattleType_.MemberCount == 1)
-            return new CEngineGameModeMultiSolo(BattleType_);
-        if (BattleType_.TeamCount == 3 && BattleType_.MemberCount == 1)
-            return new CEngineGameModeMultiSurvivalSmall(BattleType_);
-        if (BattleType_.TeamCount == 2 && BattleType_.MemberCount == 2)
-            return new CEngineGameModeMultiTeamSmall(BattleType_);
-        else if (BattleType_.TeamCount >= 2)
-        {
-            if (BattleType_.MemberCount == 1)
-                return new CEngineGameModeMultiSurvival(BattleType_);
-            else if (BattleType_.MemberCount > 1)
-                return new CEngineGameModeMultiTeam(BattleType_);
-            else
-                throw new Exception("Invalid MemberCount");
-        }
-        else if (BattleType_.TeamCount == 1)
-            return new CEngineGameModeSingle(BattleType_);
-        else
-            throw new Exception("Invalid TeamCount");
     }
 }

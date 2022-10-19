@@ -22,7 +22,7 @@ public class CEnginePumpControl
     {
         _fPump = fPump_;
         _fPumpDone = fPumpDone_;
-        _PumpSpeed = PumpSpeed_ / global.c_PumpCountForBalloon / global.c_OnePumpDuration;
+        _PumpSpeed = PumpSpeed_ / global.c_PumpCountForBalloon;
         _PumpInfo = PumpInfo_;
         _SetScaleTo();
     }
@@ -31,18 +31,16 @@ public class CEnginePumpControl
         _SetScaleTo();
         _fPump();
     }
-    public bool Pump()
+    public bool canPump()
     {
-        if (_PumpInfo.CountTo >= global.c_PumpCountForBalloon ||
-            _PumpInfo.CountTo - _PumpInfo.Count > 1)
-            return false;
-
+        return _PumpInfo.CountTo < global.c_PumpCountForBalloon && _PumpInfo.CountTo - _PumpInfo.Count <= 1;
+    }
+    public void pump()
+    {
         if (!_PumpInfo.IsScaling())
             _Pump();
 
         ++_PumpInfo.CountTo;
-
-        return true;
     }
     public void FixedUpdate()
     {
