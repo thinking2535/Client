@@ -1,0 +1,71 @@
+{
+  "project_info": {
+    "project_number": "525200764975",
+    "firebase_url": "https://balloonstars-8a36b.firebaseio.com",
+    "project_id": "balloonstars-8a36b",
+    "storage_bucket": "balloonstars-8a36b.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:525200764975:android:82721785ae0b5e1f6596da",
+        "android_client_info": {
+          "package_name": "com.stairgames.balloonstars"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "525200764975-ls9lav7lh55k1s7jj2ve8ccl6ullv392.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stairgames.balloonstars",
+            "certificate_hash": "1085fc493586d30a9d9492b8835767316fa0da1f"
+          }
+        },
+        {
+          "client_id": "525200764975-pf4h87skh8eg4s3jc1ogii30qduh8jcv.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stairgames.balloonstars",
+            "certificate_hash": "2d77d12e54af34e9d5a7e045c405b6621ea8b44c"
+          }
+        },
+        {
+          "client_id": "525200764975-sg4k1u9gjqlhhudub52kkgulb8qhc52l.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.stairgames.balloonstars",
+            "certificate_hash": "d0d5141bacad0838e0364248839e50a510000da8"
+          }
+        },
+        {
+          "client_id": "525200764975-lr447hdfn6cqn4iuajk1fvjq993hnmov.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB0qQkrgK3pW6dILYkaIiMmgnySSPVpaVM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "525200764975-jg8fj2ca1p7jagchdcn34g5e0appjoch.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "525200764975-n81mkh4p1tuuk17b4m3vs0crlcahqibh.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.stairgames.balloonstars"
+              }
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
