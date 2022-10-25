@@ -8,47 +8,26 @@ using UnityEngine.UI;
 public class LimitedItemSet : MonoBehaviour
 {
     [SerializeField] GameObject LimitedResource = null;
-    [SerializeField] GameObject LimitedCharacter = null;
-
     [SerializeField] Image LimitedResourceImage = null;
     [SerializeField] Text LimitedResourceText = null;
 
+    [SerializeField] GameObject LimitedCharacter = null;
     [SerializeField] Image LimitedCharacterImage = null;
-    public void Init(SRewardMeta MetaData_)
+    public void Init(CUnitReward UnitReward_)
     {
-        switch (MetaData_.Type)
-        {
-            case ERewardType.Character:
-                SetPortrate(CGlobal.MetaData.GetCharacterIconName(MetaData_.Data));
-                break;
-            case ERewardType.Resource_Ticket:
-                SetResource(EResource.Ticket, MetaData_.Data);
-                break;
-            case ERewardType.Resource_Gold:
-                SetResource(EResource.Gold, MetaData_.Data);
-                break;
-            case ERewardType.Resource_Dia:
-                SetResource(EResource.Dia, MetaData_.Data);
-                break;
-            case ERewardType.Resource_CP:
-                SetResource(EResource.CP, MetaData_.Data);
-                break;
-            default:
-                Debug.Log("Limited Type Error !!!");
-                break;
-        }
+        UnitReward_.SetToLimitedItemSet(this);
     }
-    private void SetResource(EResource ResourceType_, Int32 Count_)
+    public void SetResource(Sprite Sprite_, Int32 Count_)
     {
         LimitedResource.SetActive(true);
         LimitedCharacter.SetActive(false);
-        LimitedResourceImage.sprite = Resources.Load<Sprite>(CGlobal.GetResourcesLimitedIconFile(ResourceType_));
+        LimitedResourceImage.sprite = Sprite_;
         LimitedResourceText.text = Count_.ToString();
     }
-    private void SetPortrate(string IconName_)
+    public void SetCharacter(Sprite Sprite_)
     {
         LimitedResource.SetActive(false);
         LimitedCharacter.SetActive(true);
-        LimitedCharacterImage.sprite = Resources.Load<Sprite>(CGlobal.MetaData.GetPortImagePath() + IconName_);
+        LimitedCharacterImage.sprite = Sprite_;
     }
 }

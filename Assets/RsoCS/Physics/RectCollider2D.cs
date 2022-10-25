@@ -5,20 +5,21 @@ namespace rso.physics
     public class CRectCollider2D : CCollider2D
     {
         SRectCollider2D _Collider = null;
-        public SRect _SizeToRect(SPoint Size_)
-        {
-            return new SRect(-Size_.X * 0.5f, Size_.X * 0.5f, -Size_.Y * 0.5f, Size_.Y * 0.5f);
-        }
         public SRect Rect
         {
             get
             {
-                return _SizeToRect(_Collider.Size).Add(_Collider.Offset).Multi(_Collider.Scale).Add(Position);
+                return _Collider.ToRect().Multi(LocalScale).Add(Position);
             }
         }
 
-        public CRectCollider2D(SPoint LocalPosition_, Int32 Number_, SRectCollider2D Collider_) :
-            base(LocalPosition_, Number_)
+        public CRectCollider2D(STransform Transform_, Int32 Number_, SRectCollider2D Collider_) :
+            base(Transform_, Number_)
+        {
+            _Collider = Collider_;
+        }
+        public CRectCollider2D(STransform Transform_, Int32 Number_, SRectCollider2D Collider_, CObject2D Parent_) :
+            base(Transform_, Parent_, Number_)
         {
             _Collider = Collider_;
         }
@@ -34,19 +35,97 @@ namespace rso.physics
         {
             _Collider.Size.Y = Y_;
         }
-        public void SetScale(float Scale_)
+        public override bool CheckOverlapped(Int64 tick, CMovingObject2D MovingObject_, CCollider2D OtherCollider_, CMovingObject2D OtherMovingObject_)
         {
-            _Collider.Scale.Set(Scale_);
+            return OtherCollider_.CheckOverlapped(tick, OtherMovingObject_, this, MovingObject_);
         }
-        bool _OverlappedCheck(CPlayerObject2D PlayerObject_, SRect Rect_, SRect RectOther_, SPoint Normal_)
+        public override bool CheckOverlapped(Int64 tick, CMovingObject2D MovingObject_, CRectCollider2D OtherRectCollider_, CMovingObject2D OtherMovingObject_)
         {
-            if (!CPhysics.IsOverlappedRectRect(Rect_, RectOther_))
-                return false;
+            CPlayerObject2D PlayerObject = MovingObject_?.GetPlayerObject2D();
+            CPlayerObject2D OtherPlayerObject = OtherMovingObject_?.GetPlayerObject2D();
 
+            if (!Enabled || !OtherRectCollider_.Enabled || !CPhysics.IsOverlappedRectRect(Rect, OtherRectCollider_.Rect))
+            {
+                PlayerObject?.NotOverlapped(tick, this, OtherRectCollider_);
+                OtherPlayerObject?.NotOverlapped(tick, OtherRectCollider_, this);
+                return false;
+            }
+
+            if (IsTrigger || OtherRectCollider_.IsTrigger)
+            {
+                if (PlayerObject != null)
+                {
+                    var DoRemove = PlayerObject.Triggered(this, OtherRectCollider_, OtherMovingObject_);
+
+                    if (OtherPlayerObject == null)
+                        return DoRemove;
+
+                    OtherPlayerObject.Triggered(OtherRectCollider_, this, MovingObject_);
+                    return false;
+                }
+                else if (OtherPlayerObject != null)
+                {
+                    return OtherPlayerObject.Triggered(OtherRectCollider_, this, MovingObject_);
+                }
+                else
+                {
+                    return false;
+                }
+            }
+            else
+            {
+                if (PlayerObject != null)
+                {
+                    var Normal = _FixPositionAndGetNormal(MovingObject_, Rect, OtherRectCollider_.Rect);
+
+                    var DoRemove = PlayerObject.Collided(
+                        tick,
+                        new SCollision2D(
+                            OtherMovingObject_ != null ? OtherMovingObject_.Velocity.GetSub(MovingObject_.Velocity) : MovingObject_.Velocity.GetMulti(-1.0f),
+                            Normal,
+                            this,
+                            OtherRectCollider_,
+                            OtherMovingObject_));
+
+                    if (OtherPlayerObject == null)
+                        return DoRemove;
+
+                    OtherPlayerObject.Collided(
+                        tick,
+                        new SCollision2D(
+                            MovingObject_.Velocity.GetSub(OtherMovingObject_.Velocity),
+                            Normal.Multi(-1.0f),
+                            OtherRectCollider_,
+                            this,
+                            MovingObject_));
+                    return false; // PlayerObject, OtherPlayerObject 둘다 유효하면 return false; Player가 Player가 아닌 대상만 Remove 할 수 있음.
+                }
+                else if (OtherPlayerObject != null)
+                {
+                    var Normal = _FixPositionAndGetNormal(OtherMovingObject_, OtherRectCollider_.Rect, Rect);
+                    return OtherPlayerObject.Collided(
+                        tick,
+                        new SCollision2D(
+                            OtherMovingObject_.Velocity.GetMulti(-1.0f),
+                            Normal,
+                            OtherRectCollider_,
+                            this,
+                            MovingObject_));
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        }
+        SPoint _FixPositionAndGetNormal(CMovingObject2D MovingObject_, SRect Rect_, SRect RectOther_)
+        {
             var rl = RectOther_.Right - Rect_.Left;
             var lr = Rect_.Right - RectOther_.Left;
             var tb = RectOther_.Top - Rect_.Bottom;
             var bt = Rect_.Top - RectOther_.Bottom;
+
+            var Normal = new SPoint();
 
             if (rl < lr) // Normal.X : +
             {
@@ -55,16 +134,16 @@ namespace rso.physics
                     if (rl < tb) // select Normal.X
                     {
                         if (rl > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.X += (rl - CEngine.ContactOffset);
+                            MovingObject_.LocalPosition.X += (rl - CEngine.ContactOffset);
 
-                        Normal_.X = 1.0f;
+                        Normal.X = 1.0f;
                     }
                     else // select Normal.Y
                     {
                         if (tb > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.Y += (tb - CEngine.ContactOffset);
+                            MovingObject_.LocalPosition.Y += (tb - CEngine.ContactOffset);
 
-                        Normal_.Y = 1.0f;
+                        Normal.Y = 1.0f;
                     }
                 }
                 else // Normal.Y : -
@@ -72,16 +151,16 @@ namespace rso.physics
                     if (rl < bt) // select Normal.X
                     {
                         if (rl > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.X += (rl - CEngine.ContactOffset);
+                            MovingObject_.LocalPosition.X += (rl - CEngine.ContactOffset);
 
-                        Normal_.X = 1.0f;
+                        Normal.X = 1.0f;
                     }
                     else // select Normal.Y
                     {
                         if (bt > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.Y += (CEngine.ContactOffset - bt);
+                            MovingObject_.LocalPosition.Y += (CEngine.ContactOffset - bt);
 
-                        Normal_.Y = -1.0f;
+                        Normal.Y = -1.0f;
                     }
                 }
             }
@@ -92,16 +171,16 @@ namespace rso.physics
                     if (lr < tb) // select Normal.X
                     {
                         if (lr > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.X += (CEngine.ContactOffset - lr);
+                            MovingObject_.LocalPosition.X += (CEngine.ContactOffset - lr);
 
-                        Normal_.X = -1.0f;
+                        Normal.X = -1.0f;
                     }
                     else // select Normal.Y
                     {
                         if (tb > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.Y += (tb - CEngine.ContactOffset);
+                            MovingObject_.LocalPosition.Y += (tb - CEngine.ContactOffset);
 
-                        Normal_.Y = 1.0f;
+                        Normal.Y = 1.0f;
                     }
                 }
                 else // Normal.Y : -
@@ -109,63 +188,21 @@ namespace rso.physics
                     if (lr < bt) // select Normal.X
                     {
                         if (lr > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.X += (CEngine.ContactOffset - lr);
+                            MovingObject_.LocalPosition.X += (CEngine.ContactOffset - lr);
 
-                        Normal_.X = -1.0f;
+                        Normal.X = -1.0f;
                     }
                     else // select Normal.Y
                     {
                         if (bt > CEngine.ContactOffset)
-                            PlayerObject_.LocalPosition.Y += (CEngine.ContactOffset - bt);
+                            MovingObject_.LocalPosition.Y += (CEngine.ContactOffset - bt);
 
-                        Normal_.Y = -1.0f;
+                        Normal.Y = -1.0f;
                     }
                 }
             }
 
-            return true;
-        }
-        public override void OverlappedCheck(Int64 Tick_, CMovingObject2D MovingObject_, CCollider2D OtherCollider_, CMovingObject2D OtherMovingObject_)
-        {
-            OtherCollider_.OverlappedCheck(Tick_, OtherMovingObject_, this, MovingObject_);
-        }
-        public override void OverlappedCheck(Int64 Tick_, CMovingObject2D MovingObject_, CRectCollider2D OtherRectCollider_, CMovingObject2D OtherMovingObject_)
-        {
-            if (!Enabled || !OtherRectCollider_.Enabled)
-                return;
-
-            CPlayerObject2D PlayerObject = MovingObject_?.GetPlayerObject2D();
-            CPlayerObject2D OtherPlayerObject = OtherMovingObject_?.GetPlayerObject2D();
-
-            var Normal = new SPoint();
-
-            if (PlayerObject != null)
-            {
-                if (!_OverlappedCheck(PlayerObject, Rect, OtherRectCollider_.Rect, Normal))
-                    return;
-            }
-            else if (OtherPlayerObject != null)
-            {
-                if (!_OverlappedCheck(OtherPlayerObject, OtherRectCollider_.Rect, Rect, Normal))
-                    return;
-
-                Normal.Multi(-1.0f);
-            }
-            else
-            {
-                return;
-            }
-
-            PlayerObject?.Overlapped(Tick_, Normal, this, OtherRectCollider_, OtherMovingObject_);
-            OtherPlayerObject?.Overlapped(Tick_, Normal.Multi(-1.0f), OtherRectCollider_, this, MovingObject_);
-        }
-        public override bool IsOverlapped(Int64 Tick_, CCollider2D OtherCollider_)
-        {
-            return OtherCollider_.IsOverlapped(Tick_, this);
-        }
-        public override bool IsOverlapped(Int64 Tick_, CRectCollider2D OtherRectCollider_)
-        {
-            return (Enabled && OtherRectCollider_.Enabled && CPhysics.IsOverlappedRectRect(Rect, OtherRectCollider_.Rect));
+            return Normal;
         }
     }
 }

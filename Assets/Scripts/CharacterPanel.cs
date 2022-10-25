@@ -5,48 +5,56 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 
-public class CharacterPanel : MonoBehaviour
+public class CharacterPanel : CharacterPortrait
 {
-    public Image PanelBG = null;
-    public Image PanelIcon = null;
-    public Image PanelCheck = null;
-    public Image PanelDeam = null;
-    public Text PanelName = null;
-    public Image PanelNew = null;
-    public Image PanelKeyCoin = null;
-    public Image StautsIcon = null;
+    [SerializeField] Image _isSelectedImage;
+    [SerializeField] Image _isNewImage;
+    [SerializeField] Image _isDisabledImage;
 
-    private Int32 _CharCode = 0;
-    private bool _IsOpen = true;
-    public void InitPanel(Int32 CharCode_, bool IsOpen_ = true)
+    public void init(SCharacterMeta meta)
     {
-        _CharCode = CharCode_;
-        _IsOpen = IsOpen_;
-        var Character = CGlobal.MetaData.Chars[_CharCode];
-        PanelBG.sprite = Resources.Load<Sprite>(CGlobal.PanelBGTextrues[(Int32)Character.Grade]);
-        PanelIcon.sprite = Resources.Load<Sprite>(CGlobal.MetaData.GetPortImagePath() + Character.IconName);
-        PanelName.text = CGlobal.MetaData.GetText(Character.ETextName);
-        PanelCheck.gameObject.SetActive(CGlobal.LoginNetSc.User.SelectedCharCode == _CharCode);
-        PanelNew.gameObject.SetActive(CGlobal.RedDotControl.NewChar.Contains(_CharCode));
+        base.init(meta, meta.getGradeInfo().characterBackgroundSprite);
 
-        if (CGlobal.LoginNetSc.Chars.Contains(_CharCode))
-        {
-            PanelDeam.gameObject.SetActive(false);
-            PanelKeyCoin.gameObject.SetActive(false);
-        }
-        else
-        {
-            PanelDeam.gameObject.SetActive(true);
-            PanelKeyCoin.gameObject.SetActive(true);
-        }
-        StautsIcon.sprite = Resources.Load<Sprite>("GUI/Common/" + CGlobal.GetCharStatusIcon(Character.Post_Status));
+        isSelected = CGlobal.LoginNetSc.User.SelectedCharCode == meta.Code;
+        isNew = CGlobal.RedDotControl.NewChar.Contains(meta.Code);
+        isDisabled = !CGlobal.LoginNetSc.doesHaveCharacter(meta.Code);
     }
-    public void OnClickCharPanel()
+    public bool isSelected
     {
-        if (_IsOpen == false) return;
-
-        PanelNew.gameObject.SetActive(false);
-        var Scene = CGlobal.GetScene<CSceneCharacterList>();
-        Scene.ShowCharacterInfoPopup(_CharCode);
+        get
+        {
+            return _isSelectedImage.gameObject.activeSelf;
+        }
+        set
+        {
+            _isSelectedImage.gameObject.SetActive(value);
+        }
+    }
+    public bool isNew
+    {
+        get
+        {
+            return _isNewImage.gameObject.activeSelf;
+        }
+        set
+        {
+            _isNewImage.gameObject.SetActive(value);
+        }
+    }
+    public bool isDisabled
+    {
+        get
+        {
+            return _isDisabledImage.gameObject.activeSelf;
+        }
+        set
+        {
+            _isDisabledImage.gameObject.SetActive(value);
+        }
+    }
+    protected override void _click()
+    {
+        isNew = false;
+        base._click();
     }
 }

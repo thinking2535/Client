@@ -27,18 +27,14 @@ using TExp = System.Int32;
 using TRank = System.Int32;
 using TTeamCnt = System.SByte;
 using TQuestSlotIndex = System.Byte;
+using TForbiddenWords = System.Collections.Generic.List<System.String>;
+using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
+using TRankings = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
 using TResource = System.Int32;
 using TDoneQuests = System.Collections.Generic.List<bb.SQuestSlotIndexCount>;
 using TChars = System.Collections.Generic.HashSet<System.Int32>;
 using TQuestDBs = System.Collections.Generic.Dictionary<System.Byte,bb.SQuestBase>;
-using TPackages = System.Collections.Generic.HashSet<System.Int32>;
-using TTeamBattleInfos = System.Collections.Generic.List<bb.STeamBattleInfo>;
-using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
-using TRankingUserSingles = System.Collections.Generic.List<bb.SRankingUserSingle>;
-using TRankingUserIslands = System.Collections.Generic.List<bb.SRankingUserIsland>;
 using TQuestSlotIndexCodes = System.Collections.Generic.List<bb.SQuestSlotIndexCode>;
-using TRankingRewards = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
-using SRooms = System.Collections.Generic.Dictionary<System.Int32,bb.SRoomInfo>;
 using TPoses = System.Collections.Generic.List<rso.physics.SPoint>;
 using System;
 using System.Collections.Generic;
@@ -91,58 +87,6 @@ namespace bb
 		public override string MemberName()
 		{
 			return "";
-		}
-	}
-	public class SStructure : SRectCollider2D
-	{
-		public SPoint LocalPosition = new SPoint();
-		public SStructure()
-		{
-		}
-		public SStructure(SStructure Obj_) : base(Obj_)
-		{
-			LocalPosition = Obj_.LocalPosition;
-		}
-		public SStructure(SRectCollider2D Super_, SPoint LocalPosition_) : base(Super_)
-		{
-			LocalPosition = LocalPosition_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref LocalPosition);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("LocalPosition", ref LocalPosition);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(LocalPosition);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("LocalPosition", LocalPosition);
-		}
-		public void Set(SStructure Obj_)
-		{
-			base.Set(Obj_);
-			LocalPosition.Set(Obj_.LocalPosition);
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(LocalPosition);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(LocalPosition, "LocalPosition");
 		}
 	}
 	public class SStructureMove : SProto
@@ -239,11 +183,14 @@ namespace bb
 		public Int32 BalloonHitPoint = default(Int32);
 		public Int32 ParachuteHitPoint = default(Int32);
 		public Int32 FirstBalloonHitPoint = default(Int32);
-		public Int32 QuestCoolMinutes = default(Int32);
-		public TResource QuestNextCostGold = default(TResource);
 		public Int32 ChangeNickFreeCount = default(Int32);
-		public TResource ChangeNickCostDia = default(TResource);
-		public TResource TutorialRewardDia = default(TResource);
+		public EResource ChangeNickCostType = default(EResource);
+		public TResource ChangeNickCostValue = default(TResource);
+		public EResource TutorialRewardType = default(EResource);
+		public TResource TutorialRewardValue = default(TResource);
+		public TResource MaxTicket = default(TResource);
+		public EResource BattleCostType = default(EResource);
+		public TResource BattleCostValue = default(TResource);
 		public SConfigMeta()
 		{
 		}
@@ -256,13 +203,16 @@ namespace bb
 			BalloonHitPoint = Obj_.BalloonHitPoint;
 			ParachuteHitPoint = Obj_.ParachuteHitPoint;
 			FirstBalloonHitPoint = Obj_.FirstBalloonHitPoint;
-			QuestCoolMinutes = Obj_.QuestCoolMinutes;
-			QuestNextCostGold = Obj_.QuestNextCostGold;
 			ChangeNickFreeCount = Obj_.ChangeNickFreeCount;
-			ChangeNickCostDia = Obj_.ChangeNickCostDia;
-			TutorialRewardDia = Obj_.TutorialRewardDia;
+			ChangeNickCostType = Obj_.ChangeNickCostType;
+			ChangeNickCostValue = Obj_.ChangeNickCostValue;
+			TutorialRewardType = Obj_.TutorialRewardType;
+			TutorialRewardValue = Obj_.TutorialRewardValue;
+			MaxTicket = Obj_.MaxTicket;
+			BattleCostType = Obj_.BattleCostType;
+			BattleCostValue = Obj_.BattleCostValue;
 		}
-		public SConfigMeta(Int32 BattleDurationSec_, Int32 BattleOneOnOneDurationSec_, Int32 GhostDelaySec_, Int32 InvulnerableDurationSec_, Int32 BalloonHitPoint_, Int32 ParachuteHitPoint_, Int32 FirstBalloonHitPoint_, Int32 QuestCoolMinutes_, TResource QuestNextCostGold_, Int32 ChangeNickFreeCount_, TResource ChangeNickCostDia_, TResource TutorialRewardDia_)
+		public SConfigMeta(Int32 BattleDurationSec_, Int32 BattleOneOnOneDurationSec_, Int32 GhostDelaySec_, Int32 InvulnerableDurationSec_, Int32 BalloonHitPoint_, Int32 ParachuteHitPoint_, Int32 FirstBalloonHitPoint_, Int32 ChangeNickFreeCount_, EResource ChangeNickCostType_, TResource ChangeNickCostValue_, EResource TutorialRewardType_, TResource TutorialRewardValue_, TResource MaxTicket_, EResource BattleCostType_, TResource BattleCostValue_)
 		{
 			BattleDurationSec = BattleDurationSec_;
 			BattleOneOnOneDurationSec = BattleOneOnOneDurationSec_;
@@ -271,11 +221,14 @@ namespace bb
 			BalloonHitPoint = BalloonHitPoint_;
 			ParachuteHitPoint = ParachuteHitPoint_;
 			FirstBalloonHitPoint = FirstBalloonHitPoint_;
-			QuestCoolMinutes = QuestCoolMinutes_;
-			QuestNextCostGold = QuestNextCostGold_;
 			ChangeNickFreeCount = ChangeNickFreeCount_;
-			ChangeNickCostDia = ChangeNickCostDia_;
-			TutorialRewardDia = TutorialRewardDia_;
+			ChangeNickCostType = ChangeNickCostType_;
+			ChangeNickCostValue = ChangeNickCostValue_;
+			TutorialRewardType = TutorialRewardType_;
+			TutorialRewardValue = TutorialRewardValue_;
+			MaxTicket = MaxTicket_;
+			BattleCostType = BattleCostType_;
+			BattleCostValue = BattleCostValue_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -286,11 +239,14 @@ namespace bb
 			Stream_.Pop(ref BalloonHitPoint);
 			Stream_.Pop(ref ParachuteHitPoint);
 			Stream_.Pop(ref FirstBalloonHitPoint);
-			Stream_.Pop(ref QuestCoolMinutes);
-			Stream_.Pop(ref QuestNextCostGold);
 			Stream_.Pop(ref ChangeNickFreeCount);
-			Stream_.Pop(ref ChangeNickCostDia);
-			Stream_.Pop(ref TutorialRewardDia);
+			Stream_.Pop(ref ChangeNickCostType);
+			Stream_.Pop(ref ChangeNickCostValue);
+			Stream_.Pop(ref TutorialRewardType);
+			Stream_.Pop(ref TutorialRewardValue);
+			Stream_.Pop(ref MaxTicket);
+			Stream_.Pop(ref BattleCostType);
+			Stream_.Pop(ref BattleCostValue);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -301,11 +257,14 @@ namespace bb
 			Value_.Pop("BalloonHitPoint", ref BalloonHitPoint);
 			Value_.Pop("ParachuteHitPoint", ref ParachuteHitPoint);
 			Value_.Pop("FirstBalloonHitPoint", ref FirstBalloonHitPoint);
-			Value_.Pop("QuestCoolMinutes", ref QuestCoolMinutes);
-			Value_.Pop("QuestNextCostGold", ref QuestNextCostGold);
 			Value_.Pop("ChangeNickFreeCount", ref ChangeNickFreeCount);
-			Value_.Pop("ChangeNickCostDia", ref ChangeNickCostDia);
-			Value_.Pop("TutorialRewardDia", ref TutorialRewardDia);
+			Value_.Pop("ChangeNickCostType", ref ChangeNickCostType);
+			Value_.Pop("ChangeNickCostValue", ref ChangeNickCostValue);
+			Value_.Pop("TutorialRewardType", ref TutorialRewardType);
+			Value_.Pop("TutorialRewardValue", ref TutorialRewardValue);
+			Value_.Pop("MaxTicket", ref MaxTicket);
+			Value_.Pop("BattleCostType", ref BattleCostType);
+			Value_.Pop("BattleCostValue", ref BattleCostValue);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -316,11 +275,14 @@ namespace bb
 			Stream_.Push(BalloonHitPoint);
 			Stream_.Push(ParachuteHitPoint);
 			Stream_.Push(FirstBalloonHitPoint);
-			Stream_.Push(QuestCoolMinutes);
-			Stream_.Push(QuestNextCostGold);
 			Stream_.Push(ChangeNickFreeCount);
-			Stream_.Push(ChangeNickCostDia);
-			Stream_.Push(TutorialRewardDia);
+			Stream_.Push(ChangeNickCostType);
+			Stream_.Push(ChangeNickCostValue);
+			Stream_.Push(TutorialRewardType);
+			Stream_.Push(TutorialRewardValue);
+			Stream_.Push(MaxTicket);
+			Stream_.Push(BattleCostType);
+			Stream_.Push(BattleCostValue);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -331,11 +293,14 @@ namespace bb
 			Value_.Push("BalloonHitPoint", BalloonHitPoint);
 			Value_.Push("ParachuteHitPoint", ParachuteHitPoint);
 			Value_.Push("FirstBalloonHitPoint", FirstBalloonHitPoint);
-			Value_.Push("QuestCoolMinutes", QuestCoolMinutes);
-			Value_.Push("QuestNextCostGold", QuestNextCostGold);
 			Value_.Push("ChangeNickFreeCount", ChangeNickFreeCount);
-			Value_.Push("ChangeNickCostDia", ChangeNickCostDia);
-			Value_.Push("TutorialRewardDia", TutorialRewardDia);
+			Value_.Push("ChangeNickCostType", ChangeNickCostType);
+			Value_.Push("ChangeNickCostValue", ChangeNickCostValue);
+			Value_.Push("TutorialRewardType", TutorialRewardType);
+			Value_.Push("TutorialRewardValue", TutorialRewardValue);
+			Value_.Push("MaxTicket", MaxTicket);
+			Value_.Push("BattleCostType", BattleCostType);
+			Value_.Push("BattleCostValue", BattleCostValue);
 		}
 		public void Set(SConfigMeta Obj_)
 		{
@@ -346,11 +311,14 @@ namespace bb
 			BalloonHitPoint = Obj_.BalloonHitPoint;
 			ParachuteHitPoint = Obj_.ParachuteHitPoint;
 			FirstBalloonHitPoint = Obj_.FirstBalloonHitPoint;
-			QuestCoolMinutes = Obj_.QuestCoolMinutes;
-			QuestNextCostGold = Obj_.QuestNextCostGold;
 			ChangeNickFreeCount = Obj_.ChangeNickFreeCount;
-			ChangeNickCostDia = Obj_.ChangeNickCostDia;
-			TutorialRewardDia = Obj_.TutorialRewardDia;
+			ChangeNickCostType = Obj_.ChangeNickCostType;
+			ChangeNickCostValue = Obj_.ChangeNickCostValue;
+			TutorialRewardType = Obj_.TutorialRewardType;
+			TutorialRewardValue = Obj_.TutorialRewardValue;
+			MaxTicket = Obj_.MaxTicket;
+			BattleCostType = Obj_.BattleCostType;
+			BattleCostValue = Obj_.BattleCostValue;
 		}
 		public override string StdName()
 		{
@@ -362,11 +330,14 @@ namespace bb
 				SEnumChecker.GetStdName(BalloonHitPoint) + "," + 
 				SEnumChecker.GetStdName(ParachuteHitPoint) + "," + 
 				SEnumChecker.GetStdName(FirstBalloonHitPoint) + "," + 
-				SEnumChecker.GetStdName(QuestCoolMinutes) + "," + 
-				SEnumChecker.GetStdName(QuestNextCostGold) + "," + 
 				SEnumChecker.GetStdName(ChangeNickFreeCount) + "," + 
-				SEnumChecker.GetStdName(ChangeNickCostDia) + "," + 
-				SEnumChecker.GetStdName(TutorialRewardDia);
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(ChangeNickCostValue) + "," + 
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(TutorialRewardValue) + "," + 
+				SEnumChecker.GetStdName(MaxTicket) + "," + 
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(BattleCostValue);
 		}
 		public override string MemberName()
 		{
@@ -378,11 +349,14 @@ namespace bb
 				SEnumChecker.GetMemberName(BalloonHitPoint, "BalloonHitPoint") + "," + 
 				SEnumChecker.GetMemberName(ParachuteHitPoint, "ParachuteHitPoint") + "," + 
 				SEnumChecker.GetMemberName(FirstBalloonHitPoint, "FirstBalloonHitPoint") + "," + 
-				SEnumChecker.GetMemberName(QuestCoolMinutes, "QuestCoolMinutes") + "," + 
-				SEnumChecker.GetMemberName(QuestNextCostGold, "QuestNextCostGold") + "," + 
 				SEnumChecker.GetMemberName(ChangeNickFreeCount, "ChangeNickFreeCount") + "," + 
-				SEnumChecker.GetMemberName(ChangeNickCostDia, "ChangeNickCostDia") + "," + 
-				SEnumChecker.GetMemberName(TutorialRewardDia, "TutorialRewardDia");
+				SEnumChecker.GetMemberName(ChangeNickCostType, "ChangeNickCostType") + "," + 
+				SEnumChecker.GetMemberName(ChangeNickCostValue, "ChangeNickCostValue") + "," + 
+				SEnumChecker.GetMemberName(TutorialRewardType, "TutorialRewardType") + "," + 
+				SEnumChecker.GetMemberName(TutorialRewardValue, "TutorialRewardValue") + "," + 
+				SEnumChecker.GetMemberName(MaxTicket, "MaxTicket") + "," + 
+				SEnumChecker.GetMemberName(BattleCostType, "BattleCostType") + "," + 
+				SEnumChecker.GetMemberName(BattleCostValue, "BattleCostValue");
 		}
 	}
 	public class SForbiddenWordMeta : SProto
@@ -430,1363 +404,942 @@ namespace bb
 				SEnumChecker.GetMemberName(Word, "Word");
 		}
 	}
-	public class SShopConfigServerMeta : SProto
+	public class ExchangeValue : SProto
 	{
-		public Int32 DailyRewardDurationMinute = default(Int32);
-		public Int32 DailyRewardFreeCount = default(Int32);
-		public Int32 DailyRewardAdCount = default(Int32);
-		public SShopConfigServerMeta()
+		public EResource costResourceType = default(EResource);
+		public Double rate = default(Double);
+		public ExchangeValue()
 		{
 		}
-		public SShopConfigServerMeta(SShopConfigServerMeta Obj_)
+		public ExchangeValue(ExchangeValue Obj_)
 		{
-			DailyRewardDurationMinute = Obj_.DailyRewardDurationMinute;
-			DailyRewardFreeCount = Obj_.DailyRewardFreeCount;
-			DailyRewardAdCount = Obj_.DailyRewardAdCount;
+			costResourceType = Obj_.costResourceType;
+			rate = Obj_.rate;
 		}
-		public SShopConfigServerMeta(Int32 DailyRewardDurationMinute_, Int32 DailyRewardFreeCount_, Int32 DailyRewardAdCount_)
+		public ExchangeValue(EResource costResourceType_, Double rate_)
 		{
-			DailyRewardDurationMinute = DailyRewardDurationMinute_;
-			DailyRewardFreeCount = DailyRewardFreeCount_;
-			DailyRewardAdCount = DailyRewardAdCount_;
+			costResourceType = costResourceType_;
+			rate = rate_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref DailyRewardDurationMinute);
-			Stream_.Pop(ref DailyRewardFreeCount);
-			Stream_.Pop(ref DailyRewardAdCount);
+			Stream_.Pop(ref costResourceType);
+			Stream_.Pop(ref rate);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("DailyRewardDurationMinute", ref DailyRewardDurationMinute);
-			Value_.Pop("DailyRewardFreeCount", ref DailyRewardFreeCount);
-			Value_.Pop("DailyRewardAdCount", ref DailyRewardAdCount);
+			Value_.Pop("costResourceType", ref costResourceType);
+			Value_.Pop("rate", ref rate);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(DailyRewardDurationMinute);
-			Stream_.Push(DailyRewardFreeCount);
-			Stream_.Push(DailyRewardAdCount);
+			Stream_.Push(costResourceType);
+			Stream_.Push(rate);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("DailyRewardDurationMinute", DailyRewardDurationMinute);
-			Value_.Push("DailyRewardFreeCount", DailyRewardFreeCount);
-			Value_.Push("DailyRewardAdCount", DailyRewardAdCount);
+			Value_.Push("costResourceType", costResourceType);
+			Value_.Push("rate", rate);
 		}
-		public void Set(SShopConfigServerMeta Obj_)
+		public void Set(ExchangeValue Obj_)
 		{
-			DailyRewardDurationMinute = Obj_.DailyRewardDurationMinute;
-			DailyRewardFreeCount = Obj_.DailyRewardFreeCount;
-			DailyRewardAdCount = Obj_.DailyRewardAdCount;
+			costResourceType = Obj_.costResourceType;
+			rate = Obj_.rate;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(DailyRewardDurationMinute) + "," + 
-				SEnumChecker.GetStdName(DailyRewardFreeCount) + "," + 
-				SEnumChecker.GetStdName(DailyRewardAdCount);
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(rate);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(DailyRewardDurationMinute, "DailyRewardDurationMinute") + "," + 
-				SEnumChecker.GetMemberName(DailyRewardFreeCount, "DailyRewardFreeCount") + "," + 
-				SEnumChecker.GetMemberName(DailyRewardAdCount, "DailyRewardAdCount");
+				SEnumChecker.GetMemberName(costResourceType, "costResourceType") + "," + 
+				SEnumChecker.GetMemberName(rate, "rate");
 		}
 	}
-	public class SShopServerMeta : SProto
+	public class ShopExchangeMeta : SProto
 	{
-		public Int32 Code = default(Int32);
-		public EResource CostType = default(EResource);
+		public EResource targetResourceType = default(EResource);
+		public ExchangeValue exchangeValue = new ExchangeValue();
+		public ShopExchangeMeta()
+		{
+		}
+		public ShopExchangeMeta(ShopExchangeMeta Obj_)
+		{
+			targetResourceType = Obj_.targetResourceType;
+			exchangeValue = Obj_.exchangeValue;
+		}
+		public ShopExchangeMeta(EResource targetResourceType_, ExchangeValue exchangeValue_)
+		{
+			targetResourceType = targetResourceType_;
+			exchangeValue = exchangeValue_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref targetResourceType);
+			Stream_.Pop(ref exchangeValue);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("targetResourceType", ref targetResourceType);
+			Value_.Pop("exchangeValue", ref exchangeValue);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(targetResourceType);
+			Stream_.Push(exchangeValue);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("targetResourceType", targetResourceType);
+			Value_.Push("exchangeValue", exchangeValue);
+		}
+		public void Set(ShopExchangeMeta Obj_)
+		{
+			targetResourceType = Obj_.targetResourceType;
+			exchangeValue.Set(Obj_.exchangeValue);
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(exchangeValue);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(targetResourceType, "targetResourceType") + "," + 
+				SEnumChecker.GetMemberName(exchangeValue, "exchangeValue");
+		}
+	}
+	public class CharacterTypeMeta : SProto
+	{
+		public EGrade grade = default(EGrade);
+		public Int32 subGrade = default(Int32);
+		public String howToGet = string.Empty;
 		public TResource CostValue = default(TResource);
-		public Int32 RewardCode = default(Int32);
-		public SShopServerMeta()
-		{
-		}
-		public SShopServerMeta(SShopServerMeta Obj_)
-		{
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public SShopServerMeta(Int32 Code_, EResource CostType_, TResource CostValue_, Int32 RewardCode_)
-		{
-			Code = Code_;
-			CostType = CostType_;
-			CostValue = CostValue_;
-			RewardCode = RewardCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref CostType);
-			Stream_.Pop(ref CostValue);
-			Stream_.Pop(ref RewardCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("CostType", ref CostType);
-			Value_.Pop("CostValue", ref CostValue);
-			Value_.Pop("RewardCode", ref RewardCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-			Stream_.Push(CostType);
-			Stream_.Push(CostValue);
-			Stream_.Push(RewardCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-			Value_.Push("CostType", CostType);
-			Value_.Push("CostValue", CostValue);
-			Value_.Push("RewardCode", RewardCode);
-		}
-		public void Set(SShopServerMeta Obj_)
-		{
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code) + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(CostValue) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(CostType, "CostType") + "," + 
-				SEnumChecker.GetMemberName(CostValue, "CostValue") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
-		}
-	}
-	public class SShopPackageServerMeta : SProto
-	{
-		public Int32 Code = default(Int32);
-		public EResource CostType = default(EResource);
-		public TResource CostValue = default(TResource);
-		public Int32 RewardCode = default(Int32);
-		public SShopPackageServerMeta()
-		{
-		}
-		public SShopPackageServerMeta(SShopPackageServerMeta Obj_)
-		{
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public SShopPackageServerMeta(Int32 Code_, EResource CostType_, TResource CostValue_, Int32 RewardCode_)
-		{
-			Code = Code_;
-			CostType = CostType_;
-			CostValue = CostValue_;
-			RewardCode = RewardCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref CostType);
-			Stream_.Pop(ref CostValue);
-			Stream_.Pop(ref RewardCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("CostType", ref CostType);
-			Value_.Pop("CostValue", ref CostValue);
-			Value_.Pop("RewardCode", ref RewardCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-			Stream_.Push(CostType);
-			Stream_.Push(CostValue);
-			Stream_.Push(RewardCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-			Value_.Push("CostType", CostType);
-			Value_.Push("CostValue", CostValue);
-			Value_.Push("RewardCode", RewardCode);
-		}
-		public void Set(SShopPackageServerMeta Obj_)
-		{
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code) + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(CostValue) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(CostType, "CostType") + "," + 
-				SEnumChecker.GetMemberName(CostValue, "CostValue") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
-		}
-	}
-	public class SShopDailyRewardServerMeta : SProto
-	{
-		public Double Probability = default(Double);
-		public EResource RewardType = default(EResource);
-		public TResource RewardValue = default(TResource);
-		public SShopDailyRewardServerMeta()
-		{
-		}
-		public SShopDailyRewardServerMeta(SShopDailyRewardServerMeta Obj_)
-		{
-			Probability = Obj_.Probability;
-			RewardType = Obj_.RewardType;
-			RewardValue = Obj_.RewardValue;
-		}
-		public SShopDailyRewardServerMeta(Double Probability_, EResource RewardType_, TResource RewardValue_)
-		{
-			Probability = Probability_;
-			RewardType = RewardType_;
-			RewardValue = RewardValue_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Probability);
-			Stream_.Pop(ref RewardType);
-			Stream_.Pop(ref RewardValue);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Probability", ref Probability);
-			Value_.Pop("RewardType", ref RewardType);
-			Value_.Pop("RewardValue", ref RewardValue);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Probability);
-			Stream_.Push(RewardType);
-			Stream_.Push(RewardValue);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Probability", Probability);
-			Value_.Push("RewardType", RewardType);
-			Value_.Push("RewardValue", RewardValue);
-		}
-		public void Set(SShopDailyRewardServerMeta Obj_)
-		{
-			Probability = Obj_.Probability;
-			RewardType = Obj_.RewardType;
-			RewardValue = Obj_.RewardValue;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Probability) + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(RewardValue);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Probability, "Probability") + "," + 
-				SEnumChecker.GetMemberName(RewardType, "RewardType") + "," + 
-				SEnumChecker.GetMemberName(RewardValue, "RewardValue");
-		}
-	}
-	public class SShopCashServerMeta : SProto
-	{
-		public String Pid = string.Empty;
-		public TResource DiaCount = default(TResource);
-		public SShopCashServerMeta()
-		{
-		}
-		public SShopCashServerMeta(SShopCashServerMeta Obj_)
-		{
-			Pid = Obj_.Pid;
-			DiaCount = Obj_.DiaCount;
-		}
-		public SShopCashServerMeta(String Pid_, TResource DiaCount_)
-		{
-			Pid = Pid_;
-			DiaCount = DiaCount_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Pid);
-			Stream_.Pop(ref DiaCount);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Pid", ref Pid);
-			Value_.Pop("DiaCount", ref DiaCount);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Pid);
-			Stream_.Push(DiaCount);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Pid", Pid);
-			Value_.Push("DiaCount", DiaCount);
-		}
-		public void Set(SShopCashServerMeta Obj_)
-		{
-			Pid = Obj_.Pid;
-			DiaCount = Obj_.DiaCount;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Pid) + "," + 
-				SEnumChecker.GetStdName(DiaCount);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Pid, "Pid") + "," + 
-				SEnumChecker.GetMemberName(DiaCount, "DiaCount");
-		}
-	}
-	public class SCharacterMeta : SProto
-	{
-		public Int32 Code = default(Int32);
-		public EGrade Grade = default(EGrade);
-		public EResource Cost_Type = default(EResource);
-		public TResource Price = default(TResource);
-		public TResource CPRefund = default(TResource);
-		public Single MaxVelUp = default(Single);
-		public Single MaxVelDown = default(Single);
+		public EResource RefundType = default(EResource);
+		public TResource RefundValue = default(TResource);
+		public Single MaxVelAir = default(Single);
 		public Single MaxVelXGround = default(Single);
-		public Single MaxVelXAir = default(Single);
-		public Single FlapDeltaVelX = default(Single);
-		public Single FlapDeltaVelUp = default(Single);
-		public Single RunAcc = default(Single);
 		public Single StaminaMax = default(Single);
-		public Single StaminaPerTick = default(Single);
-		public Int32 StaminaRegenDelay = default(Int32);
 		public Single PumpSpeed = default(Single);
-		public SCharacterMeta()
+		public Single Weight = default(Single);
+		public CharacterTypeMeta()
 		{
 		}
-		public SCharacterMeta(SCharacterMeta Obj_)
+		public CharacterTypeMeta(CharacterTypeMeta Obj_)
+		{
+			grade = Obj_.grade;
+			subGrade = Obj_.subGrade;
+			howToGet = Obj_.howToGet;
+			CostValue = Obj_.CostValue;
+			RefundType = Obj_.RefundType;
+			RefundValue = Obj_.RefundValue;
+			MaxVelAir = Obj_.MaxVelAir;
+			MaxVelXGround = Obj_.MaxVelXGround;
+			StaminaMax = Obj_.StaminaMax;
+			PumpSpeed = Obj_.PumpSpeed;
+			Weight = Obj_.Weight;
+		}
+		public CharacterTypeMeta(EGrade grade_, Int32 subGrade_, String howToGet_, TResource CostValue_, EResource RefundType_, TResource RefundValue_, Single MaxVelAir_, Single MaxVelXGround_, Single StaminaMax_, Single PumpSpeed_, Single Weight_)
+		{
+			grade = grade_;
+			subGrade = subGrade_;
+			howToGet = howToGet_;
+			CostValue = CostValue_;
+			RefundType = RefundType_;
+			RefundValue = RefundValue_;
+			MaxVelAir = MaxVelAir_;
+			MaxVelXGround = MaxVelXGround_;
+			StaminaMax = StaminaMax_;
+			PumpSpeed = PumpSpeed_;
+			Weight = Weight_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref grade);
+			Stream_.Pop(ref subGrade);
+			Stream_.Pop(ref howToGet);
+			Stream_.Pop(ref CostValue);
+			Stream_.Pop(ref RefundType);
+			Stream_.Pop(ref RefundValue);
+			Stream_.Pop(ref MaxVelAir);
+			Stream_.Pop(ref MaxVelXGround);
+			Stream_.Pop(ref StaminaMax);
+			Stream_.Pop(ref PumpSpeed);
+			Stream_.Pop(ref Weight);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("grade", ref grade);
+			Value_.Pop("subGrade", ref subGrade);
+			Value_.Pop("howToGet", ref howToGet);
+			Value_.Pop("CostValue", ref CostValue);
+			Value_.Pop("RefundType", ref RefundType);
+			Value_.Pop("RefundValue", ref RefundValue);
+			Value_.Pop("MaxVelAir", ref MaxVelAir);
+			Value_.Pop("MaxVelXGround", ref MaxVelXGround);
+			Value_.Pop("StaminaMax", ref StaminaMax);
+			Value_.Pop("PumpSpeed", ref PumpSpeed);
+			Value_.Pop("Weight", ref Weight);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(grade);
+			Stream_.Push(subGrade);
+			Stream_.Push(howToGet);
+			Stream_.Push(CostValue);
+			Stream_.Push(RefundType);
+			Stream_.Push(RefundValue);
+			Stream_.Push(MaxVelAir);
+			Stream_.Push(MaxVelXGround);
+			Stream_.Push(StaminaMax);
+			Stream_.Push(PumpSpeed);
+			Stream_.Push(Weight);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("grade", grade);
+			Value_.Push("subGrade", subGrade);
+			Value_.Push("howToGet", howToGet);
+			Value_.Push("CostValue", CostValue);
+			Value_.Push("RefundType", RefundType);
+			Value_.Push("RefundValue", RefundValue);
+			Value_.Push("MaxVelAir", MaxVelAir);
+			Value_.Push("MaxVelXGround", MaxVelXGround);
+			Value_.Push("StaminaMax", StaminaMax);
+			Value_.Push("PumpSpeed", PumpSpeed);
+			Value_.Push("Weight", Weight);
+		}
+		public void Set(CharacterTypeMeta Obj_)
+		{
+			grade = Obj_.grade;
+			subGrade = Obj_.subGrade;
+			howToGet = Obj_.howToGet;
+			CostValue = Obj_.CostValue;
+			RefundType = Obj_.RefundType;
+			RefundValue = Obj_.RefundValue;
+			MaxVelAir = Obj_.MaxVelAir;
+			MaxVelXGround = Obj_.MaxVelXGround;
+			StaminaMax = Obj_.StaminaMax;
+			PumpSpeed = Obj_.PumpSpeed;
+			Weight = Obj_.Weight;
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.EGrade" + "," + 
+				SEnumChecker.GetStdName(subGrade) + "," + 
+				SEnumChecker.GetStdName(howToGet) + "," + 
+				SEnumChecker.GetStdName(CostValue) + "," + 
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(RefundValue) + "," + 
+				SEnumChecker.GetStdName(MaxVelAir) + "," + 
+				SEnumChecker.GetStdName(MaxVelXGround) + "," + 
+				SEnumChecker.GetStdName(StaminaMax) + "," + 
+				SEnumChecker.GetStdName(PumpSpeed) + "," + 
+				SEnumChecker.GetStdName(Weight);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(grade, "grade") + "," + 
+				SEnumChecker.GetMemberName(subGrade, "subGrade") + "," + 
+				SEnumChecker.GetMemberName(howToGet, "howToGet") + "," + 
+				SEnumChecker.GetMemberName(CostValue, "CostValue") + "," + 
+				SEnumChecker.GetMemberName(RefundType, "RefundType") + "," + 
+				SEnumChecker.GetMemberName(RefundValue, "RefundValue") + "," + 
+				SEnumChecker.GetMemberName(MaxVelAir, "MaxVelAir") + "," + 
+				SEnumChecker.GetMemberName(MaxVelXGround, "MaxVelXGround") + "," + 
+				SEnumChecker.GetMemberName(StaminaMax, "StaminaMax") + "," + 
+				SEnumChecker.GetMemberName(PumpSpeed, "PumpSpeed") + "," + 
+				SEnumChecker.GetMemberName(Weight, "Weight");
+		}
+	}
+	public class CharacterTypeKeyValueMeta : SProto
+	{
+		public String type = string.Empty;
+		public CharacterTypeMeta value = new CharacterTypeMeta();
+		public CharacterTypeKeyValueMeta()
+		{
+		}
+		public CharacterTypeKeyValueMeta(CharacterTypeKeyValueMeta Obj_)
+		{
+			type = Obj_.type;
+			value = Obj_.value;
+		}
+		public CharacterTypeKeyValueMeta(String type_, CharacterTypeMeta value_)
+		{
+			type = type_;
+			value = value_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref type);
+			Stream_.Pop(ref value);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("type", ref type);
+			Value_.Pop("value", ref value);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(type);
+			Stream_.Push(value);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("type", type);
+			Value_.Push("value", value);
+		}
+		public void Set(CharacterTypeKeyValueMeta Obj_)
+		{
+			type = Obj_.type;
+			value.Set(Obj_.value);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(type) + "," + 
+				SEnumChecker.GetStdName(value);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(type, "type") + "," + 
+				SEnumChecker.GetMemberName(value, "value");
+		}
+	}
+	public class CharacterMeta : SProto
+	{
+		public Int32 Code = default(Int32);
+		public String type = string.Empty;
+		public Boolean isDefault = default(Boolean);
+		public CharacterMeta()
+		{
+		}
+		public CharacterMeta(CharacterMeta Obj_)
 		{
 			Code = Obj_.Code;
-			Grade = Obj_.Grade;
-			Cost_Type = Obj_.Cost_Type;
-			Price = Obj_.Price;
-			CPRefund = Obj_.CPRefund;
-			MaxVelUp = Obj_.MaxVelUp;
-			MaxVelDown = Obj_.MaxVelDown;
-			MaxVelXGround = Obj_.MaxVelXGround;
-			MaxVelXAir = Obj_.MaxVelXAir;
-			FlapDeltaVelX = Obj_.FlapDeltaVelX;
-			FlapDeltaVelUp = Obj_.FlapDeltaVelUp;
-			RunAcc = Obj_.RunAcc;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaPerTick = Obj_.StaminaPerTick;
-			StaminaRegenDelay = Obj_.StaminaRegenDelay;
-			PumpSpeed = Obj_.PumpSpeed;
+			type = Obj_.type;
+			isDefault = Obj_.isDefault;
 		}
-		public SCharacterMeta(Int32 Code_, EGrade Grade_, EResource Cost_Type_, TResource Price_, TResource CPRefund_, Single MaxVelUp_, Single MaxVelDown_, Single MaxVelXGround_, Single MaxVelXAir_, Single FlapDeltaVelX_, Single FlapDeltaVelUp_, Single RunAcc_, Single StaminaMax_, Single StaminaPerTick_, Int32 StaminaRegenDelay_, Single PumpSpeed_)
+		public CharacterMeta(Int32 Code_, String type_, Boolean isDefault_)
 		{
 			Code = Code_;
-			Grade = Grade_;
-			Cost_Type = Cost_Type_;
-			Price = Price_;
-			CPRefund = CPRefund_;
-			MaxVelUp = MaxVelUp_;
-			MaxVelDown = MaxVelDown_;
-			MaxVelXGround = MaxVelXGround_;
-			MaxVelXAir = MaxVelXAir_;
-			FlapDeltaVelX = FlapDeltaVelX_;
-			FlapDeltaVelUp = FlapDeltaVelUp_;
-			RunAcc = RunAcc_;
-			StaminaMax = StaminaMax_;
-			StaminaPerTick = StaminaPerTick_;
-			StaminaRegenDelay = StaminaRegenDelay_;
-			PumpSpeed = PumpSpeed_;
+			type = type_;
+			isDefault = isDefault_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			Stream_.Pop(ref Code);
-			Stream_.Pop(ref Grade);
-			Stream_.Pop(ref Cost_Type);
-			Stream_.Pop(ref Price);
-			Stream_.Pop(ref CPRefund);
-			Stream_.Pop(ref MaxVelUp);
-			Stream_.Pop(ref MaxVelDown);
-			Stream_.Pop(ref MaxVelXGround);
-			Stream_.Pop(ref MaxVelXAir);
-			Stream_.Pop(ref FlapDeltaVelX);
-			Stream_.Pop(ref FlapDeltaVelUp);
-			Stream_.Pop(ref RunAcc);
-			Stream_.Pop(ref StaminaMax);
-			Stream_.Pop(ref StaminaPerTick);
-			Stream_.Pop(ref StaminaRegenDelay);
-			Stream_.Pop(ref PumpSpeed);
+			Stream_.Pop(ref type);
+			Stream_.Pop(ref isDefault);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			Value_.Pop("Code", ref Code);
-			Value_.Pop("Grade", ref Grade);
-			Value_.Pop("Cost_Type", ref Cost_Type);
-			Value_.Pop("Price", ref Price);
-			Value_.Pop("CPRefund", ref CPRefund);
-			Value_.Pop("MaxVelUp", ref MaxVelUp);
-			Value_.Pop("MaxVelDown", ref MaxVelDown);
-			Value_.Pop("MaxVelXGround", ref MaxVelXGround);
-			Value_.Pop("MaxVelXAir", ref MaxVelXAir);
-			Value_.Pop("FlapDeltaVelX", ref FlapDeltaVelX);
-			Value_.Pop("FlapDeltaVelUp", ref FlapDeltaVelUp);
-			Value_.Pop("RunAcc", ref RunAcc);
-			Value_.Pop("StaminaMax", ref StaminaMax);
-			Value_.Pop("StaminaPerTick", ref StaminaPerTick);
-			Value_.Pop("StaminaRegenDelay", ref StaminaRegenDelay);
-			Value_.Pop("PumpSpeed", ref PumpSpeed);
+			Value_.Pop("type", ref type);
+			Value_.Pop("isDefault", ref isDefault);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			Stream_.Push(Code);
-			Stream_.Push(Grade);
-			Stream_.Push(Cost_Type);
-			Stream_.Push(Price);
-			Stream_.Push(CPRefund);
-			Stream_.Push(MaxVelUp);
-			Stream_.Push(MaxVelDown);
-			Stream_.Push(MaxVelXGround);
-			Stream_.Push(MaxVelXAir);
-			Stream_.Push(FlapDeltaVelX);
-			Stream_.Push(FlapDeltaVelUp);
-			Stream_.Push(RunAcc);
-			Stream_.Push(StaminaMax);
-			Stream_.Push(StaminaPerTick);
-			Stream_.Push(StaminaRegenDelay);
-			Stream_.Push(PumpSpeed);
+			Stream_.Push(type);
+			Stream_.Push(isDefault);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			Value_.Push("Code", Code);
-			Value_.Push("Grade", Grade);
-			Value_.Push("Cost_Type", Cost_Type);
-			Value_.Push("Price", Price);
-			Value_.Push("CPRefund", CPRefund);
-			Value_.Push("MaxVelUp", MaxVelUp);
-			Value_.Push("MaxVelDown", MaxVelDown);
-			Value_.Push("MaxVelXGround", MaxVelXGround);
-			Value_.Push("MaxVelXAir", MaxVelXAir);
-			Value_.Push("FlapDeltaVelX", FlapDeltaVelX);
-			Value_.Push("FlapDeltaVelUp", FlapDeltaVelUp);
-			Value_.Push("RunAcc", RunAcc);
-			Value_.Push("StaminaMax", StaminaMax);
-			Value_.Push("StaminaPerTick", StaminaPerTick);
-			Value_.Push("StaminaRegenDelay", StaminaRegenDelay);
-			Value_.Push("PumpSpeed", PumpSpeed);
+			Value_.Push("type", type);
+			Value_.Push("isDefault", isDefault);
 		}
-		public void Set(SCharacterMeta Obj_)
+		public void Set(CharacterMeta Obj_)
 		{
 			Code = Obj_.Code;
-			Grade = Obj_.Grade;
-			Cost_Type = Obj_.Cost_Type;
-			Price = Obj_.Price;
-			CPRefund = Obj_.CPRefund;
-			MaxVelUp = Obj_.MaxVelUp;
-			MaxVelDown = Obj_.MaxVelDown;
-			MaxVelXGround = Obj_.MaxVelXGround;
-			MaxVelXAir = Obj_.MaxVelXAir;
-			FlapDeltaVelX = Obj_.FlapDeltaVelX;
-			FlapDeltaVelUp = Obj_.FlapDeltaVelUp;
-			RunAcc = Obj_.RunAcc;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaPerTick = Obj_.StaminaPerTick;
-			StaminaRegenDelay = Obj_.StaminaRegenDelay;
-			PumpSpeed = Obj_.PumpSpeed;
+			type = Obj_.type;
+			isDefault = Obj_.isDefault;
 		}
 		public override string StdName()
 		{
 			return 
 				SEnumChecker.GetStdName(Code) + "," + 
-				"bb.EGrade" + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(Price) + "," + 
-				SEnumChecker.GetStdName(CPRefund) + "," + 
-				SEnumChecker.GetStdName(MaxVelUp) + "," + 
-				SEnumChecker.GetStdName(MaxVelDown) + "," + 
-				SEnumChecker.GetStdName(MaxVelXGround) + "," + 
-				SEnumChecker.GetStdName(MaxVelXAir) + "," + 
-				SEnumChecker.GetStdName(FlapDeltaVelX) + "," + 
-				SEnumChecker.GetStdName(FlapDeltaVelUp) + "," + 
-				SEnumChecker.GetStdName(RunAcc) + "," + 
-				SEnumChecker.GetStdName(StaminaMax) + "," + 
-				SEnumChecker.GetStdName(StaminaPerTick) + "," + 
-				SEnumChecker.GetStdName(StaminaRegenDelay) + "," + 
-				SEnumChecker.GetStdName(PumpSpeed);
+				SEnumChecker.GetStdName(type) + "," + 
+				SEnumChecker.GetStdName(isDefault);
 		}
 		public override string MemberName()
 		{
 			return 
 				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(Grade, "Grade") + "," + 
-				SEnumChecker.GetMemberName(Cost_Type, "Cost_Type") + "," + 
-				SEnumChecker.GetMemberName(Price, "Price") + "," + 
-				SEnumChecker.GetMemberName(CPRefund, "CPRefund") + "," + 
-				SEnumChecker.GetMemberName(MaxVelUp, "MaxVelUp") + "," + 
-				SEnumChecker.GetMemberName(MaxVelDown, "MaxVelDown") + "," + 
-				SEnumChecker.GetMemberName(MaxVelXGround, "MaxVelXGround") + "," + 
-				SEnumChecker.GetMemberName(MaxVelXAir, "MaxVelXAir") + "," + 
-				SEnumChecker.GetMemberName(FlapDeltaVelX, "FlapDeltaVelX") + "," + 
-				SEnumChecker.GetMemberName(FlapDeltaVelUp, "FlapDeltaVelUp") + "," + 
-				SEnumChecker.GetMemberName(RunAcc, "RunAcc") + "," + 
-				SEnumChecker.GetMemberName(StaminaMax, "StaminaMax") + "," + 
-				SEnumChecker.GetMemberName(StaminaPerTick, "StaminaPerTick") + "," + 
-				SEnumChecker.GetMemberName(StaminaRegenDelay, "StaminaRegenDelay") + "," + 
-				SEnumChecker.GetMemberName(PumpSpeed, "PumpSpeed");
+				SEnumChecker.GetMemberName(type, "type") + "," + 
+				SEnumChecker.GetMemberName(isDefault, "isDefault");
 		}
 	}
-	public class SCharacterServerMeta : SCharacterMeta
+	public class SMultiMap : SPoint
 	{
-		public Boolean Default = default(Boolean);
-		public SCharacterServerMeta()
-		{
-		}
-		public SCharacterServerMeta(SCharacterServerMeta Obj_) : base(Obj_)
-		{
-			Default = Obj_.Default;
-		}
-		public SCharacterServerMeta(SCharacterMeta Super_, Boolean Default_) : base(Super_)
-		{
-			Default = Default_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref Default);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("Default", ref Default);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(Default);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("Default", Default);
-		}
-		public void Set(SCharacterServerMeta Obj_)
-		{
-			base.Set(Obj_);
-			Default = Obj_.Default;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Default);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Default, "Default");
-		}
-	}
-	public class SCharacterGradeMeta : SProto
-	{
-		public EGrade Grade = default(EGrade);
-		public SCharacterGradeMeta()
-		{
-		}
-		public SCharacterGradeMeta(SCharacterGradeMeta Obj_)
-		{
-			Grade = Obj_.Grade;
-		}
-		public SCharacterGradeMeta(EGrade Grade_)
-		{
-			Grade = Grade_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Grade);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Grade", ref Grade);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Grade);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Grade", Grade);
-		}
-		public void Set(SCharacterGradeMeta Obj_)
-		{
-			Grade = Obj_.Grade;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EGrade";
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Grade, "Grade");
-		}
-	}
-	public class SPlayerPos : SProto
-	{
-		public TPoses Poses = new TPoses();
-		public SPlayerPos()
-		{
-		}
-		public SPlayerPos(SPlayerPos Obj_)
-		{
-			Poses = Obj_.Poses;
-		}
-		public SPlayerPos(TPoses Poses_)
-		{
-			Poses = Poses_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Poses);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Poses", ref Poses);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Poses);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Poses", Poses);
-		}
-		public void Set(SPlayerPos Obj_)
-		{
-			Poses = Obj_.Poses;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Poses);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Poses, "Poses");
-		}
-	}
-	public class SMapMulti : SProto
-	{
+		public Int32 index = default(Int32);
 		public String PrefabName = string.Empty;
-		public Dictionary<TTeamCnt,SPlayerPos> PlayerPoses = new Dictionary<TTeamCnt,SPlayerPos>();
-		public SPoint PropPosition = new SPoint();
-		public List<SStructure> Structures = new List<SStructure>();
+		public TPoses Poses = new TPoses();
+		public List<SBoxCollider2D> Structures = new List<SBoxCollider2D>();
 		public List<SStructureMove> StructureMoves = new List<SStructureMove>();
-		public SMapMulti()
+		public SMultiMap()
 		{
 		}
-		public SMapMulti(SMapMulti Obj_)
+		public SMultiMap(SMultiMap Obj_) : base(Obj_)
 		{
+			index = Obj_.index;
 			PrefabName = Obj_.PrefabName;
-			PlayerPoses = Obj_.PlayerPoses;
-			PropPosition = Obj_.PropPosition;
+			Poses = Obj_.Poses;
 			Structures = Obj_.Structures;
 			StructureMoves = Obj_.StructureMoves;
 		}
-		public SMapMulti(String PrefabName_, Dictionary<TTeamCnt,SPlayerPos> PlayerPoses_, SPoint PropPosition_, List<SStructure> Structures_, List<SStructureMove> StructureMoves_)
+		public SMultiMap(SPoint Super_, Int32 index_, String PrefabName_, TPoses Poses_, List<SBoxCollider2D> Structures_, List<SStructureMove> StructureMoves_) : base(Super_)
 		{
+			index = index_;
 			PrefabName = PrefabName_;
-			PlayerPoses = PlayerPoses_;
-			PropPosition = PropPosition_;
+			Poses = Poses_;
 			Structures = Structures_;
 			StructureMoves = StructureMoves_;
 		}
 		public override void Push(CStream Stream_)
 		{
+			base.Push(Stream_);
+			Stream_.Pop(ref index);
 			Stream_.Pop(ref PrefabName);
-			Stream_.Pop(ref PlayerPoses);
-			Stream_.Pop(ref PropPosition);
+			Stream_.Pop(ref Poses);
 			Stream_.Pop(ref Structures);
 			Stream_.Pop(ref StructureMoves);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
+			base.Push(Value_);
+			Value_.Pop("index", ref index);
 			Value_.Pop("PrefabName", ref PrefabName);
-			Value_.Pop("PlayerPoses", ref PlayerPoses);
-			Value_.Pop("PropPosition", ref PropPosition);
+			Value_.Pop("Poses", ref Poses);
 			Value_.Pop("Structures", ref Structures);
 			Value_.Pop("StructureMoves", ref StructureMoves);
 		}
 		public override void Pop(CStream Stream_)
 		{
+			base.Pop(Stream_);
+			Stream_.Push(index);
 			Stream_.Push(PrefabName);
-			Stream_.Push(PlayerPoses);
-			Stream_.Push(PropPosition);
+			Stream_.Push(Poses);
 			Stream_.Push(Structures);
 			Stream_.Push(StructureMoves);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
+			base.Pop(Value_);
+			Value_.Push("index", index);
 			Value_.Push("PrefabName", PrefabName);
-			Value_.Push("PlayerPoses", PlayerPoses);
-			Value_.Push("PropPosition", PropPosition);
+			Value_.Push("Poses", Poses);
 			Value_.Push("Structures", Structures);
 			Value_.Push("StructureMoves", StructureMoves);
 		}
-		public void Set(SMapMulti Obj_)
+		public void Set(SMultiMap Obj_)
 		{
+			base.Set(Obj_);
+			index = Obj_.index;
 			PrefabName = Obj_.PrefabName;
-			PlayerPoses = Obj_.PlayerPoses;
-			PropPosition.Set(Obj_.PropPosition);
+			Poses = Obj_.Poses;
 			Structures = Obj_.Structures;
 			StructureMoves = Obj_.StructureMoves;
 		}
 		public override string StdName()
 		{
 			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(index) + "," + 
 				SEnumChecker.GetStdName(PrefabName) + "," + 
-				SEnumChecker.GetStdName(PlayerPoses) + "," + 
-				SEnumChecker.GetStdName(PropPosition) + "," + 
+				SEnumChecker.GetStdName(Poses) + "," + 
 				SEnumChecker.GetStdName(Structures) + "," + 
 				SEnumChecker.GetStdName(StructureMoves);
 		}
 		public override string MemberName()
 		{
 			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(index, "index") + "," + 
 				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
-				SEnumChecker.GetMemberName(PlayerPoses, "PlayerPoses") + "," + 
-				SEnumChecker.GetMemberName(PropPosition, "PropPosition") + "," + 
+				SEnumChecker.GetMemberName(Poses, "Poses") + "," + 
 				SEnumChecker.GetMemberName(Structures, "Structures") + "," + 
 				SEnumChecker.GetMemberName(StructureMoves, "StructureMoves");
 		}
 	}
+	public class SPrefabNameCollider : SProto
+	{
+		public String PrefabName = string.Empty;
+		public SRectCollider2D Collider = new SRectCollider2D();
+		public SPrefabNameCollider()
+		{
+		}
+		public SPrefabNameCollider(SPrefabNameCollider Obj_)
+		{
+			PrefabName = Obj_.PrefabName;
+			Collider = Obj_.Collider;
+		}
+		public SPrefabNameCollider(String PrefabName_, SRectCollider2D Collider_)
+		{
+			PrefabName = PrefabName_;
+			Collider = Collider_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref PrefabName);
+			Stream_.Pop(ref Collider);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("PrefabName", ref PrefabName);
+			Value_.Pop("Collider", ref Collider);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(PrefabName);
+			Stream_.Push(Collider);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("PrefabName", PrefabName);
+			Value_.Push("Collider", Collider);
+		}
+		public void Set(SPrefabNameCollider Obj_)
+		{
+			PrefabName = Obj_.PrefabName;
+			Collider.Set(Obj_.Collider);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(PrefabName) + "," + 
+				SEnumChecker.GetStdName(Collider);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
+				SEnumChecker.GetMemberName(Collider, "Collider");
+		}
+	}
+	public class SArrowDodgeMap : SPoint
+	{
+		public String PrefabName = string.Empty;
+		public List<SBoxCollider2D> Structures = new List<SBoxCollider2D>();
+		public SArrowDodgeMap()
+		{
+		}
+		public SArrowDodgeMap(SArrowDodgeMap Obj_) : base(Obj_)
+		{
+			PrefabName = Obj_.PrefabName;
+			Structures = Obj_.Structures;
+		}
+		public SArrowDodgeMap(SPoint Super_, String PrefabName_, List<SBoxCollider2D> Structures_) : base(Super_)
+		{
+			PrefabName = PrefabName_;
+			Structures = Structures_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+			Stream_.Pop(ref PrefabName);
+			Stream_.Pop(ref Structures);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+			Value_.Pop("PrefabName", ref PrefabName);
+			Value_.Pop("Structures", ref Structures);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+			Stream_.Push(PrefabName);
+			Stream_.Push(Structures);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+			Value_.Push("PrefabName", PrefabName);
+			Value_.Push("Structures", Structures);
+		}
+		public void Set(SArrowDodgeMap Obj_)
+		{
+			base.Set(Obj_);
+			PrefabName = Obj_.PrefabName;
+			Structures = Obj_.Structures;
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(PrefabName) + "," + 
+				SEnumChecker.GetStdName(Structures);
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
+				SEnumChecker.GetMemberName(Structures, "Structures");
+		}
+	}
+	public class SArrowDodgeMapInfo : SProto
+	{
+		public List<SArrowDodgeMap> Maps = new List<SArrowDodgeMap>();
+		public SPrefabNameCollider Arrow = new SPrefabNameCollider();
+		public SPrefabNameCollider Coin = new SPrefabNameCollider();
+		public SPrefabNameCollider GoldBar = new SPrefabNameCollider();
+		public SPrefabNameCollider Shield = new SPrefabNameCollider();
+		public SPrefabNameCollider Stamina = new SPrefabNameCollider();
+		public SArrowDodgeMapInfo()
+		{
+		}
+		public SArrowDodgeMapInfo(SArrowDodgeMapInfo Obj_)
+		{
+			Maps = Obj_.Maps;
+			Arrow = Obj_.Arrow;
+			Coin = Obj_.Coin;
+			GoldBar = Obj_.GoldBar;
+			Shield = Obj_.Shield;
+			Stamina = Obj_.Stamina;
+		}
+		public SArrowDodgeMapInfo(List<SArrowDodgeMap> Maps_, SPrefabNameCollider Arrow_, SPrefabNameCollider Coin_, SPrefabNameCollider GoldBar_, SPrefabNameCollider Shield_, SPrefabNameCollider Stamina_)
+		{
+			Maps = Maps_;
+			Arrow = Arrow_;
+			Coin = Coin_;
+			GoldBar = GoldBar_;
+			Shield = Shield_;
+			Stamina = Stamina_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Maps);
+			Stream_.Pop(ref Arrow);
+			Stream_.Pop(ref Coin);
+			Stream_.Pop(ref GoldBar);
+			Stream_.Pop(ref Shield);
+			Stream_.Pop(ref Stamina);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Maps", ref Maps);
+			Value_.Pop("Arrow", ref Arrow);
+			Value_.Pop("Coin", ref Coin);
+			Value_.Pop("GoldBar", ref GoldBar);
+			Value_.Pop("Shield", ref Shield);
+			Value_.Pop("Stamina", ref Stamina);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Maps);
+			Stream_.Push(Arrow);
+			Stream_.Push(Coin);
+			Stream_.Push(GoldBar);
+			Stream_.Push(Shield);
+			Stream_.Push(Stamina);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Maps", Maps);
+			Value_.Push("Arrow", Arrow);
+			Value_.Push("Coin", Coin);
+			Value_.Push("GoldBar", GoldBar);
+			Value_.Push("Shield", Shield);
+			Value_.Push("Stamina", Stamina);
+		}
+		public void Set(SArrowDodgeMapInfo Obj_)
+		{
+			Maps = Obj_.Maps;
+			Arrow.Set(Obj_.Arrow);
+			Coin.Set(Obj_.Coin);
+			GoldBar.Set(Obj_.GoldBar);
+			Shield.Set(Obj_.Shield);
+			Stamina.Set(Obj_.Stamina);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Maps) + "," + 
+				SEnumChecker.GetStdName(Arrow) + "," + 
+				SEnumChecker.GetStdName(Coin) + "," + 
+				SEnumChecker.GetStdName(GoldBar) + "," + 
+				SEnumChecker.GetStdName(Shield) + "," + 
+				SEnumChecker.GetStdName(Stamina);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Maps, "Maps") + "," + 
+				SEnumChecker.GetMemberName(Arrow, "Arrow") + "," + 
+				SEnumChecker.GetMemberName(Coin, "Coin") + "," + 
+				SEnumChecker.GetMemberName(GoldBar, "GoldBar") + "," + 
+				SEnumChecker.GetMemberName(Shield, "Shield") + "," + 
+				SEnumChecker.GetMemberName(Stamina, "Stamina");
+		}
+	}
+	public class SFlyAwayMap : SPoint
+	{
+		public String PrefabName = string.Empty;
+		public List<SBoxCollider2D> Structures = new List<SBoxCollider2D>();
+		public List<SBoxCollider2D> deadZones = new List<SBoxCollider2D>();
+		public SBoxCollider2D ocean = new SBoxCollider2D();
+		public SFlyAwayMap()
+		{
+		}
+		public SFlyAwayMap(SFlyAwayMap Obj_) : base(Obj_)
+		{
+			PrefabName = Obj_.PrefabName;
+			Structures = Obj_.Structures;
+			deadZones = Obj_.deadZones;
+			ocean = Obj_.ocean;
+		}
+		public SFlyAwayMap(SPoint Super_, String PrefabName_, List<SBoxCollider2D> Structures_, List<SBoxCollider2D> deadZones_, SBoxCollider2D ocean_) : base(Super_)
+		{
+			PrefabName = PrefabName_;
+			Structures = Structures_;
+			deadZones = deadZones_;
+			ocean = ocean_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+			Stream_.Pop(ref PrefabName);
+			Stream_.Pop(ref Structures);
+			Stream_.Pop(ref deadZones);
+			Stream_.Pop(ref ocean);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+			Value_.Pop("PrefabName", ref PrefabName);
+			Value_.Pop("Structures", ref Structures);
+			Value_.Pop("deadZones", ref deadZones);
+			Value_.Pop("ocean", ref ocean);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+			Stream_.Push(PrefabName);
+			Stream_.Push(Structures);
+			Stream_.Push(deadZones);
+			Stream_.Push(ocean);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+			Value_.Push("PrefabName", PrefabName);
+			Value_.Push("Structures", Structures);
+			Value_.Push("deadZones", deadZones);
+			Value_.Push("ocean", ocean);
+		}
+		public void Set(SFlyAwayMap Obj_)
+		{
+			base.Set(Obj_);
+			PrefabName = Obj_.PrefabName;
+			Structures = Obj_.Structures;
+			deadZones = Obj_.deadZones;
+			ocean.Set(Obj_.ocean);
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(PrefabName) + "," + 
+				SEnumChecker.GetStdName(Structures) + "," + 
+				SEnumChecker.GetStdName(deadZones) + "," + 
+				SEnumChecker.GetStdName(ocean);
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
+				SEnumChecker.GetMemberName(Structures, "Structures") + "," + 
+				SEnumChecker.GetMemberName(deadZones, "deadZones") + "," + 
+				SEnumChecker.GetMemberName(ocean, "ocean");
+		}
+	}
+	public class SFlyAwayMapInfo : SProto
+	{
+		public List<SFlyAwayMap> Maps = new List<SFlyAwayMap>();
+		public List<SPrefabNameCollider> Lands = new List<SPrefabNameCollider>();
+		public SPrefabNameCollider Coin = new SPrefabNameCollider();
+		public SPrefabNameCollider GoldBar = new SPrefabNameCollider();
+		public SPrefabNameCollider Apple = new SPrefabNameCollider();
+		public SPrefabNameCollider Meat = new SPrefabNameCollider();
+		public SPrefabNameCollider Chicken = new SPrefabNameCollider();
+		public SFlyAwayMapInfo()
+		{
+		}
+		public SFlyAwayMapInfo(SFlyAwayMapInfo Obj_)
+		{
+			Maps = Obj_.Maps;
+			Lands = Obj_.Lands;
+			Coin = Obj_.Coin;
+			GoldBar = Obj_.GoldBar;
+			Apple = Obj_.Apple;
+			Meat = Obj_.Meat;
+			Chicken = Obj_.Chicken;
+		}
+		public SFlyAwayMapInfo(List<SFlyAwayMap> Maps_, List<SPrefabNameCollider> Lands_, SPrefabNameCollider Coin_, SPrefabNameCollider GoldBar_, SPrefabNameCollider Apple_, SPrefabNameCollider Meat_, SPrefabNameCollider Chicken_)
+		{
+			Maps = Maps_;
+			Lands = Lands_;
+			Coin = Coin_;
+			GoldBar = GoldBar_;
+			Apple = Apple_;
+			Meat = Meat_;
+			Chicken = Chicken_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Maps);
+			Stream_.Pop(ref Lands);
+			Stream_.Pop(ref Coin);
+			Stream_.Pop(ref GoldBar);
+			Stream_.Pop(ref Apple);
+			Stream_.Pop(ref Meat);
+			Stream_.Pop(ref Chicken);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Maps", ref Maps);
+			Value_.Pop("Lands", ref Lands);
+			Value_.Pop("Coin", ref Coin);
+			Value_.Pop("GoldBar", ref GoldBar);
+			Value_.Pop("Apple", ref Apple);
+			Value_.Pop("Meat", ref Meat);
+			Value_.Pop("Chicken", ref Chicken);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Maps);
+			Stream_.Push(Lands);
+			Stream_.Push(Coin);
+			Stream_.Push(GoldBar);
+			Stream_.Push(Apple);
+			Stream_.Push(Meat);
+			Stream_.Push(Chicken);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Maps", Maps);
+			Value_.Push("Lands", Lands);
+			Value_.Push("Coin", Coin);
+			Value_.Push("GoldBar", GoldBar);
+			Value_.Push("Apple", Apple);
+			Value_.Push("Meat", Meat);
+			Value_.Push("Chicken", Chicken);
+		}
+		public void Set(SFlyAwayMapInfo Obj_)
+		{
+			Maps = Obj_.Maps;
+			Lands = Obj_.Lands;
+			Coin.Set(Obj_.Coin);
+			GoldBar.Set(Obj_.GoldBar);
+			Apple.Set(Obj_.Apple);
+			Meat.Set(Obj_.Meat);
+			Chicken.Set(Obj_.Chicken);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Maps) + "," + 
+				SEnumChecker.GetStdName(Lands) + "," + 
+				SEnumChecker.GetStdName(Coin) + "," + 
+				SEnumChecker.GetStdName(GoldBar) + "," + 
+				SEnumChecker.GetStdName(Apple) + "," + 
+				SEnumChecker.GetStdName(Meat) + "," + 
+				SEnumChecker.GetStdName(Chicken);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Maps, "Maps") + "," + 
+				SEnumChecker.GetMemberName(Lands, "Lands") + "," + 
+				SEnumChecker.GetMemberName(Coin, "Coin") + "," + 
+				SEnumChecker.GetMemberName(GoldBar, "GoldBar") + "," + 
+				SEnumChecker.GetMemberName(Apple, "Apple") + "," + 
+				SEnumChecker.GetMemberName(Meat, "Meat") + "," + 
+				SEnumChecker.GetMemberName(Chicken, "Chicken");
+		}
+	}
 	public class SMapMeta : SProto
 	{
-		public List<SMapMulti> MapOneOnOnes = new List<SMapMulti>();
-		public List<SMapMulti> MapMulties = new List<SMapMulti>();
+		public List<SMultiMap> OneOnOneMaps = new List<SMultiMap>();
+		public SArrowDodgeMapInfo ArrowDodgeMapInfo = new SArrowDodgeMapInfo();
+		public SFlyAwayMapInfo FlyAwayMapInfo = new SFlyAwayMapInfo();
 		public SMapMeta()
 		{
 		}
 		public SMapMeta(SMapMeta Obj_)
 		{
-			MapOneOnOnes = Obj_.MapOneOnOnes;
-			MapMulties = Obj_.MapMulties;
+			OneOnOneMaps = Obj_.OneOnOneMaps;
+			ArrowDodgeMapInfo = Obj_.ArrowDodgeMapInfo;
+			FlyAwayMapInfo = Obj_.FlyAwayMapInfo;
 		}
-		public SMapMeta(List<SMapMulti> MapOneOnOnes_, List<SMapMulti> MapMulties_)
+		public SMapMeta(List<SMultiMap> OneOnOneMaps_, SArrowDodgeMapInfo ArrowDodgeMapInfo_, SFlyAwayMapInfo FlyAwayMapInfo_)
 		{
-			MapOneOnOnes = MapOneOnOnes_;
-			MapMulties = MapMulties_;
+			OneOnOneMaps = OneOnOneMaps_;
+			ArrowDodgeMapInfo = ArrowDodgeMapInfo_;
+			FlyAwayMapInfo = FlyAwayMapInfo_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref MapOneOnOnes);
-			Stream_.Pop(ref MapMulties);
+			Stream_.Pop(ref OneOnOneMaps);
+			Stream_.Pop(ref ArrowDodgeMapInfo);
+			Stream_.Pop(ref FlyAwayMapInfo);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("MapOneOnOnes", ref MapOneOnOnes);
-			Value_.Pop("MapMulties", ref MapMulties);
+			Value_.Pop("OneOnOneMaps", ref OneOnOneMaps);
+			Value_.Pop("ArrowDodgeMapInfo", ref ArrowDodgeMapInfo);
+			Value_.Pop("FlyAwayMapInfo", ref FlyAwayMapInfo);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(MapOneOnOnes);
-			Stream_.Push(MapMulties);
+			Stream_.Push(OneOnOneMaps);
+			Stream_.Push(ArrowDodgeMapInfo);
+			Stream_.Push(FlyAwayMapInfo);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("MapOneOnOnes", MapOneOnOnes);
-			Value_.Push("MapMulties", MapMulties);
+			Value_.Push("OneOnOneMaps", OneOnOneMaps);
+			Value_.Push("ArrowDodgeMapInfo", ArrowDodgeMapInfo);
+			Value_.Push("FlyAwayMapInfo", FlyAwayMapInfo);
 		}
 		public void Set(SMapMeta Obj_)
 		{
-			MapOneOnOnes = Obj_.MapOneOnOnes;
-			MapMulties = Obj_.MapMulties;
+			OneOnOneMaps = Obj_.OneOnOneMaps;
+			ArrowDodgeMapInfo.Set(Obj_.ArrowDodgeMapInfo);
+			FlyAwayMapInfo.Set(Obj_.FlyAwayMapInfo);
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(MapOneOnOnes) + "," + 
-				SEnumChecker.GetStdName(MapMulties);
+				SEnumChecker.GetStdName(OneOnOneMaps) + "," + 
+				SEnumChecker.GetStdName(ArrowDodgeMapInfo) + "," + 
+				SEnumChecker.GetStdName(FlyAwayMapInfo);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(MapOneOnOnes, "MapOneOnOnes") + "," + 
-				SEnumChecker.GetMemberName(MapMulties, "MapMulties");
-		}
-	}
-	public class SSingleMeta : SProto
-	{
-		public Int32 PlayCountMax = default(Int32);
-		public TResource ChargeCostGold = default(TResource);
-		public Int32 ScoreFactorWave = default(Int32);
-		public Int32 ScoreFactorTime = default(Int32);
-		public Int32 ScoreFactorGold = default(Int32);
-		public Int32 RefreshDurationMinute = default(Int32);
-		public SSingleMeta()
-		{
-		}
-		public SSingleMeta(SSingleMeta Obj_)
-		{
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ScoreFactorTime = Obj_.ScoreFactorTime;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-		}
-		public SSingleMeta(Int32 PlayCountMax_, TResource ChargeCostGold_, Int32 ScoreFactorWave_, Int32 ScoreFactorTime_, Int32 ScoreFactorGold_, Int32 RefreshDurationMinute_)
-		{
-			PlayCountMax = PlayCountMax_;
-			ChargeCostGold = ChargeCostGold_;
-			ScoreFactorWave = ScoreFactorWave_;
-			ScoreFactorTime = ScoreFactorTime_;
-			ScoreFactorGold = ScoreFactorGold_;
-			RefreshDurationMinute = RefreshDurationMinute_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref PlayCountMax);
-			Stream_.Pop(ref ChargeCostGold);
-			Stream_.Pop(ref ScoreFactorWave);
-			Stream_.Pop(ref ScoreFactorTime);
-			Stream_.Pop(ref ScoreFactorGold);
-			Stream_.Pop(ref RefreshDurationMinute);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("PlayCountMax", ref PlayCountMax);
-			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
-			Value_.Pop("ScoreFactorWave", ref ScoreFactorWave);
-			Value_.Pop("ScoreFactorTime", ref ScoreFactorTime);
-			Value_.Pop("ScoreFactorGold", ref ScoreFactorGold);
-			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(PlayCountMax);
-			Stream_.Push(ChargeCostGold);
-			Stream_.Push(ScoreFactorWave);
-			Stream_.Push(ScoreFactorTime);
-			Stream_.Push(ScoreFactorGold);
-			Stream_.Push(RefreshDurationMinute);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("PlayCountMax", PlayCountMax);
-			Value_.Push("ChargeCostGold", ChargeCostGold);
-			Value_.Push("ScoreFactorWave", ScoreFactorWave);
-			Value_.Push("ScoreFactorTime", ScoreFactorTime);
-			Value_.Push("ScoreFactorGold", ScoreFactorGold);
-			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
-		}
-		public void Set(SSingleMeta Obj_)
-		{
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ScoreFactorTime = Obj_.ScoreFactorTime;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(PlayCountMax) + "," + 
-				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorWave) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorTime) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorGold) + "," + 
-				SEnumChecker.GetStdName(RefreshDurationMinute);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
-				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorWave, "ScoreFactorWave") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorTime, "ScoreFactorTime") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorGold, "ScoreFactorGold") + "," + 
-				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute");
-		}
-	}
-	public class SIslandMeta : SProto
-	{
-		public Int32 PlayCountMax = default(Int32);
-		public TResource ChargeCostGold = default(TResource);
-		public Int32 ScoreFactorIsland = default(Int32);
-		public Int32 ScoreFactorGold = default(Int32);
-		public Int32 RefreshDurationMinute = default(Int32);
-		public SIslandMeta()
-		{
-		}
-		public SIslandMeta(SIslandMeta Obj_)
-		{
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-		}
-		public SIslandMeta(Int32 PlayCountMax_, TResource ChargeCostGold_, Int32 ScoreFactorIsland_, Int32 ScoreFactorGold_, Int32 RefreshDurationMinute_)
-		{
-			PlayCountMax = PlayCountMax_;
-			ChargeCostGold = ChargeCostGold_;
-			ScoreFactorIsland = ScoreFactorIsland_;
-			ScoreFactorGold = ScoreFactorGold_;
-			RefreshDurationMinute = RefreshDurationMinute_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref PlayCountMax);
-			Stream_.Pop(ref ChargeCostGold);
-			Stream_.Pop(ref ScoreFactorIsland);
-			Stream_.Pop(ref ScoreFactorGold);
-			Stream_.Pop(ref RefreshDurationMinute);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("PlayCountMax", ref PlayCountMax);
-			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
-			Value_.Pop("ScoreFactorIsland", ref ScoreFactorIsland);
-			Value_.Pop("ScoreFactorGold", ref ScoreFactorGold);
-			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(PlayCountMax);
-			Stream_.Push(ChargeCostGold);
-			Stream_.Push(ScoreFactorIsland);
-			Stream_.Push(ScoreFactorGold);
-			Stream_.Push(RefreshDurationMinute);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("PlayCountMax", PlayCountMax);
-			Value_.Push("ChargeCostGold", ChargeCostGold);
-			Value_.Push("ScoreFactorIsland", ScoreFactorIsland);
-			Value_.Push("ScoreFactorGold", ScoreFactorGold);
-			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
-		}
-		public void Set(SIslandMeta Obj_)
-		{
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(PlayCountMax) + "," + 
-				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorIsland) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorGold) + "," + 
-				SEnumChecker.GetStdName(RefreshDurationMinute);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
-				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorIsland, "ScoreFactorIsland") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorGold, "ScoreFactorGold") + "," + 
-				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute");
-		}
-	}
-	public class SGachaMeta : SProto
-	{
-		public EResource CostResource = default(EResource);
-		public Int32 CostValue = default(Int32);
-		public EResource TenCostResource = default(EResource);
-		public Int32 TenCostValue = default(Int32);
-		public Int32 RewardCode = default(Int32);
-		public SGachaMeta()
-		{
-		}
-		public SGachaMeta(SGachaMeta Obj_)
-		{
-			CostResource = Obj_.CostResource;
-			CostValue = Obj_.CostValue;
-			TenCostResource = Obj_.TenCostResource;
-			TenCostValue = Obj_.TenCostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public SGachaMeta(EResource CostResource_, Int32 CostValue_, EResource TenCostResource_, Int32 TenCostValue_, Int32 RewardCode_)
-		{
-			CostResource = CostResource_;
-			CostValue = CostValue_;
-			TenCostResource = TenCostResource_;
-			TenCostValue = TenCostValue_;
-			RewardCode = RewardCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref CostResource);
-			Stream_.Pop(ref CostValue);
-			Stream_.Pop(ref TenCostResource);
-			Stream_.Pop(ref TenCostValue);
-			Stream_.Pop(ref RewardCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("CostResource", ref CostResource);
-			Value_.Pop("CostValue", ref CostValue);
-			Value_.Pop("TenCostResource", ref TenCostResource);
-			Value_.Pop("TenCostValue", ref TenCostValue);
-			Value_.Pop("RewardCode", ref RewardCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(CostResource);
-			Stream_.Push(CostValue);
-			Stream_.Push(TenCostResource);
-			Stream_.Push(TenCostValue);
-			Stream_.Push(RewardCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("CostResource", CostResource);
-			Value_.Push("CostValue", CostValue);
-			Value_.Push("TenCostResource", TenCostResource);
-			Value_.Push("TenCostValue", TenCostValue);
-			Value_.Push("RewardCode", RewardCode);
-		}
-		public void Set(SGachaMeta Obj_)
-		{
-			CostResource = Obj_.CostResource;
-			CostValue = Obj_.CostValue;
-			TenCostResource = Obj_.TenCostResource;
-			TenCostValue = Obj_.TenCostValue;
-			RewardCode = Obj_.RewardCode;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(CostValue) + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(TenCostValue) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(CostResource, "CostResource") + "," + 
-				SEnumChecker.GetMemberName(CostValue, "CostValue") + "," + 
-				SEnumChecker.GetMemberName(TenCostResource, "TenCostResource") + "," + 
-				SEnumChecker.GetMemberName(TenCostValue, "TenCostValue") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
-		}
-	}
-	public class SGachaGradeMeta : SProto
-	{
-		public EGrade Grade = default(EGrade);
-		public Double Probability = default(Double);
-		public SGachaGradeMeta()
-		{
-		}
-		public SGachaGradeMeta(SGachaGradeMeta Obj_)
-		{
-			Grade = Obj_.Grade;
-			Probability = Obj_.Probability;
-		}
-		public SGachaGradeMeta(EGrade Grade_, Double Probability_)
-		{
-			Grade = Grade_;
-			Probability = Probability_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Grade);
-			Stream_.Pop(ref Probability);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Grade", ref Grade);
-			Value_.Pop("Probability", ref Probability);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Grade);
-			Stream_.Push(Probability);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Grade", Grade);
-			Value_.Push("Probability", Probability);
-		}
-		public void Set(SGachaGradeMeta Obj_)
-		{
-			Grade = Obj_.Grade;
-			Probability = Obj_.Probability;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EGrade" + "," + 
-				SEnumChecker.GetStdName(Probability);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Grade, "Grade") + "," + 
-				SEnumChecker.GetMemberName(Probability, "Probability");
-		}
-	}
-	public class SGachaRewardMeta : SProto
-	{
-		public Int32 Code = default(Int32);
-		public Double Probability = default(Double);
-		public Int32 CharCode = default(Int32);
-		public SGachaRewardMeta()
-		{
-		}
-		public SGachaRewardMeta(SGachaRewardMeta Obj_)
-		{
-			Code = Obj_.Code;
-			Probability = Obj_.Probability;
-			CharCode = Obj_.CharCode;
-		}
-		public SGachaRewardMeta(Int32 Code_, Double Probability_, Int32 CharCode_)
-		{
-			Code = Code_;
-			Probability = Probability_;
-			CharCode = CharCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref Probability);
-			Stream_.Pop(ref CharCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("Probability", ref Probability);
-			Value_.Pop("CharCode", ref CharCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-			Stream_.Push(Probability);
-			Stream_.Push(CharCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-			Value_.Push("Probability", Probability);
-			Value_.Push("CharCode", CharCode);
-		}
-		public void Set(SGachaRewardMeta Obj_)
-		{
-			Code = Obj_.Code;
-			Probability = Obj_.Probability;
-			CharCode = Obj_.CharCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code) + "," + 
-				SEnumChecker.GetStdName(Probability) + "," + 
-				SEnumChecker.GetStdName(CharCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(Probability, "Probability") + "," + 
-				SEnumChecker.GetMemberName(CharCode, "CharCode");
-		}
-	}
-	public class SRewardMeta : SProto
-	{
-		public ERewardType Type = default(ERewardType);
-		public Int32 Data = default(Int32);
-		public SRewardMeta()
-		{
-		}
-		public SRewardMeta(SRewardMeta Obj_)
-		{
-			Type = Obj_.Type;
-			Data = Obj_.Data;
-		}
-		public SRewardMeta(ERewardType Type_, Int32 Data_)
-		{
-			Type = Type_;
-			Data = Data_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Type);
-			Stream_.Pop(ref Data);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Type", ref Type);
-			Value_.Pop("Data", ref Data);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Type);
-			Stream_.Push(Data);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Type", Type);
-			Value_.Push("Data", Data);
-		}
-		public void Set(SRewardMeta Obj_)
-		{
-			Type = Obj_.Type;
-			Data = Obj_.Data;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.ERewardType" + "," + 
-				SEnumChecker.GetStdName(Data);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Type, "Type") + "," + 
-				SEnumChecker.GetMemberName(Data, "Data");
-		}
-	}
-	public class SKeyRewardMeta : SProto
-	{
-		public Int32 Code = default(Int32);
-		public SRewardMeta Reward = new SRewardMeta();
-		public SKeyRewardMeta()
-		{
-		}
-		public SKeyRewardMeta(SKeyRewardMeta Obj_)
-		{
-			Code = Obj_.Code;
-			Reward = Obj_.Reward;
-		}
-		public SKeyRewardMeta(Int32 Code_, SRewardMeta Reward_)
-		{
-			Code = Code_;
-			Reward = Reward_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref Reward);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("Reward", ref Reward);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-			Stream_.Push(Reward);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-			Value_.Push("Reward", Reward);
-		}
-		public void Set(SKeyRewardMeta Obj_)
-		{
-			Code = Obj_.Code;
-			Reward.Set(Obj_.Reward);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code) + "," + 
-				SEnumChecker.GetStdName(Reward);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(Reward, "Reward");
-		}
-	}
-	public class SRankMeta : SProto
-	{
-		public ERank Rank = default(ERank);
-		public SRankMeta()
-		{
-		}
-		public SRankMeta(SRankMeta Obj_)
-		{
-			Rank = Obj_.Rank;
-		}
-		public SRankMeta(ERank Rank_)
-		{
-			Rank = Rank_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Rank);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Rank", ref Rank);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Rank);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Rank", Rank);
-		}
-		public void Set(SRankMeta Obj_)
-		{
-			Rank = Obj_.Rank;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.ERank";
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Rank, "Rank");
+				SEnumChecker.GetMemberName(OneOnOneMaps, "OneOnOneMaps") + "," + 
+				SEnumChecker.GetMemberName(ArrowDodgeMapInfo, "ArrowDodgeMapInfo") + "," + 
+				SEnumChecker.GetMemberName(FlyAwayMapInfo, "FlyAwayMapInfo");
 		}
 	}
 	public class SRankTierMeta : SProto
 	{
 		public ERank Rank = default(ERank);
 		public Int32 Tier = default(Int32);
-		public Int32 MinPoint = default(Int32);
+		public Int32 MaxPoint = default(Int32);
 		public SRankTierMeta()
 		{
 		}
@@ -1794,122 +1347,132 @@ namespace bb
 		{
 			Rank = Obj_.Rank;
 			Tier = Obj_.Tier;
-			MinPoint = Obj_.MinPoint;
+			MaxPoint = Obj_.MaxPoint;
 		}
-		public SRankTierMeta(ERank Rank_, Int32 Tier_, Int32 MinPoint_)
+		public SRankTierMeta(ERank Rank_, Int32 Tier_, Int32 MaxPoint_)
 		{
 			Rank = Rank_;
 			Tier = Tier_;
-			MinPoint = MinPoint_;
+			MaxPoint = MaxPoint_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			Stream_.Pop(ref Rank);
 			Stream_.Pop(ref Tier);
-			Stream_.Pop(ref MinPoint);
+			Stream_.Pop(ref MaxPoint);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			Value_.Pop("Rank", ref Rank);
 			Value_.Pop("Tier", ref Tier);
-			Value_.Pop("MinPoint", ref MinPoint);
+			Value_.Pop("MaxPoint", ref MaxPoint);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			Stream_.Push(Rank);
 			Stream_.Push(Tier);
-			Stream_.Push(MinPoint);
+			Stream_.Push(MaxPoint);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			Value_.Push("Rank", Rank);
 			Value_.Push("Tier", Tier);
-			Value_.Push("MinPoint", MinPoint);
+			Value_.Push("MaxPoint", MaxPoint);
 		}
 		public void Set(SRankTierMeta Obj_)
 		{
 			Rank = Obj_.Rank;
 			Tier = Obj_.Tier;
-			MinPoint = Obj_.MinPoint;
+			MaxPoint = Obj_.MaxPoint;
 		}
 		public override string StdName()
 		{
 			return 
 				"bb.ERank" + "," + 
 				SEnumChecker.GetStdName(Tier) + "," + 
-				SEnumChecker.GetStdName(MinPoint);
+				SEnumChecker.GetStdName(MaxPoint);
 		}
 		public override string MemberName()
 		{
 			return 
 				SEnumChecker.GetMemberName(Rank, "Rank") + "," + 
 				SEnumChecker.GetMemberName(Tier, "Tier") + "," + 
-				SEnumChecker.GetMemberName(MinPoint, "MinPoint");
+				SEnumChecker.GetMemberName(MaxPoint, "MaxPoint");
 		}
 	}
 	public class SRankRewardMeta : SProto
 	{
-		public Int32 Point = default(Int32);
-		public Int32 RewardCode = default(Int32);
+		public Int32 point = default(Int32);
+		public String rewardType = string.Empty;
+		public Int32 rewardValue = default(Int32);
 		public SRankRewardMeta()
 		{
 		}
 		public SRankRewardMeta(SRankRewardMeta Obj_)
 		{
-			Point = Obj_.Point;
-			RewardCode = Obj_.RewardCode;
+			point = Obj_.point;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
-		public SRankRewardMeta(Int32 Point_, Int32 RewardCode_)
+		public SRankRewardMeta(Int32 point_, String rewardType_, Int32 rewardValue_)
 		{
-			Point = Point_;
-			RewardCode = RewardCode_;
+			point = point_;
+			rewardType = rewardType_;
+			rewardValue = rewardValue_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Point);
-			Stream_.Pop(ref RewardCode);
+			Stream_.Pop(ref point);
+			Stream_.Pop(ref rewardType);
+			Stream_.Pop(ref rewardValue);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Point", ref Point);
-			Value_.Pop("RewardCode", ref RewardCode);
+			Value_.Pop("point", ref point);
+			Value_.Pop("rewardType", ref rewardType);
+			Value_.Pop("rewardValue", ref rewardValue);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Point);
-			Stream_.Push(RewardCode);
+			Stream_.Push(point);
+			Stream_.Push(rewardType);
+			Stream_.Push(rewardValue);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Point", Point);
-			Value_.Push("RewardCode", RewardCode);
+			Value_.Push("point", point);
+			Value_.Push("rewardType", rewardType);
+			Value_.Push("rewardValue", rewardValue);
 		}
 		public void Set(SRankRewardMeta Obj_)
 		{
-			Point = Obj_.Point;
-			RewardCode = Obj_.RewardCode;
+			point = Obj_.point;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Point) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
+				SEnumChecker.GetStdName(point) + "," + 
+				SEnumChecker.GetStdName(rewardType) + "," + 
+				SEnumChecker.GetStdName(rewardValue);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Point, "Point") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
+				SEnumChecker.GetMemberName(point, "point") + "," + 
+				SEnumChecker.GetMemberName(rewardType, "rewardType") + "," + 
+				SEnumChecker.GetMemberName(rewardValue, "rewardValue");
 		}
 	}
 	public class SQuestMeta : SProto
 	{
 		public EQuestType QuestType = default(EQuestType);
 		public Int32 Code = default(Int32);
-		public Int32 RequirmentCount = default(Int32);
-		public String Param = string.Empty;
-		public String Operator = string.Empty;
-		public Int32 RewardCode = default(Int32);
+		public Int32 unitCompleteCount = default(Int32);
+		public Int32 completeCount = default(Int32);
+		public String rewardType = string.Empty;
+		public Int32 rewardValue = default(Int32);
 		public SQuestMeta()
 		{
 		}
@@ -1917,284 +1480,734 @@ namespace bb
 		{
 			QuestType = Obj_.QuestType;
 			Code = Obj_.Code;
-			RequirmentCount = Obj_.RequirmentCount;
-			Param = Obj_.Param;
-			Operator = Obj_.Operator;
-			RewardCode = Obj_.RewardCode;
+			unitCompleteCount = Obj_.unitCompleteCount;
+			completeCount = Obj_.completeCount;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
-		public SQuestMeta(EQuestType QuestType_, Int32 Code_, Int32 RequirmentCount_, String Param_, String Operator_, Int32 RewardCode_)
+		public SQuestMeta(EQuestType QuestType_, Int32 Code_, Int32 unitCompleteCount_, Int32 completeCount_, String rewardType_, Int32 rewardValue_)
 		{
 			QuestType = QuestType_;
 			Code = Code_;
-			RequirmentCount = RequirmentCount_;
-			Param = Param_;
-			Operator = Operator_;
-			RewardCode = RewardCode_;
+			unitCompleteCount = unitCompleteCount_;
+			completeCount = completeCount_;
+			rewardType = rewardType_;
+			rewardValue = rewardValue_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			Stream_.Pop(ref QuestType);
 			Stream_.Pop(ref Code);
-			Stream_.Pop(ref RequirmentCount);
-			Stream_.Pop(ref Param);
-			Stream_.Pop(ref Operator);
-			Stream_.Pop(ref RewardCode);
+			Stream_.Pop(ref unitCompleteCount);
+			Stream_.Pop(ref completeCount);
+			Stream_.Pop(ref rewardType);
+			Stream_.Pop(ref rewardValue);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			Value_.Pop("QuestType", ref QuestType);
 			Value_.Pop("Code", ref Code);
-			Value_.Pop("RequirmentCount", ref RequirmentCount);
-			Value_.Pop("Param", ref Param);
-			Value_.Pop("Operator", ref Operator);
-			Value_.Pop("RewardCode", ref RewardCode);
+			Value_.Pop("unitCompleteCount", ref unitCompleteCount);
+			Value_.Pop("completeCount", ref completeCount);
+			Value_.Pop("rewardType", ref rewardType);
+			Value_.Pop("rewardValue", ref rewardValue);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			Stream_.Push(QuestType);
 			Stream_.Push(Code);
-			Stream_.Push(RequirmentCount);
-			Stream_.Push(Param);
-			Stream_.Push(Operator);
-			Stream_.Push(RewardCode);
+			Stream_.Push(unitCompleteCount);
+			Stream_.Push(completeCount);
+			Stream_.Push(rewardType);
+			Stream_.Push(rewardValue);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			Value_.Push("QuestType", QuestType);
 			Value_.Push("Code", Code);
-			Value_.Push("RequirmentCount", RequirmentCount);
-			Value_.Push("Param", Param);
-			Value_.Push("Operator", Operator);
-			Value_.Push("RewardCode", RewardCode);
+			Value_.Push("unitCompleteCount", unitCompleteCount);
+			Value_.Push("completeCount", completeCount);
+			Value_.Push("rewardType", rewardType);
+			Value_.Push("rewardValue", rewardValue);
 		}
 		public void Set(SQuestMeta Obj_)
 		{
 			QuestType = Obj_.QuestType;
 			Code = Obj_.Code;
-			RequirmentCount = Obj_.RequirmentCount;
-			Param = Obj_.Param;
-			Operator = Obj_.Operator;
-			RewardCode = Obj_.RewardCode;
+			unitCompleteCount = Obj_.unitCompleteCount;
+			completeCount = Obj_.completeCount;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
 		public override string StdName()
 		{
 			return 
 				"bb.EQuestType" + "," + 
 				SEnumChecker.GetStdName(Code) + "," + 
-				SEnumChecker.GetStdName(RequirmentCount) + "," + 
-				SEnumChecker.GetStdName(Param) + "," + 
-				SEnumChecker.GetStdName(Operator) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
+				SEnumChecker.GetStdName(unitCompleteCount) + "," + 
+				SEnumChecker.GetStdName(completeCount) + "," + 
+				SEnumChecker.GetStdName(rewardType) + "," + 
+				SEnumChecker.GetStdName(rewardValue);
 		}
 		public override string MemberName()
 		{
 			return 
 				SEnumChecker.GetMemberName(QuestType, "QuestType") + "," + 
 				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(RequirmentCount, "RequirmentCount") + "," + 
-				SEnumChecker.GetMemberName(Param, "Param") + "," + 
-				SEnumChecker.GetMemberName(Operator, "Operator") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
+				SEnumChecker.GetMemberName(unitCompleteCount, "unitCompleteCount") + "," + 
+				SEnumChecker.GetMemberName(completeCount, "completeCount") + "," + 
+				SEnumChecker.GetMemberName(rewardType, "rewardType") + "," + 
+				SEnumChecker.GetMemberName(rewardValue, "rewardValue");
 		}
 	}
-	public class SQuestDailyCompleteMeta : SProto
+	public class QuestConfigMeta : SProto
 	{
-		public Int32 RequirmentCount = default(Int32);
-		public Int32 RewardCode = default(Int32);
-		public Int32 RefreshMinutes = default(Int32);
-		public SQuestDailyCompleteMeta()
+		public Minutes coolMinutes = default(Minutes);
+		public Int32 dailyRequirementCount = default(Int32);
+		public String dailyRewardType = string.Empty;
+		public Int32 dailyRewardValue = default(Int32);
+		public Minutes dailyRefreshMinutes = default(Minutes);
+		public QuestConfigMeta()
 		{
 		}
-		public SQuestDailyCompleteMeta(SQuestDailyCompleteMeta Obj_)
+		public QuestConfigMeta(QuestConfigMeta Obj_)
 		{
-			RequirmentCount = Obj_.RequirmentCount;
-			RewardCode = Obj_.RewardCode;
-			RefreshMinutes = Obj_.RefreshMinutes;
+			coolMinutes = Obj_.coolMinutes;
+			dailyRequirementCount = Obj_.dailyRequirementCount;
+			dailyRewardType = Obj_.dailyRewardType;
+			dailyRewardValue = Obj_.dailyRewardValue;
+			dailyRefreshMinutes = Obj_.dailyRefreshMinutes;
 		}
-		public SQuestDailyCompleteMeta(Int32 RequirmentCount_, Int32 RewardCode_, Int32 RefreshMinutes_)
+		public QuestConfigMeta(Minutes coolMinutes_, Int32 dailyRequirementCount_, String dailyRewardType_, Int32 dailyRewardValue_, Minutes dailyRefreshMinutes_)
 		{
-			RequirmentCount = RequirmentCount_;
-			RewardCode = RewardCode_;
-			RefreshMinutes = RefreshMinutes_;
+			coolMinutes = coolMinutes_;
+			dailyRequirementCount = dailyRequirementCount_;
+			dailyRewardType = dailyRewardType_;
+			dailyRewardValue = dailyRewardValue_;
+			dailyRefreshMinutes = dailyRefreshMinutes_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref RequirmentCount);
-			Stream_.Pop(ref RewardCode);
-			Stream_.Pop(ref RefreshMinutes);
+			Stream_.Pop(ref coolMinutes);
+			Stream_.Pop(ref dailyRequirementCount);
+			Stream_.Pop(ref dailyRewardType);
+			Stream_.Pop(ref dailyRewardValue);
+			Stream_.Pop(ref dailyRefreshMinutes);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("RequirmentCount", ref RequirmentCount);
-			Value_.Pop("RewardCode", ref RewardCode);
-			Value_.Pop("RefreshMinutes", ref RefreshMinutes);
+			Value_.Pop("coolMinutes", ref coolMinutes);
+			Value_.Pop("dailyRequirementCount", ref dailyRequirementCount);
+			Value_.Pop("dailyRewardType", ref dailyRewardType);
+			Value_.Pop("dailyRewardValue", ref dailyRewardValue);
+			Value_.Pop("dailyRefreshMinutes", ref dailyRefreshMinutes);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(RequirmentCount);
-			Stream_.Push(RewardCode);
-			Stream_.Push(RefreshMinutes);
+			Stream_.Push(coolMinutes);
+			Stream_.Push(dailyRequirementCount);
+			Stream_.Push(dailyRewardType);
+			Stream_.Push(dailyRewardValue);
+			Stream_.Push(dailyRefreshMinutes);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("RequirmentCount", RequirmentCount);
-			Value_.Push("RewardCode", RewardCode);
-			Value_.Push("RefreshMinutes", RefreshMinutes);
+			Value_.Push("coolMinutes", coolMinutes);
+			Value_.Push("dailyRequirementCount", dailyRequirementCount);
+			Value_.Push("dailyRewardType", dailyRewardType);
+			Value_.Push("dailyRewardValue", dailyRewardValue);
+			Value_.Push("dailyRefreshMinutes", dailyRefreshMinutes);
 		}
-		public void Set(SQuestDailyCompleteMeta Obj_)
+		public void Set(QuestConfigMeta Obj_)
 		{
-			RequirmentCount = Obj_.RequirmentCount;
-			RewardCode = Obj_.RewardCode;
-			RefreshMinutes = Obj_.RefreshMinutes;
+			coolMinutes = Obj_.coolMinutes;
+			dailyRequirementCount = Obj_.dailyRequirementCount;
+			dailyRewardType = Obj_.dailyRewardType;
+			dailyRewardValue = Obj_.dailyRewardValue;
+			dailyRefreshMinutes = Obj_.dailyRefreshMinutes;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(RequirmentCount) + "," + 
-				SEnumChecker.GetStdName(RewardCode) + "," + 
-				SEnumChecker.GetStdName(RefreshMinutes);
+				SEnumChecker.GetStdName(coolMinutes) + "," + 
+				SEnumChecker.GetStdName(dailyRequirementCount) + "," + 
+				SEnumChecker.GetStdName(dailyRewardType) + "," + 
+				SEnumChecker.GetStdName(dailyRewardValue) + "," + 
+				SEnumChecker.GetStdName(dailyRefreshMinutes);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(RequirmentCount, "RequirmentCount") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode") + "," + 
-				SEnumChecker.GetMemberName(RefreshMinutes, "RefreshMinutes");
+				SEnumChecker.GetMemberName(coolMinutes, "coolMinutes") + "," + 
+				SEnumChecker.GetMemberName(dailyRequirementCount, "dailyRequirementCount") + "," + 
+				SEnumChecker.GetMemberName(dailyRewardType, "dailyRewardType") + "," + 
+				SEnumChecker.GetMemberName(dailyRewardValue, "dailyRewardValue") + "," + 
+				SEnumChecker.GetMemberName(dailyRefreshMinutes, "dailyRefreshMinutes");
 		}
 	}
-	public class SBattleRewardMeta : SProto
+	public class MultiBattleConfigMeta : SProto
 	{
-		public EGameMode GameMode = default(EGameMode);
-		public TTeamCnt TeamCount = default(TTeamCnt);
-		public Int32 TeamMemberCount = default(Int32);
-		public Int32 AddGold = default(Int32);
-		public Int32 Unranked = default(Int32);
-		public Int32 Bronze = default(Int32);
-		public Int32 Silver = default(Int32);
-		public Int32 Gold = default(Int32);
-		public Int32 Diamond = default(Int32);
-		public Int32 Champion = default(Int32);
-		public SBattleRewardMeta()
+		public Int32 DisconnectableSeconds = default(Int32);
+		public Int32 PunishMinutesForDisconnect = default(Int32);
+		public TResource rewardDiaValue = default(TResource);
+		public Int32 eloDiffPoint = default(Int32);
+		public Double eloDiffWinRatio = default(Double);
+		public Double eloKWeight = default(Double);
+		public MultiBattleConfigMeta()
 		{
 		}
-		public SBattleRewardMeta(SBattleRewardMeta Obj_)
+		public MultiBattleConfigMeta(MultiBattleConfigMeta Obj_)
 		{
-			GameMode = Obj_.GameMode;
-			TeamCount = Obj_.TeamCount;
-			TeamMemberCount = Obj_.TeamMemberCount;
-			AddGold = Obj_.AddGold;
-			Unranked = Obj_.Unranked;
-			Bronze = Obj_.Bronze;
-			Silver = Obj_.Silver;
-			Gold = Obj_.Gold;
-			Diamond = Obj_.Diamond;
-			Champion = Obj_.Champion;
+			DisconnectableSeconds = Obj_.DisconnectableSeconds;
+			PunishMinutesForDisconnect = Obj_.PunishMinutesForDisconnect;
+			rewardDiaValue = Obj_.rewardDiaValue;
+			eloDiffPoint = Obj_.eloDiffPoint;
+			eloDiffWinRatio = Obj_.eloDiffWinRatio;
+			eloKWeight = Obj_.eloKWeight;
 		}
-		public SBattleRewardMeta(EGameMode GameMode_, TTeamCnt TeamCount_, Int32 TeamMemberCount_, Int32 AddGold_, Int32 Unranked_, Int32 Bronze_, Int32 Silver_, Int32 Gold_, Int32 Diamond_, Int32 Champion_)
+		public MultiBattleConfigMeta(Int32 DisconnectableSeconds_, Int32 PunishMinutesForDisconnect_, TResource rewardDiaValue_, Int32 eloDiffPoint_, Double eloDiffWinRatio_, Double eloKWeight_)
 		{
-			GameMode = GameMode_;
-			TeamCount = TeamCount_;
-			TeamMemberCount = TeamMemberCount_;
-			AddGold = AddGold_;
-			Unranked = Unranked_;
-			Bronze = Bronze_;
-			Silver = Silver_;
-			Gold = Gold_;
-			Diamond = Diamond_;
-			Champion = Champion_;
+			DisconnectableSeconds = DisconnectableSeconds_;
+			PunishMinutesForDisconnect = PunishMinutesForDisconnect_;
+			rewardDiaValue = rewardDiaValue_;
+			eloDiffPoint = eloDiffPoint_;
+			eloDiffWinRatio = eloDiffWinRatio_;
+			eloKWeight = eloKWeight_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref GameMode);
-			Stream_.Pop(ref TeamCount);
-			Stream_.Pop(ref TeamMemberCount);
-			Stream_.Pop(ref AddGold);
-			Stream_.Pop(ref Unranked);
-			Stream_.Pop(ref Bronze);
-			Stream_.Pop(ref Silver);
-			Stream_.Pop(ref Gold);
-			Stream_.Pop(ref Diamond);
-			Stream_.Pop(ref Champion);
+			Stream_.Pop(ref DisconnectableSeconds);
+			Stream_.Pop(ref PunishMinutesForDisconnect);
+			Stream_.Pop(ref rewardDiaValue);
+			Stream_.Pop(ref eloDiffPoint);
+			Stream_.Pop(ref eloDiffWinRatio);
+			Stream_.Pop(ref eloKWeight);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("GameMode", ref GameMode);
-			Value_.Pop("TeamCount", ref TeamCount);
-			Value_.Pop("TeamMemberCount", ref TeamMemberCount);
-			Value_.Pop("AddGold", ref AddGold);
-			Value_.Pop("Unranked", ref Unranked);
-			Value_.Pop("Bronze", ref Bronze);
-			Value_.Pop("Silver", ref Silver);
-			Value_.Pop("Gold", ref Gold);
-			Value_.Pop("Diamond", ref Diamond);
-			Value_.Pop("Champion", ref Champion);
+			Value_.Pop("DisconnectableSeconds", ref DisconnectableSeconds);
+			Value_.Pop("PunishMinutesForDisconnect", ref PunishMinutesForDisconnect);
+			Value_.Pop("rewardDiaValue", ref rewardDiaValue);
+			Value_.Pop("eloDiffPoint", ref eloDiffPoint);
+			Value_.Pop("eloDiffWinRatio", ref eloDiffWinRatio);
+			Value_.Pop("eloKWeight", ref eloKWeight);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(GameMode);
-			Stream_.Push(TeamCount);
-			Stream_.Push(TeamMemberCount);
-			Stream_.Push(AddGold);
-			Stream_.Push(Unranked);
-			Stream_.Push(Bronze);
-			Stream_.Push(Silver);
-			Stream_.Push(Gold);
-			Stream_.Push(Diamond);
-			Stream_.Push(Champion);
+			Stream_.Push(DisconnectableSeconds);
+			Stream_.Push(PunishMinutesForDisconnect);
+			Stream_.Push(rewardDiaValue);
+			Stream_.Push(eloDiffPoint);
+			Stream_.Push(eloDiffWinRatio);
+			Stream_.Push(eloKWeight);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("GameMode", GameMode);
-			Value_.Push("TeamCount", TeamCount);
-			Value_.Push("TeamMemberCount", TeamMemberCount);
-			Value_.Push("AddGold", AddGold);
-			Value_.Push("Unranked", Unranked);
-			Value_.Push("Bronze", Bronze);
-			Value_.Push("Silver", Silver);
-			Value_.Push("Gold", Gold);
-			Value_.Push("Diamond", Diamond);
-			Value_.Push("Champion", Champion);
+			Value_.Push("DisconnectableSeconds", DisconnectableSeconds);
+			Value_.Push("PunishMinutesForDisconnect", PunishMinutesForDisconnect);
+			Value_.Push("rewardDiaValue", rewardDiaValue);
+			Value_.Push("eloDiffPoint", eloDiffPoint);
+			Value_.Push("eloDiffWinRatio", eloDiffWinRatio);
+			Value_.Push("eloKWeight", eloKWeight);
 		}
-		public void Set(SBattleRewardMeta Obj_)
+		public void Set(MultiBattleConfigMeta Obj_)
 		{
-			GameMode = Obj_.GameMode;
-			TeamCount = Obj_.TeamCount;
-			TeamMemberCount = Obj_.TeamMemberCount;
-			AddGold = Obj_.AddGold;
-			Unranked = Obj_.Unranked;
-			Bronze = Obj_.Bronze;
-			Silver = Obj_.Silver;
-			Gold = Obj_.Gold;
-			Diamond = Obj_.Diamond;
-			Champion = Obj_.Champion;
+			DisconnectableSeconds = Obj_.DisconnectableSeconds;
+			PunishMinutesForDisconnect = Obj_.PunishMinutesForDisconnect;
+			rewardDiaValue = Obj_.rewardDiaValue;
+			eloDiffPoint = Obj_.eloDiffPoint;
+			eloDiffWinRatio = Obj_.eloDiffWinRatio;
+			eloKWeight = Obj_.eloKWeight;
 		}
 		public override string StdName()
 		{
 			return 
-				"bb.EGameMode" + "," + 
-				SEnumChecker.GetStdName(TeamCount) + "," + 
-				SEnumChecker.GetStdName(TeamMemberCount) + "," + 
-				SEnumChecker.GetStdName(AddGold) + "," + 
-				SEnumChecker.GetStdName(Unranked) + "," + 
-				SEnumChecker.GetStdName(Bronze) + "," + 
-				SEnumChecker.GetStdName(Silver) + "," + 
-				SEnumChecker.GetStdName(Gold) + "," + 
-				SEnumChecker.GetStdName(Diamond) + "," + 
-				SEnumChecker.GetStdName(Champion);
+				SEnumChecker.GetStdName(DisconnectableSeconds) + "," + 
+				SEnumChecker.GetStdName(PunishMinutesForDisconnect) + "," + 
+				SEnumChecker.GetStdName(rewardDiaValue) + "," + 
+				SEnumChecker.GetStdName(eloDiffPoint) + "," + 
+				SEnumChecker.GetStdName(eloDiffWinRatio) + "," + 
+				SEnumChecker.GetStdName(eloKWeight);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(GameMode, "GameMode") + "," + 
-				SEnumChecker.GetMemberName(TeamCount, "TeamCount") + "," + 
-				SEnumChecker.GetMemberName(TeamMemberCount, "TeamMemberCount") + "," + 
-				SEnumChecker.GetMemberName(AddGold, "AddGold") + "," + 
-				SEnumChecker.GetMemberName(Unranked, "Unranked") + "," + 
-				SEnumChecker.GetMemberName(Bronze, "Bronze") + "," + 
-				SEnumChecker.GetMemberName(Silver, "Silver") + "," + 
-				SEnumChecker.GetMemberName(Gold, "Gold") + "," + 
-				SEnumChecker.GetMemberName(Diamond, "Diamond") + "," + 
-				SEnumChecker.GetMemberName(Champion, "Champion");
+				SEnumChecker.GetMemberName(DisconnectableSeconds, "DisconnectableSeconds") + "," + 
+				SEnumChecker.GetMemberName(PunishMinutesForDisconnect, "PunishMinutesForDisconnect") + "," + 
+				SEnumChecker.GetMemberName(rewardDiaValue, "rewardDiaValue") + "," + 
+				SEnumChecker.GetMemberName(eloDiffPoint, "eloDiffPoint") + "," + 
+				SEnumChecker.GetMemberName(eloDiffWinRatio, "eloDiffWinRatio") + "," + 
+				SEnumChecker.GetMemberName(eloKWeight, "eloKWeight");
+		}
+	}
+	public class MultiBattleDiaRewardMeta : SProto
+	{
+		public EResource diaType = default(EResource);
+		public Double ratio = default(Double);
+		public MultiBattleDiaRewardMeta()
+		{
+		}
+		public MultiBattleDiaRewardMeta(MultiBattleDiaRewardMeta Obj_)
+		{
+			diaType = Obj_.diaType;
+			ratio = Obj_.ratio;
+		}
+		public MultiBattleDiaRewardMeta(EResource diaType_, Double ratio_)
+		{
+			diaType = diaType_;
+			ratio = ratio_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref diaType);
+			Stream_.Pop(ref ratio);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("diaType", ref diaType);
+			Value_.Pop("ratio", ref ratio);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(diaType);
+			Stream_.Push(ratio);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("diaType", diaType);
+			Value_.Push("ratio", ratio);
+		}
+		public void Set(MultiBattleDiaRewardMeta Obj_)
+		{
+			diaType = Obj_.diaType;
+			ratio = Obj_.ratio;
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.EResource" + "," + 
+				SEnumChecker.GetStdName(ratio);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(diaType, "diaType") + "," + 
+				SEnumChecker.GetMemberName(ratio, "ratio");
+		}
+	}
+	public class SMultiMatchDeniedDurationMeta : SProto
+	{
+		public Int32 DisconnectedCount = default(Int32);
+		public Int32 DeniedSeconds = default(Int32);
+		public SMultiMatchDeniedDurationMeta()
+		{
+		}
+		public SMultiMatchDeniedDurationMeta(SMultiMatchDeniedDurationMeta Obj_)
+		{
+			DisconnectedCount = Obj_.DisconnectedCount;
+			DeniedSeconds = Obj_.DeniedSeconds;
+		}
+		public SMultiMatchDeniedDurationMeta(Int32 DisconnectedCount_, Int32 DeniedSeconds_)
+		{
+			DisconnectedCount = DisconnectedCount_;
+			DeniedSeconds = DeniedSeconds_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref DisconnectedCount);
+			Stream_.Pop(ref DeniedSeconds);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("DisconnectedCount", ref DisconnectedCount);
+			Value_.Pop("DeniedSeconds", ref DeniedSeconds);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(DisconnectedCount);
+			Stream_.Push(DeniedSeconds);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("DisconnectedCount", DisconnectedCount);
+			Value_.Push("DeniedSeconds", DeniedSeconds);
+		}
+		public void Set(SMultiMatchDeniedDurationMeta Obj_)
+		{
+			DisconnectedCount = Obj_.DisconnectedCount;
+			DeniedSeconds = Obj_.DeniedSeconds;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(DisconnectedCount) + "," + 
+				SEnumChecker.GetStdName(DeniedSeconds);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(DisconnectedCount, "DisconnectedCount") + "," + 
+				SEnumChecker.GetMemberName(DeniedSeconds, "DeniedSeconds");
+		}
+	}
+	public class ArrowDodgeConfigMeta : SProto
+	{
+		public Int32 ArrowDodgePoint = default(Int32);
+		public Int32 ArrowGetPoint = default(Int32);
+		public Int64 ItemDurationTick = default(Int64);
+		public Int64 ItemRegenPeriodTick = default(Int64);
+		public Int32 maxItemCount = default(Int32);
+		public Int32 PlayCountMax = default(Int32);
+		public TResource ChargeCostGold = default(TResource);
+		public Int32 RefreshDurationMinute = default(Int32);
+		public Int32 scorePerGold = default(Int32);
+		public ArrowDodgeConfigMeta()
+		{
+		}
+		public ArrowDodgeConfigMeta(ArrowDodgeConfigMeta Obj_)
+		{
+			ArrowDodgePoint = Obj_.ArrowDodgePoint;
+			ArrowGetPoint = Obj_.ArrowGetPoint;
+			ItemDurationTick = Obj_.ItemDurationTick;
+			ItemRegenPeriodTick = Obj_.ItemRegenPeriodTick;
+			maxItemCount = Obj_.maxItemCount;
+			PlayCountMax = Obj_.PlayCountMax;
+			ChargeCostGold = Obj_.ChargeCostGold;
+			RefreshDurationMinute = Obj_.RefreshDurationMinute;
+			scorePerGold = Obj_.scorePerGold;
+		}
+		public ArrowDodgeConfigMeta(Int32 ArrowDodgePoint_, Int32 ArrowGetPoint_, Int64 ItemDurationTick_, Int64 ItemRegenPeriodTick_, Int32 maxItemCount_, Int32 PlayCountMax_, TResource ChargeCostGold_, Int32 RefreshDurationMinute_, Int32 scorePerGold_)
+		{
+			ArrowDodgePoint = ArrowDodgePoint_;
+			ArrowGetPoint = ArrowGetPoint_;
+			ItemDurationTick = ItemDurationTick_;
+			ItemRegenPeriodTick = ItemRegenPeriodTick_;
+			maxItemCount = maxItemCount_;
+			PlayCountMax = PlayCountMax_;
+			ChargeCostGold = ChargeCostGold_;
+			RefreshDurationMinute = RefreshDurationMinute_;
+			scorePerGold = scorePerGold_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref ArrowDodgePoint);
+			Stream_.Pop(ref ArrowGetPoint);
+			Stream_.Pop(ref ItemDurationTick);
+			Stream_.Pop(ref ItemRegenPeriodTick);
+			Stream_.Pop(ref maxItemCount);
+			Stream_.Pop(ref PlayCountMax);
+			Stream_.Pop(ref ChargeCostGold);
+			Stream_.Pop(ref RefreshDurationMinute);
+			Stream_.Pop(ref scorePerGold);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("ArrowDodgePoint", ref ArrowDodgePoint);
+			Value_.Pop("ArrowGetPoint", ref ArrowGetPoint);
+			Value_.Pop("ItemDurationTick", ref ItemDurationTick);
+			Value_.Pop("ItemRegenPeriodTick", ref ItemRegenPeriodTick);
+			Value_.Pop("maxItemCount", ref maxItemCount);
+			Value_.Pop("PlayCountMax", ref PlayCountMax);
+			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
+			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
+			Value_.Pop("scorePerGold", ref scorePerGold);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(ArrowDodgePoint);
+			Stream_.Push(ArrowGetPoint);
+			Stream_.Push(ItemDurationTick);
+			Stream_.Push(ItemRegenPeriodTick);
+			Stream_.Push(maxItemCount);
+			Stream_.Push(PlayCountMax);
+			Stream_.Push(ChargeCostGold);
+			Stream_.Push(RefreshDurationMinute);
+			Stream_.Push(scorePerGold);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("ArrowDodgePoint", ArrowDodgePoint);
+			Value_.Push("ArrowGetPoint", ArrowGetPoint);
+			Value_.Push("ItemDurationTick", ItemDurationTick);
+			Value_.Push("ItemRegenPeriodTick", ItemRegenPeriodTick);
+			Value_.Push("maxItemCount", maxItemCount);
+			Value_.Push("PlayCountMax", PlayCountMax);
+			Value_.Push("ChargeCostGold", ChargeCostGold);
+			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
+			Value_.Push("scorePerGold", scorePerGold);
+		}
+		public void Set(ArrowDodgeConfigMeta Obj_)
+		{
+			ArrowDodgePoint = Obj_.ArrowDodgePoint;
+			ArrowGetPoint = Obj_.ArrowGetPoint;
+			ItemDurationTick = Obj_.ItemDurationTick;
+			ItemRegenPeriodTick = Obj_.ItemRegenPeriodTick;
+			maxItemCount = Obj_.maxItemCount;
+			PlayCountMax = Obj_.PlayCountMax;
+			ChargeCostGold = Obj_.ChargeCostGold;
+			RefreshDurationMinute = Obj_.RefreshDurationMinute;
+			scorePerGold = Obj_.scorePerGold;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(ArrowDodgePoint) + "," + 
+				SEnumChecker.GetStdName(ArrowGetPoint) + "," + 
+				SEnumChecker.GetStdName(ItemDurationTick) + "," + 
+				SEnumChecker.GetStdName(ItemRegenPeriodTick) + "," + 
+				SEnumChecker.GetStdName(maxItemCount) + "," + 
+				SEnumChecker.GetStdName(PlayCountMax) + "," + 
+				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
+				SEnumChecker.GetStdName(RefreshDurationMinute) + "," + 
+				SEnumChecker.GetStdName(scorePerGold);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(ArrowDodgePoint, "ArrowDodgePoint") + "," + 
+				SEnumChecker.GetMemberName(ArrowGetPoint, "ArrowGetPoint") + "," + 
+				SEnumChecker.GetMemberName(ItemDurationTick, "ItemDurationTick") + "," + 
+				SEnumChecker.GetMemberName(ItemRegenPeriodTick, "ItemRegenPeriodTick") + "," + 
+				SEnumChecker.GetMemberName(maxItemCount, "maxItemCount") + "," + 
+				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
+				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
+				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute") + "," + 
+				SEnumChecker.GetMemberName(scorePerGold, "scorePerGold");
+		}
+	}
+	public class SArrowDodgeItemMeta : SProto
+	{
+		public EArrowDodgeItemType ItemType = default(EArrowDodgeItemType);
+		public UInt32 CreateWeight = default(UInt32);
+		public TResource AddedGold = default(TResource);
+		public SArrowDodgeItemMeta()
+		{
+		}
+		public SArrowDodgeItemMeta(SArrowDodgeItemMeta Obj_)
+		{
+			ItemType = Obj_.ItemType;
+			CreateWeight = Obj_.CreateWeight;
+			AddedGold = Obj_.AddedGold;
+		}
+		public SArrowDodgeItemMeta(EArrowDodgeItemType ItemType_, UInt32 CreateWeight_, TResource AddedGold_)
+		{
+			ItemType = ItemType_;
+			CreateWeight = CreateWeight_;
+			AddedGold = AddedGold_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref ItemType);
+			Stream_.Pop(ref CreateWeight);
+			Stream_.Pop(ref AddedGold);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("ItemType", ref ItemType);
+			Value_.Pop("CreateWeight", ref CreateWeight);
+			Value_.Pop("AddedGold", ref AddedGold);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(ItemType);
+			Stream_.Push(CreateWeight);
+			Stream_.Push(AddedGold);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("ItemType", ItemType);
+			Value_.Push("CreateWeight", CreateWeight);
+			Value_.Push("AddedGold", AddedGold);
+		}
+		public void Set(SArrowDodgeItemMeta Obj_)
+		{
+			ItemType = Obj_.ItemType;
+			CreateWeight = Obj_.CreateWeight;
+			AddedGold = Obj_.AddedGold;
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.EArrowDodgeItemType" + "," + 
+				SEnumChecker.GetStdName(CreateWeight) + "," + 
+				SEnumChecker.GetStdName(AddedGold);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(ItemType, "ItemType") + "," + 
+				SEnumChecker.GetMemberName(CreateWeight, "CreateWeight") + "," + 
+				SEnumChecker.GetMemberName(AddedGold, "AddedGold");
+		}
+	}
+	public class FlyAwayConfigMeta : SProto
+	{
+		public Int32 maxComboMultiplier = default(Int32);
+		public Single landingAddedStamina = default(Single);
+		public Int32 PlayCountMax = default(Int32);
+		public TResource ChargeCostGold = default(TResource);
+		public Int32 RefreshDurationMinute = default(Int32);
+		public Int32 scorePerGold = default(Int32);
+		public FlyAwayConfigMeta()
+		{
+		}
+		public FlyAwayConfigMeta(FlyAwayConfigMeta Obj_)
+		{
+			maxComboMultiplier = Obj_.maxComboMultiplier;
+			landingAddedStamina = Obj_.landingAddedStamina;
+			PlayCountMax = Obj_.PlayCountMax;
+			ChargeCostGold = Obj_.ChargeCostGold;
+			RefreshDurationMinute = Obj_.RefreshDurationMinute;
+			scorePerGold = Obj_.scorePerGold;
+		}
+		public FlyAwayConfigMeta(Int32 maxComboMultiplier_, Single landingAddedStamina_, Int32 PlayCountMax_, TResource ChargeCostGold_, Int32 RefreshDurationMinute_, Int32 scorePerGold_)
+		{
+			maxComboMultiplier = maxComboMultiplier_;
+			landingAddedStamina = landingAddedStamina_;
+			PlayCountMax = PlayCountMax_;
+			ChargeCostGold = ChargeCostGold_;
+			RefreshDurationMinute = RefreshDurationMinute_;
+			scorePerGold = scorePerGold_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref maxComboMultiplier);
+			Stream_.Pop(ref landingAddedStamina);
+			Stream_.Pop(ref PlayCountMax);
+			Stream_.Pop(ref ChargeCostGold);
+			Stream_.Pop(ref RefreshDurationMinute);
+			Stream_.Pop(ref scorePerGold);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("maxComboMultiplier", ref maxComboMultiplier);
+			Value_.Pop("landingAddedStamina", ref landingAddedStamina);
+			Value_.Pop("PlayCountMax", ref PlayCountMax);
+			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
+			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
+			Value_.Pop("scorePerGold", ref scorePerGold);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(maxComboMultiplier);
+			Stream_.Push(landingAddedStamina);
+			Stream_.Push(PlayCountMax);
+			Stream_.Push(ChargeCostGold);
+			Stream_.Push(RefreshDurationMinute);
+			Stream_.Push(scorePerGold);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("maxComboMultiplier", maxComboMultiplier);
+			Value_.Push("landingAddedStamina", landingAddedStamina);
+			Value_.Push("PlayCountMax", PlayCountMax);
+			Value_.Push("ChargeCostGold", ChargeCostGold);
+			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
+			Value_.Push("scorePerGold", scorePerGold);
+		}
+		public void Set(FlyAwayConfigMeta Obj_)
+		{
+			maxComboMultiplier = Obj_.maxComboMultiplier;
+			landingAddedStamina = Obj_.landingAddedStamina;
+			PlayCountMax = Obj_.PlayCountMax;
+			ChargeCostGold = Obj_.ChargeCostGold;
+			RefreshDurationMinute = Obj_.RefreshDurationMinute;
+			scorePerGold = Obj_.scorePerGold;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(maxComboMultiplier) + "," + 
+				SEnumChecker.GetStdName(landingAddedStamina) + "," + 
+				SEnumChecker.GetStdName(PlayCountMax) + "," + 
+				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
+				SEnumChecker.GetStdName(RefreshDurationMinute) + "," + 
+				SEnumChecker.GetStdName(scorePerGold);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(maxComboMultiplier, "maxComboMultiplier") + "," + 
+				SEnumChecker.GetMemberName(landingAddedStamina, "landingAddedStamina") + "," + 
+				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
+				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
+				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute") + "," + 
+				SEnumChecker.GetMemberName(scorePerGold, "scorePerGold");
+		}
+	}
+	public class SFlyAwayItemMeta : SProto
+	{
+		public EFlyAwayItemType ItemType = default(EFlyAwayItemType);
+		public UInt32 StaminaCreateWeight = default(UInt32);
+		public TResource AddedGold = default(TResource);
+		public Single AddedStamina = default(Single);
+		public SFlyAwayItemMeta()
+		{
+		}
+		public SFlyAwayItemMeta(SFlyAwayItemMeta Obj_)
+		{
+			ItemType = Obj_.ItemType;
+			StaminaCreateWeight = Obj_.StaminaCreateWeight;
+			AddedGold = Obj_.AddedGold;
+			AddedStamina = Obj_.AddedStamina;
+		}
+		public SFlyAwayItemMeta(EFlyAwayItemType ItemType_, UInt32 StaminaCreateWeight_, TResource AddedGold_, Single AddedStamina_)
+		{
+			ItemType = ItemType_;
+			StaminaCreateWeight = StaminaCreateWeight_;
+			AddedGold = AddedGold_;
+			AddedStamina = AddedStamina_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref ItemType);
+			Stream_.Pop(ref StaminaCreateWeight);
+			Stream_.Pop(ref AddedGold);
+			Stream_.Pop(ref AddedStamina);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("ItemType", ref ItemType);
+			Value_.Pop("StaminaCreateWeight", ref StaminaCreateWeight);
+			Value_.Pop("AddedGold", ref AddedGold);
+			Value_.Pop("AddedStamina", ref AddedStamina);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(ItemType);
+			Stream_.Push(StaminaCreateWeight);
+			Stream_.Push(AddedGold);
+			Stream_.Push(AddedStamina);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("ItemType", ItemType);
+			Value_.Push("StaminaCreateWeight", StaminaCreateWeight);
+			Value_.Push("AddedGold", AddedGold);
+			Value_.Push("AddedStamina", AddedStamina);
+		}
+		public void Set(SFlyAwayItemMeta Obj_)
+		{
+			ItemType = Obj_.ItemType;
+			StaminaCreateWeight = Obj_.StaminaCreateWeight;
+			AddedGold = Obj_.AddedGold;
+			AddedStamina = Obj_.AddedStamina;
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.EFlyAwayItemType" + "," + 
+				SEnumChecker.GetStdName(StaminaCreateWeight) + "," + 
+				SEnumChecker.GetStdName(AddedGold) + "," + 
+				SEnumChecker.GetStdName(AddedStamina);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(ItemType, "ItemType") + "," + 
+				SEnumChecker.GetMemberName(StaminaCreateWeight, "StaminaCreateWeight") + "," + 
+				SEnumChecker.GetMemberName(AddedGold, "AddedGold") + "," + 
+				SEnumChecker.GetMemberName(AddedStamina, "AddedStamina");
 		}
 	}
 	public class SCouponMeta : SProto
@@ -2208,7 +2221,8 @@ namespace bb
 		public Int32 EndMonth = default(Int32);
 		public Int32 EndDay = default(Int32);
 		public Int32 EndHour = default(Int32);
-		public Int32 RewardCode = default(Int32);
+		public String rewardType = string.Empty;
+		public Int32 rewardValue = default(Int32);
 		public SCouponMeta()
 		{
 		}
@@ -2223,9 +2237,10 @@ namespace bb
 			EndMonth = Obj_.EndMonth;
 			EndDay = Obj_.EndDay;
 			EndHour = Obj_.EndHour;
-			RewardCode = Obj_.RewardCode;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
-		public SCouponMeta(Int32 Code_, Int32 StartYear_, Int32 StartMonth_, Int32 StartDay_, Int32 StartHour_, Int32 EndYear_, Int32 EndMonth_, Int32 EndDay_, Int32 EndHour_, Int32 RewardCode_)
+		public SCouponMeta(Int32 Code_, Int32 StartYear_, Int32 StartMonth_, Int32 StartDay_, Int32 StartHour_, Int32 EndYear_, Int32 EndMonth_, Int32 EndDay_, Int32 EndHour_, String rewardType_, Int32 rewardValue_)
 		{
 			Code = Code_;
 			StartYear = StartYear_;
@@ -2236,7 +2251,8 @@ namespace bb
 			EndMonth = EndMonth_;
 			EndDay = EndDay_;
 			EndHour = EndHour_;
-			RewardCode = RewardCode_;
+			rewardType = rewardType_;
+			rewardValue = rewardValue_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -2249,7 +2265,8 @@ namespace bb
 			Stream_.Pop(ref EndMonth);
 			Stream_.Pop(ref EndDay);
 			Stream_.Pop(ref EndHour);
-			Stream_.Pop(ref RewardCode);
+			Stream_.Pop(ref rewardType);
+			Stream_.Pop(ref rewardValue);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -2262,7 +2279,8 @@ namespace bb
 			Value_.Pop("EndMonth", ref EndMonth);
 			Value_.Pop("EndDay", ref EndDay);
 			Value_.Pop("EndHour", ref EndHour);
-			Value_.Pop("RewardCode", ref RewardCode);
+			Value_.Pop("rewardType", ref rewardType);
+			Value_.Pop("rewardValue", ref rewardValue);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -2275,7 +2293,8 @@ namespace bb
 			Stream_.Push(EndMonth);
 			Stream_.Push(EndDay);
 			Stream_.Push(EndHour);
-			Stream_.Push(RewardCode);
+			Stream_.Push(rewardType);
+			Stream_.Push(rewardValue);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -2288,7 +2307,8 @@ namespace bb
 			Value_.Push("EndMonth", EndMonth);
 			Value_.Push("EndDay", EndDay);
 			Value_.Push("EndHour", EndHour);
-			Value_.Push("RewardCode", RewardCode);
+			Value_.Push("rewardType", rewardType);
+			Value_.Push("rewardValue", rewardValue);
 		}
 		public void Set(SCouponMeta Obj_)
 		{
@@ -2301,7 +2321,8 @@ namespace bb
 			EndMonth = Obj_.EndMonth;
 			EndDay = Obj_.EndDay;
 			EndHour = Obj_.EndHour;
-			RewardCode = Obj_.RewardCode;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
 		public override string StdName()
 		{
@@ -2315,7 +2336,8 @@ namespace bb
 				SEnumChecker.GetStdName(EndMonth) + "," + 
 				SEnumChecker.GetStdName(EndDay) + "," + 
 				SEnumChecker.GetStdName(EndHour) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
+				SEnumChecker.GetStdName(rewardType) + "," + 
+				SEnumChecker.GetStdName(rewardValue);
 		}
 		public override string MemberName()
 		{
@@ -2329,7 +2351,8 @@ namespace bb
 				SEnumChecker.GetMemberName(EndMonth, "EndMonth") + "," + 
 				SEnumChecker.GetMemberName(EndDay, "EndDay") + "," + 
 				SEnumChecker.GetMemberName(EndHour, "EndHour") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
+				SEnumChecker.GetMemberName(rewardType, "rewardType") + "," + 
+				SEnumChecker.GetMemberName(rewardValue, "rewardValue");
 		}
 	}
 	public class SCouponKeyMeta : SProto
@@ -2446,7 +2469,8 @@ namespace bb
 	{
 		public String Mode = string.Empty;
 		public Int32 End = default(Int32);
-		public Int32 RewardCode = default(Int32);
+		public String rewardType = string.Empty;
+		public Int32 rewardValue = default(Int32);
 		public SRankingRewardMeta()
 		{
 		}
@@ -2454,57 +2478,66 @@ namespace bb
 		{
 			Mode = Obj_.Mode;
 			End = Obj_.End;
-			RewardCode = Obj_.RewardCode;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
-		public SRankingRewardMeta(String Mode_, Int32 End_, Int32 RewardCode_)
+		public SRankingRewardMeta(String Mode_, Int32 End_, String rewardType_, Int32 rewardValue_)
 		{
 			Mode = Mode_;
 			End = End_;
-			RewardCode = RewardCode_;
+			rewardType = rewardType_;
+			rewardValue = rewardValue_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			Stream_.Pop(ref Mode);
 			Stream_.Pop(ref End);
-			Stream_.Pop(ref RewardCode);
+			Stream_.Pop(ref rewardType);
+			Stream_.Pop(ref rewardValue);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			Value_.Pop("Mode", ref Mode);
 			Value_.Pop("End", ref End);
-			Value_.Pop("RewardCode", ref RewardCode);
+			Value_.Pop("rewardType", ref rewardType);
+			Value_.Pop("rewardValue", ref rewardValue);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			Stream_.Push(Mode);
 			Stream_.Push(End);
-			Stream_.Push(RewardCode);
+			Stream_.Push(rewardType);
+			Stream_.Push(rewardValue);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			Value_.Push("Mode", Mode);
 			Value_.Push("End", End);
-			Value_.Push("RewardCode", RewardCode);
+			Value_.Push("rewardType", rewardType);
+			Value_.Push("rewardValue", rewardValue);
 		}
 		public void Set(SRankingRewardMeta Obj_)
 		{
 			Mode = Obj_.Mode;
 			End = Obj_.End;
-			RewardCode = Obj_.RewardCode;
+			rewardType = Obj_.rewardType;
+			rewardValue = Obj_.rewardValue;
 		}
 		public override string StdName()
 		{
 			return 
 				SEnumChecker.GetStdName(Mode) + "," + 
 				SEnumChecker.GetStdName(End) + "," + 
-				SEnumChecker.GetStdName(RewardCode);
+				SEnumChecker.GetStdName(rewardType) + "," + 
+				SEnumChecker.GetStdName(rewardValue);
 		}
 		public override string MemberName()
 		{
 			return 
 				SEnumChecker.GetMemberName(Mode, "Mode") + "," + 
 				SEnumChecker.GetMemberName(End, "End") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode");
+				SEnumChecker.GetMemberName(rewardType, "rewardType") + "," + 
+				SEnumChecker.GetMemberName(rewardValue, "rewardValue");
 		}
 	}
 }

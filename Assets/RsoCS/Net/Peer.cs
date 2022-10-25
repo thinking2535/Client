@@ -70,7 +70,7 @@ namespace rso
 
                 if (BodySize > 0)
                 {
-                    var CheckSum = core.CBase.GetCheckSum(_StreamSnd.Data, _HeaderSize, BodySize);
+                    var CheckSum = CCore.GetCheckSum(_StreamSnd.Data, _HeaderSize, BodySize);
                     _StreamSnd.SetAt(sizeof(TSize), CheckSum);
                     _Crypto.Encode(_StreamSnd.Data, _HeaderSize, BodySize, (0x1f3a49b72c8d5ef6 ^ (UInt64)BodySize ^ CheckSum ^ _SendPacketSeq));
                 }
@@ -158,7 +158,7 @@ namespace rso
                 _RecvPacketSeq = _RecvHeader.SendPacketSeq;
                 _Crypto.Decode(StreamRcv.Data, StreamRcv.Head, _RecvHeader.Size, (0x1f3a49b72c8d5ef6 ^ (UInt64)_RecvHeader.Size ^ _RecvHeader.CheckSum ^ _RecvHeader.SendPacketSeq));
 
-                if (_RecvHeader.CheckSum != core.CBase.GetCheckSum(StreamRcv.Data, StreamRcv.Head, _RecvHeader.Size))
+                if (_RecvHeader.CheckSum != CCore.GetCheckSum(StreamRcv.Data, StreamRcv.Head, _RecvHeader.Size))
                     throw new Exception("CheckSum Error");
 
                 var OldStreamSize = StreamRcv.Size;

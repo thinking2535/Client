@@ -23,7 +23,7 @@ namespace rso.physics
                 }
 
                 Time = Time_;
-                PosTheta.Pos.Add(CBase.Vector(PosTheta.Theta, CurDist));
+                PosTheta.Pos.Add(CPhysics.Vector(PosTheta.Theta, CurDist));
             }
             Speed = Speed_;
         }

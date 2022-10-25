@@ -3,22 +3,25 @@ using System.Collections.Generic;
 
 namespace rso.physics
 {
-    public abstract class CMovingObject2D : CObject2D
+    public class CMovingObject2D : CObject2D
     {
-        public CCollider2D Collider;
+        public List<CCollider2D> Colliders { get; private set; } = new List<CCollider2D>();
         public SPoint Velocity;
+        public float Mass = 1.0f;
 
-        public CMovingObject2D(SPoint LocalPosition_, CCollider2D Collider_, SPoint Velocity_) :
-            base(LocalPosition_)
+        public CMovingObject2D(STransform Transform_, List<CCollider2D> Colliders_, SPoint Velocity_) :
+            base(Transform_)
         {
-            Collider = Collider_;
-            Collider.SetParent(this);
+            Colliders = Colliders_;
             Velocity = Velocity_;
+
+            foreach (var c in Colliders)
+                c.SetParent(this);
         }
-        public abstract void FixedUpdate(Int64 Tick_);
         public virtual CPlayerObject2D GetPlayerObject2D()
         {
             return null;
         }
+        public Action<Int64> fFixedUpdate;
     }
 }

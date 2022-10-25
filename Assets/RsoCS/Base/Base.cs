@@ -33,6 +33,85 @@ namespace rso
 
                 return RelativePath;
             }
+
+            // Array Operations //////////////////////////////////////////////
+            public static bool IsSame<T>(this T[] Self_, T[] Value_) where T : IComparable<T>
+            {
+                if (Self_.Length != Value_.Length) return false;
+
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                    if (Self_[i].CompareTo(Value_[i]) != 0) return false;
+
+                return true;
+            }
+            public static bool IsGreaterThanEqual<T>(this T[] Self_, T[] Value_) where T : IComparable<T>
+            {
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                {
+                    if (Self_[i].CompareTo(Value_[i]) < 0)
+                        return false;
+                }
+
+                return true;
+            }
+            public static T[] GetCopy<T>(this T[] Self_)
+            {
+                T[] Ret = new T[Self_.Length];
+
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                    Ret[i] = Self_[i];
+
+                return Ret;
+            }
+            public static void Clear<T>(this T[] Self_)
+            {
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                    Self_[i] = default;
+            }
+            public static void Set<T>(this T[] Self_, T[] With_)
+            {
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                    Self_[i] = With_[i];
+            }
+            public static void LimitMin<T>(this T[] Self_, T[] Min_) where T : IComparable<T>
+            {
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                {
+                    if (Self_[i].CompareTo(Min_[i]) < 0)
+                        Self_[i] = Min_[i];
+                }
+            }
+            public static void LimitMax<T>(this T[] Self_, T[] Max_) where T : IComparable<T>
+            {
+                for (Int32 i = 0; i < Self_.Length; ++i)
+                {
+                    if (Self_[i].CompareTo(Max_[i]) > 0)
+                        Self_[i] = Max_[i];
+                }
+            }
+            public static void LimitMinMax<T>(this T[] Self_, T[] Min_, T[] Max_) where T : IComparable<T>
+            {
+                Self_.LimitMin(Min_);
+                Self_.LimitMax(Max_);
+            }
+            public static string ToArrayString<T>(this T[] Self_)
+            {
+                string Ret = "[";
+
+                if (Self_.Length > 0)
+                    Ret += Self_[0].ToString();
+
+                for (Int32 i = 1; i < Self_.Length; ++i)
+                {
+                    Ret += ", ";
+                    Ret += Self_[i].ToString();
+                }
+
+                Ret += ']';
+
+                return Ret;
+            }
+            ////////////////////////////////////////////////
         }
 
         static class CUri

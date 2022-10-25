@@ -27,18 +27,14 @@ using TExp = System.Int32;
 using TRank = System.Int32;
 using TTeamCnt = System.SByte;
 using TQuestSlotIndex = System.Byte;
+using TForbiddenWords = System.Collections.Generic.List<System.String>;
+using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
+using TRankings = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
 using TResource = System.Int32;
 using TDoneQuests = System.Collections.Generic.List<bb.SQuestSlotIndexCount>;
 using TChars = System.Collections.Generic.HashSet<System.Int32>;
 using TQuestDBs = System.Collections.Generic.Dictionary<System.Byte,bb.SQuestBase>;
-using TPackages = System.Collections.Generic.HashSet<System.Int32>;
-using TTeamBattleInfos = System.Collections.Generic.List<bb.STeamBattleInfo>;
-using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
-using TRankingUserSingles = System.Collections.Generic.List<bb.SRankingUserSingle>;
-using TRankingUserIslands = System.Collections.Generic.List<bb.SRankingUserIsland>;
 using TQuestSlotIndexCodes = System.Collections.Generic.List<bb.SQuestSlotIndexCode>;
-using TRankingRewards = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
-using SRooms = System.Collections.Generic.Dictionary<System.Int32,bb.SRoomInfo>;
 using TPoses = System.Collections.Generic.List<rso.physics.SPoint>;
 using System;
 using System.Collections.Generic;
@@ -811,27 +807,272 @@ namespace bb
 		Skin_Name_Dragon,
 		Global_Popup_CloseService,
 		NickNameAlreadyExists,
-		Max,
-		Null=-1,
-	}
-	public enum EShopType : Byte
-	{
-		Gacha,
-		Gold,
-		Dia,
-		Max,
-	}
-	public enum EPlayMode
-	{
-		Solo,
-		Team,
-		Survival,
-		SurvivalSmall,
-		TeamSmall,
-		IslandSolo,
-		DodgeSolo,
-		Island=10,
-		Dodge,
+		OtherPlayerDisconnected,
+		InvalidGame,
+		InvalidDisconnectNotice,
+		TimeLeft,
+		Global_Text_Dia00,
+		Global_Text_Dia01,
+		Global_Text_Dia02,
+		Global_Text_Dia03,
+		Global_Popup_PlayCountNotEnough,
+		Global_Popup_MultiPlayCountNotEnough,
+		Global_Popup_MultiPlayCountMax,
+		Global_Popup_GoldNotEnough,
+		SceneCharacterList_UnLockNFT,
+		Character_Name_Kiwibird01,
+		Character_Name_Kiwibird02,
+		Character_Name_Kiwibird03,
+		Character_Name_Kiwibird04,
+		Character_Name_Chick01,
+		Character_Name_Chick02,
+		Character_Name_Chick03,
+		Character_Name_Chick04,
+		Character_Name_Duckling01,
+		Character_Name_Duckling02,
+		Character_Name_Duckling03,
+		Character_Name_Duckling04,
+		Character_Name_ShibaInu01,
+		Character_Name_ShibaInu02,
+		Character_Name_ShibaInu03,
+		Character_Name_ShibaInu04,
+		Character_Name_Poodle01,
+		Character_Name_Poodle02,
+		Character_Name_Poodle03,
+		Character_Name_Poodle04,
+		Character_Name_Turtle01,
+		Character_Name_Turtle02,
+		Character_Name_Turtle03,
+		Character_Name_Turtle04,
+		Character_Name_Panda01,
+		Character_Name_Panda02,
+		Character_Name_Panda03,
+		Character_Name_Panda04,
+		Character_Name_Polarbear01,
+		Character_Name_Polarbear02,
+		Character_Name_Polarbear03,
+		Character_Name_Polarbear04,
+		Character_Name_Brownbear01,
+		Character_Name_Brownbear02,
+		Character_Name_Brownbear03,
+		Character_Name_Brownbear04,
+		Character_Name_Gorilla01,
+		Character_Name_Gorilla02,
+		Character_Name_Gorilla03,
+		Character_Name_Gorilla04,
+		Character_Name_YeTigorilla01,
+		Character_Name_YeTigorilla02,
+		Character_Name_YeTigorilla03,
+		Character_Name_YeTigorilla04,
+		Character_Name_Greenfrog01,
+		Character_Name_Greenfrog02,
+		Character_Name_Greenfrog03,
+		Character_Name_Greenfrog04,
+		Character_Name_Hen01,
+		Character_Name_Hen02,
+		Character_Name_Hen03,
+		Character_Name_Hen04,
+		Character_Name_Rooster01,
+		Character_Name_Rooster02,
+		Character_Name_Rooster03,
+		Character_Name_Rooster04,
+		Character_Name_Crowtit01,
+		Character_Name_Crowtit02,
+		Character_Name_Crowtit03,
+		Character_Name_Crowtit04,
+		Character_Name_Hummingbird01,
+		Character_Name_Hummingbird02,
+		Character_Name_Hummingbird03,
+		Character_Name_Hummingbird04,
+		Character_Name_Gull01,
+		Character_Name_Gull02,
+		Character_Name_Gull03,
+		Character_Name_Gull04,
+		Character_Name_Macaw01,
+		Character_Name_Macaw02,
+		Character_Name_Macaw03,
+		Character_Name_Macaw04,
+		Character_Name_Woodpecker01,
+		Character_Name_Woodpecker02,
+		Character_Name_Woodpecker03,
+		Character_Name_Woodpecker04,
+		Character_Name_BigbilledBird01,
+		Character_Name_BigbilledBird02,
+		Character_Name_BigbilledBird03,
+		Character_Name_BigbilledBird04,
+		Character_Name_Eagle01,
+		Character_Name_Eagle02,
+		Character_Name_Eagle03,
+		Character_Name_Eagle04,
+		Character_Name_Owl01,
+		Character_Name_Owl02,
+		Character_Name_Owl03,
+		Character_Name_Owl04,
+		Character_Name_Trex01,
+		Character_Name_Trex02,
+		Character_Name_Trex03,
+		Character_Name_Trex04,
+		Character_Name_Crocodile01,
+		Character_Name_Crocodile02,
+		Character_Name_Crocodile03,
+		Character_Name_Crocodile04,
+		Character_Name_Tamerabbit01,
+		Character_Name_Tamerabbit02,
+		Character_Name_Tamerabbit03,
+		Character_Name_Tamerabbit04,
+		Character_Name_Hare01,
+		Character_Name_Hare02,
+		Character_Name_Hare03,
+		Character_Name_Hare04,
+		Character_Name_Deer01,
+		Character_Name_Deer02,
+		Character_Name_Deer03,
+		Character_Name_Deer04,
+		Character_Name_Reindeer01,
+		Character_Name_Reindeer02,
+		Character_Name_Reindeer03,
+		Character_Name_Reindeer04,
+		Character_Name_Milkcow01,
+		Character_Name_Milkcow02,
+		Character_Name_Milkcow03,
+		Character_Name_Milkcow04,
+		Character_Name_Bull01,
+		Character_Name_Bull02,
+		Character_Name_Bull03,
+		Character_Name_Bull04,
+		Character_Name_Horse01,
+		Character_Name_Horse02,
+		Character_Name_Horse03,
+		Character_Name_Horse04,
+		Character_Name_Zebra01,
+		Character_Name_Zebra02,
+		Character_Name_Zebra03,
+		Character_Name_Zebra04,
+		Character_Name_Fox01,
+		Character_Name_Fox02,
+		Character_Name_Fox03,
+		Character_Name_Fox04,
+		Character_Name_Cat01,
+		Character_Name_Cat02,
+		Character_Name_Cat03,
+		Character_Name_Cat04,
+		Character_Name_Tiger01,
+		Character_Name_Tiger02,
+		Character_Name_Tiger03,
+		Character_Name_Tiger04,
+		Character_Name_Pig01,
+		Character_Name_Pig02,
+		Character_Name_Pig03,
+		Character_Name_Pig04,
+		Character_Name_Elephant01,
+		Character_Name_Elephant02,
+		Character_Name_Elephant03,
+		Character_Name_Elephant04,
+		Character_Name_Werewolf01,
+		Character_Name_Werewolf02,
+		Character_Name_Werewolf03,
+		Character_Name_Werewolf04,
+		Character_Name_Mummy01,
+		Character_Name_Mummy02,
+		Character_Name_Mummy03,
+		Character_Name_Mummy04,
+		Character_Name_Ghost01,
+		Character_Name_Ghost02,
+		Character_Name_Ghost03,
+		Character_Name_Ghost04,
+		Character_Name_Witch01,
+		Character_Name_Witch02,
+		Character_Name_Witch03,
+		Character_Name_Witch04,
+		Character_Name_Jackol01,
+		Character_Name_Jackol02,
+		Character_Name_Jackol03,
+		Character_Name_Jackol04,
+		Character_Name_Bat01,
+		Character_Name_Bat02,
+		Character_Name_Bat03,
+		Character_Name_Bat04,
+		Character_Name_Santa01,
+		Character_Name_Santa02,
+		Character_Name_Santa03,
+		Character_Name_Santa04,
+		Character_Name_Snowman01,
+		Character_Name_Snowman02,
+		Character_Name_Snowman03,
+		Character_Name_Snowman04,
+		Character_Name_Raccoon01,
+		Character_Name_Raccoon02,
+		Character_Name_Raccoon03,
+		Character_Name_Raccoon04,
+		Character_Name_Penguin01,
+		Character_Name_Penguin02,
+		Character_Name_Penguin03,
+		Character_Name_Penguin04,
+		Character_Name_Mouse01,
+		Character_Name_Mouse02,
+		Character_Name_Mouse03,
+		Character_Name_Mouse04,
+		Character_Name_Squirrel01,
+		Character_Name_Squirrel02,
+		Character_Name_Squirrel03,
+		Character_Name_Squirrel04,
+		Character_Name_Hippo01,
+		Character_Name_Hippo02,
+		Character_Name_Hippo03,
+		Character_Name_Hippo04,
+		Character_Name_Walrus01,
+		Character_Name_Walrus02,
+		Character_Name_Walrus03,
+		Character_Name_Walrus04,
+		Character_Name_Killerbee01,
+		Character_Name_Killerbee02,
+		Character_Name_Killerbee03,
+		Character_Name_Killerbee04,
+		Character_Name_Bee01,
+		Character_Name_Bee02,
+		Character_Name_Bee03,
+		Character_Name_Bee04,
+		Character_Name_Beetle01,
+		Character_Name_Beetle02,
+		Character_Name_Beetle03,
+		Character_Name_Beetle04,
+		Character_Name_Mantis01,
+		Character_Name_Mantis02,
+		Character_Name_Mantis03,
+		Character_Name_Mantis04,
+		Character_Name_Ladybugs01,
+		Character_Name_Ladybugs02,
+		Character_Name_Ladybugs03,
+		Character_Name_Ladybugs04,
+		Character_Name_Stagbeetle01,
+		Character_Name_Stagbeetle02,
+		Character_Name_Stagbeetle03,
+		Character_Name_Stagbeetle04,
+		Character_Name_Fairy01,
+		Character_Name_Fairy02,
+		Character_Name_Fairy03,
+		Character_Name_Fairy04,
+		Character_Name_Knight01,
+		Character_Name_Knight02,
+		Character_Name_Knight03,
+		Character_Name_Knight04,
+		Character_Name_Wizard01,
+		Character_Name_Wizard02,
+		Character_Name_Wizard03,
+		Character_Name_Wizard04,
+		Character_Name_Princess01,
+		Character_Name_Princess02,
+		Character_Name_Princess03,
+		Character_Name_Princess04,
+		Character_Name_Dragon01,
+		Character_Name_Dragon02,
+		Character_Name_Dragon03,
+		Character_Name_Dragon04,
+		ReachedMaximumLimit,
+		AlreadyHaveCharacterAndRefund_0Value_1Type,
+		YouCanGetThisAsReward,
+		MyInfoScene_FlyawayBestCombo,
+		NFT,
 		Max,
 		Null=-1,
 	}
@@ -956,6 +1197,61 @@ namespace bb
 				SEnumChecker.GetMemberName(Texts, "Texts");
 		}
 	}
+	public class SLanguageTextMeta : SProto
+	{
+		public ELanguage Language = default(ELanguage);
+		public String Text = string.Empty;
+		public SLanguageTextMeta()
+		{
+		}
+		public SLanguageTextMeta(SLanguageTextMeta Obj_)
+		{
+			Language = Obj_.Language;
+			Text = Obj_.Text;
+		}
+		public SLanguageTextMeta(ELanguage Language_, String Text_)
+		{
+			Language = Language_;
+			Text = Text_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Language);
+			Stream_.Pop(ref Text);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Language", ref Language);
+			Value_.Pop("Text", ref Text);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Language);
+			Stream_.Push(Text);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Language", Language);
+			Value_.Push("Text", Text);
+		}
+		public void Set(SLanguageTextMeta Obj_)
+		{
+			Language = Obj_.Language;
+			Text = Obj_.Text;
+		}
+		public override string StdName()
+		{
+			return 
+				"bb.ELanguage" + "," + 
+				SEnumChecker.GetStdName(Text);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Language, "Language") + "," + 
+				SEnumChecker.GetMemberName(Text, "Text");
+		}
+	}
 	public class SGameRetMeta : SProto
 	{
 		public EGameRet GameRetName = default(EGameRet);
@@ -1013,44 +1309,29 @@ namespace bb
 				SEnumChecker.GetMemberName(Texts, "Texts");
 		}
 	}
-	public class SCharacterClientMeta : SCharacterMeta
+	public class CharacterTypeClientMeta : CharacterTypeMeta
 	{
-		public EText ETextName = default(EText);
-		public EText ETextDescription = default(EText);
-		public EText ETextRequirement = default(EText);
-		public String PrefabName = string.Empty;
-		public String DescriptionIcon = string.Empty;
-		public String IconName = string.Empty;
+		public EText description = default(EText);
 		public EStatusType Post_Status = default(EStatusType);
 		public Int32 SkyStatus = default(Int32);
 		public Int32 LandStatus = default(Int32);
 		public Int32 StaminaStatus = default(Int32);
 		public Int32 PumpStatus = default(Int32);
-		public SCharacterClientMeta()
+		public CharacterTypeClientMeta()
 		{
 		}
-		public SCharacterClientMeta(SCharacterClientMeta Obj_) : base(Obj_)
+		public CharacterTypeClientMeta(CharacterTypeClientMeta Obj_) : base(Obj_)
 		{
-			ETextName = Obj_.ETextName;
-			ETextDescription = Obj_.ETextDescription;
-			ETextRequirement = Obj_.ETextRequirement;
-			PrefabName = Obj_.PrefabName;
-			DescriptionIcon = Obj_.DescriptionIcon;
-			IconName = Obj_.IconName;
+			description = Obj_.description;
 			Post_Status = Obj_.Post_Status;
 			SkyStatus = Obj_.SkyStatus;
 			LandStatus = Obj_.LandStatus;
 			StaminaStatus = Obj_.StaminaStatus;
 			PumpStatus = Obj_.PumpStatus;
 		}
-		public SCharacterClientMeta(SCharacterMeta Super_, EText ETextName_, EText ETextDescription_, EText ETextRequirement_, String PrefabName_, String DescriptionIcon_, String IconName_, EStatusType Post_Status_, Int32 SkyStatus_, Int32 LandStatus_, Int32 StaminaStatus_, Int32 PumpStatus_) : base(Super_)
+		public CharacterTypeClientMeta(CharacterTypeMeta Super_, EText description_, EStatusType Post_Status_, Int32 SkyStatus_, Int32 LandStatus_, Int32 StaminaStatus_, Int32 PumpStatus_) : base(Super_)
 		{
-			ETextName = ETextName_;
-			ETextDescription = ETextDescription_;
-			ETextRequirement = ETextRequirement_;
-			PrefabName = PrefabName_;
-			DescriptionIcon = DescriptionIcon_;
-			IconName = IconName_;
+			description = description_;
 			Post_Status = Post_Status_;
 			SkyStatus = SkyStatus_;
 			LandStatus = LandStatus_;
@@ -1060,12 +1341,7 @@ namespace bb
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref ETextName);
-			Stream_.Pop(ref ETextDescription);
-			Stream_.Pop(ref ETextRequirement);
-			Stream_.Pop(ref PrefabName);
-			Stream_.Pop(ref DescriptionIcon);
-			Stream_.Pop(ref IconName);
+			Stream_.Pop(ref description);
 			Stream_.Pop(ref Post_Status);
 			Stream_.Pop(ref SkyStatus);
 			Stream_.Pop(ref LandStatus);
@@ -1075,12 +1351,7 @@ namespace bb
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("ETextName", ref ETextName);
-			Value_.Pop("ETextDescription", ref ETextDescription);
-			Value_.Pop("ETextRequirement", ref ETextRequirement);
-			Value_.Pop("PrefabName", ref PrefabName);
-			Value_.Pop("DescriptionIcon", ref DescriptionIcon);
-			Value_.Pop("IconName", ref IconName);
+			Value_.Pop("description", ref description);
 			Value_.Pop("Post_Status", ref Post_Status);
 			Value_.Pop("SkyStatus", ref SkyStatus);
 			Value_.Pop("LandStatus", ref LandStatus);
@@ -1090,12 +1361,7 @@ namespace bb
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(ETextName);
-			Stream_.Push(ETextDescription);
-			Stream_.Push(ETextRequirement);
-			Stream_.Push(PrefabName);
-			Stream_.Push(DescriptionIcon);
-			Stream_.Push(IconName);
+			Stream_.Push(description);
 			Stream_.Push(Post_Status);
 			Stream_.Push(SkyStatus);
 			Stream_.Push(LandStatus);
@@ -1105,27 +1371,17 @@ namespace bb
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("ETextName", ETextName);
-			Value_.Push("ETextDescription", ETextDescription);
-			Value_.Push("ETextRequirement", ETextRequirement);
-			Value_.Push("PrefabName", PrefabName);
-			Value_.Push("DescriptionIcon", DescriptionIcon);
-			Value_.Push("IconName", IconName);
+			Value_.Push("description", description);
 			Value_.Push("Post_Status", Post_Status);
 			Value_.Push("SkyStatus", SkyStatus);
 			Value_.Push("LandStatus", LandStatus);
 			Value_.Push("StaminaStatus", StaminaStatus);
 			Value_.Push("PumpStatus", PumpStatus);
 		}
-		public void Set(SCharacterClientMeta Obj_)
+		public void Set(CharacterTypeClientMeta Obj_)
 		{
 			base.Set(Obj_);
-			ETextName = Obj_.ETextName;
-			ETextDescription = Obj_.ETextDescription;
-			ETextRequirement = Obj_.ETextRequirement;
-			PrefabName = Obj_.PrefabName;
-			DescriptionIcon = Obj_.DescriptionIcon;
-			IconName = Obj_.IconName;
+			description = Obj_.description;
 			Post_Status = Obj_.Post_Status;
 			SkyStatus = Obj_.SkyStatus;
 			LandStatus = Obj_.LandStatus;
@@ -1137,11 +1393,6 @@ namespace bb
 			return 
 				base.StdName() + "," + 
 				"bb.EText" + "," + 
-				"bb.EText" + "," + 
-				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(PrefabName) + "," + 
-				SEnumChecker.GetStdName(DescriptionIcon) + "," + 
-				SEnumChecker.GetStdName(IconName) + "," + 
 				"bb.EStatusType" + "," + 
 				SEnumChecker.GetStdName(SkyStatus) + "," + 
 				SEnumChecker.GetStdName(LandStatus) + "," + 
@@ -1152,12 +1403,7 @@ namespace bb
 		{
 			return 
 				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(ETextName, "ETextName") + "," + 
-				SEnumChecker.GetMemberName(ETextDescription, "ETextDescription") + "," + 
-				SEnumChecker.GetMemberName(ETextRequirement, "ETextRequirement") + "," + 
-				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
-				SEnumChecker.GetMemberName(DescriptionIcon, "DescriptionIcon") + "," + 
-				SEnumChecker.GetMemberName(IconName, "IconName") + "," + 
+				SEnumChecker.GetMemberName(description, "description") + "," + 
 				SEnumChecker.GetMemberName(Post_Status, "Post_Status") + "," + 
 				SEnumChecker.GetMemberName(SkyStatus, "SkyStatus") + "," + 
 				SEnumChecker.GetMemberName(LandStatus, "LandStatus") + "," + 
@@ -1165,86 +1411,131 @@ namespace bb
 				SEnumChecker.GetMemberName(PumpStatus, "PumpStatus");
 		}
 	}
-	public class SCharacterGradeClientMeta : SCharacterGradeMeta
+	public class CharacterTypeKeyValueClientMeta : SProto
 	{
-		public EText ETextGradeName = default(EText);
-		public Int32 ColorR = default(Int32);
-		public Int32 ColorG = default(Int32);
-		public Int32 ColorB = default(Int32);
-		public SCharacterGradeClientMeta()
+		public String type = string.Empty;
+		public CharacterTypeClientMeta value = new CharacterTypeClientMeta();
+		public CharacterTypeKeyValueClientMeta()
 		{
 		}
-		public SCharacterGradeClientMeta(SCharacterGradeClientMeta Obj_) : base(Obj_)
+		public CharacterTypeKeyValueClientMeta(CharacterTypeKeyValueClientMeta Obj_)
 		{
-			ETextGradeName = Obj_.ETextGradeName;
-			ColorR = Obj_.ColorR;
-			ColorG = Obj_.ColorG;
-			ColorB = Obj_.ColorB;
+			type = Obj_.type;
+			value = Obj_.value;
 		}
-		public SCharacterGradeClientMeta(SCharacterGradeMeta Super_, EText ETextGradeName_, Int32 ColorR_, Int32 ColorG_, Int32 ColorB_) : base(Super_)
+		public CharacterTypeKeyValueClientMeta(String type_, CharacterTypeClientMeta value_)
 		{
-			ETextGradeName = ETextGradeName_;
-			ColorR = ColorR_;
-			ColorG = ColorG_;
-			ColorB = ColorB_;
+			type = type_;
+			value = value_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref type);
+			Stream_.Pop(ref value);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("type", ref type);
+			Value_.Pop("value", ref value);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(type);
+			Stream_.Push(value);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("type", type);
+			Value_.Push("value", value);
+		}
+		public void Set(CharacterTypeKeyValueClientMeta Obj_)
+		{
+			type = Obj_.type;
+			value.Set(Obj_.value);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(type) + "," + 
+				SEnumChecker.GetStdName(value);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(type, "type") + "," + 
+				SEnumChecker.GetMemberName(value, "value");
+		}
+	}
+	public class CharacterClientMeta : CharacterMeta
+	{
+		public EText name = default(EText);
+		public String PrefabName = string.Empty;
+		public String IconName = string.Empty;
+		public CharacterClientMeta()
+		{
+		}
+		public CharacterClientMeta(CharacterClientMeta Obj_) : base(Obj_)
+		{
+			name = Obj_.name;
+			PrefabName = Obj_.PrefabName;
+			IconName = Obj_.IconName;
+		}
+		public CharacterClientMeta(CharacterMeta Super_, EText name_, String PrefabName_, String IconName_) : base(Super_)
+		{
+			name = name_;
+			PrefabName = PrefabName_;
+			IconName = IconName_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref ETextGradeName);
-			Stream_.Pop(ref ColorR);
-			Stream_.Pop(ref ColorG);
-			Stream_.Pop(ref ColorB);
+			Stream_.Pop(ref name);
+			Stream_.Pop(ref PrefabName);
+			Stream_.Pop(ref IconName);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("ETextGradeName", ref ETextGradeName);
-			Value_.Pop("ColorR", ref ColorR);
-			Value_.Pop("ColorG", ref ColorG);
-			Value_.Pop("ColorB", ref ColorB);
+			Value_.Pop("name", ref name);
+			Value_.Pop("PrefabName", ref PrefabName);
+			Value_.Pop("IconName", ref IconName);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(ETextGradeName);
-			Stream_.Push(ColorR);
-			Stream_.Push(ColorG);
-			Stream_.Push(ColorB);
+			Stream_.Push(name);
+			Stream_.Push(PrefabName);
+			Stream_.Push(IconName);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("ETextGradeName", ETextGradeName);
-			Value_.Push("ColorR", ColorR);
-			Value_.Push("ColorG", ColorG);
-			Value_.Push("ColorB", ColorB);
+			Value_.Push("name", name);
+			Value_.Push("PrefabName", PrefabName);
+			Value_.Push("IconName", IconName);
 		}
-		public void Set(SCharacterGradeClientMeta Obj_)
+		public void Set(CharacterClientMeta Obj_)
 		{
 			base.Set(Obj_);
-			ETextGradeName = Obj_.ETextGradeName;
-			ColorR = Obj_.ColorR;
-			ColorG = Obj_.ColorG;
-			ColorB = Obj_.ColorB;
+			name = Obj_.name;
+			PrefabName = Obj_.PrefabName;
+			IconName = Obj_.IconName;
 		}
 		public override string StdName()
 		{
 			return 
 				base.StdName() + "," + 
 				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(ColorR) + "," + 
-				SEnumChecker.GetStdName(ColorG) + "," + 
-				SEnumChecker.GetStdName(ColorB);
+				SEnumChecker.GetStdName(PrefabName) + "," + 
+				SEnumChecker.GetStdName(IconName);
 		}
 		public override string MemberName()
 		{
 			return 
 				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(ETextGradeName, "ETextGradeName") + "," + 
-				SEnumChecker.GetMemberName(ColorR, "ColorR") + "," + 
-				SEnumChecker.GetMemberName(ColorG, "ColorG") + "," + 
-				SEnumChecker.GetMemberName(ColorB, "ColorB");
+				SEnumChecker.GetMemberName(name, "name") + "," + 
+				SEnumChecker.GetMemberName(PrefabName, "PrefabName") + "," + 
+				SEnumChecker.GetMemberName(IconName, "IconName");
 		}
 	}
 	public class SGameOption : SProto
@@ -1256,7 +1547,6 @@ namespace bb
 		public Boolean IsPad = default(Boolean);
 		public Boolean IsTutorial = default(Boolean);
 		public ELanguage Language = default(ELanguage);
-		public EPlayMode SelectMode = default(EPlayMode);
 		public SGameOption()
 		{
 		}
@@ -1269,9 +1559,8 @@ namespace bb
 			IsPad = Obj_.IsPad;
 			IsTutorial = Obj_.IsTutorial;
 			Language = Obj_.Language;
-			SelectMode = Obj_.SelectMode;
 		}
-		public SGameOption(Boolean IsVibe_, Boolean IsMusic_, Boolean IsSound_, Boolean IsPush_, Boolean IsPad_, Boolean IsTutorial_, ELanguage Language_, EPlayMode SelectMode_)
+		public SGameOption(Boolean IsVibe_, Boolean IsMusic_, Boolean IsSound_, Boolean IsPush_, Boolean IsPad_, Boolean IsTutorial_, ELanguage Language_)
 		{
 			IsVibe = IsVibe_;
 			IsMusic = IsMusic_;
@@ -1280,7 +1569,6 @@ namespace bb
 			IsPad = IsPad_;
 			IsTutorial = IsTutorial_;
 			Language = Language_;
-			SelectMode = SelectMode_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -1291,7 +1579,6 @@ namespace bb
 			Stream_.Pop(ref IsPad);
 			Stream_.Pop(ref IsTutorial);
 			Stream_.Pop(ref Language);
-			Stream_.Pop(ref SelectMode);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -1302,7 +1589,6 @@ namespace bb
 			Value_.Pop("IsPad", ref IsPad);
 			Value_.Pop("IsTutorial", ref IsTutorial);
 			Value_.Pop("Language", ref Language);
-			Value_.Pop("SelectMode", ref SelectMode);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -1313,7 +1599,6 @@ namespace bb
 			Stream_.Push(IsPad);
 			Stream_.Push(IsTutorial);
 			Stream_.Push(Language);
-			Stream_.Push(SelectMode);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -1324,7 +1609,6 @@ namespace bb
 			Value_.Push("IsPad", IsPad);
 			Value_.Push("IsTutorial", IsTutorial);
 			Value_.Push("Language", Language);
-			Value_.Push("SelectMode", SelectMode);
 		}
 		public void Set(SGameOption Obj_)
 		{
@@ -1335,7 +1619,6 @@ namespace bb
 			IsPad = Obj_.IsPad;
 			IsTutorial = Obj_.IsTutorial;
 			Language = Obj_.Language;
-			SelectMode = Obj_.SelectMode;
 		}
 		public override string StdName()
 		{
@@ -1346,8 +1629,7 @@ namespace bb
 				SEnumChecker.GetStdName(IsPush) + "," + 
 				SEnumChecker.GetStdName(IsPad) + "," + 
 				SEnumChecker.GetStdName(IsTutorial) + "," + 
-				"bb.ELanguage" + "," + 
-				"bb.EPlayMode";
+				"bb.ELanguage";
 		}
 		public override string MemberName()
 		{
@@ -1358,351 +1640,7 @@ namespace bb
 				SEnumChecker.GetMemberName(IsPush, "IsPush") + "," + 
 				SEnumChecker.GetMemberName(IsPad, "IsPad") + "," + 
 				SEnumChecker.GetMemberName(IsTutorial, "IsTutorial") + "," + 
-				SEnumChecker.GetMemberName(Language, "Language") + "," + 
-				SEnumChecker.GetMemberName(SelectMode, "SelectMode");
-		}
-	}
-	public class SQuestClientMeta : SQuestMeta
-	{
-		public EText ETextName = default(EText);
-		public String IconName = string.Empty;
-		public SQuestClientMeta()
-		{
-		}
-		public SQuestClientMeta(SQuestClientMeta Obj_) : base(Obj_)
-		{
-			ETextName = Obj_.ETextName;
-			IconName = Obj_.IconName;
-		}
-		public SQuestClientMeta(SQuestMeta Super_, EText ETextName_, String IconName_) : base(Super_)
-		{
-			ETextName = ETextName_;
-			IconName = IconName_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref ETextName);
-			Stream_.Pop(ref IconName);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("ETextName", ref ETextName);
-			Value_.Pop("IconName", ref IconName);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(ETextName);
-			Stream_.Push(IconName);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("ETextName", ETextName);
-			Value_.Push("IconName", IconName);
-		}
-		public void Set(SQuestClientMeta Obj_)
-		{
-			base.Set(Obj_);
-			ETextName = Obj_.ETextName;
-			IconName = Obj_.IconName;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(IconName);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(ETextName, "ETextName") + "," + 
-				SEnumChecker.GetMemberName(IconName, "IconName");
-		}
-	}
-	public class SShopMeta : SProto
-	{
-		public EText ETextName = default(EText);
-		public String TextureName = string.Empty;
-		public SShopMeta()
-		{
-		}
-		public SShopMeta(SShopMeta Obj_)
-		{
-			ETextName = Obj_.ETextName;
-			TextureName = Obj_.TextureName;
-		}
-		public SShopMeta(EText ETextName_, String TextureName_)
-		{
-			ETextName = ETextName_;
-			TextureName = TextureName_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref ETextName);
-			Stream_.Pop(ref TextureName);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("ETextName", ref ETextName);
-			Value_.Pop("TextureName", ref TextureName);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(ETextName);
-			Stream_.Push(TextureName);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("ETextName", ETextName);
-			Value_.Push("TextureName", TextureName);
-		}
-		public void Set(SShopMeta Obj_)
-		{
-			ETextName = Obj_.ETextName;
-			TextureName = Obj_.TextureName;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(TextureName);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(ETextName, "ETextName") + "," + 
-				SEnumChecker.GetMemberName(TextureName, "TextureName");
-		}
-	}
-	public class SShopInGameMeta : SShopMeta
-	{
-		public Int32 Code = default(Int32);
-		public EResource CostType = default(EResource);
-		public Int32 CostValue = default(Int32);
-		public Int32 RewardCode = default(Int32);
-		public ETrackingKey AnalyticsKey = default(ETrackingKey);
-		public SShopInGameMeta()
-		{
-		}
-		public SShopInGameMeta(SShopInGameMeta Obj_) : base(Obj_)
-		{
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-			AnalyticsKey = Obj_.AnalyticsKey;
-		}
-		public SShopInGameMeta(SShopMeta Super_, Int32 Code_, EResource CostType_, Int32 CostValue_, Int32 RewardCode_, ETrackingKey AnalyticsKey_) : base(Super_)
-		{
-			Code = Code_;
-			CostType = CostType_;
-			CostValue = CostValue_;
-			RewardCode = RewardCode_;
-			AnalyticsKey = AnalyticsKey_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref CostType);
-			Stream_.Pop(ref CostValue);
-			Stream_.Pop(ref RewardCode);
-			Stream_.Pop(ref AnalyticsKey);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("CostType", ref CostType);
-			Value_.Pop("CostValue", ref CostValue);
-			Value_.Pop("RewardCode", ref RewardCode);
-			Value_.Pop("AnalyticsKey", ref AnalyticsKey);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(Code);
-			Stream_.Push(CostType);
-			Stream_.Push(CostValue);
-			Stream_.Push(RewardCode);
-			Stream_.Push(AnalyticsKey);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("Code", Code);
-			Value_.Push("CostType", CostType);
-			Value_.Push("CostValue", CostValue);
-			Value_.Push("RewardCode", RewardCode);
-			Value_.Push("AnalyticsKey", AnalyticsKey);
-		}
-		public void Set(SShopInGameMeta Obj_)
-		{
-			base.Set(Obj_);
-			Code = Obj_.Code;
-			CostType = Obj_.CostType;
-			CostValue = Obj_.CostValue;
-			RewardCode = Obj_.RewardCode;
-			AnalyticsKey = Obj_.AnalyticsKey;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Code) + "," + 
-				"bb.EResource" + "," + 
-				SEnumChecker.GetStdName(CostValue) + "," + 
-				SEnumChecker.GetStdName(RewardCode) + "," + 
-				"bb.ETrackingKey";
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(CostType, "CostType") + "," + 
-				SEnumChecker.GetMemberName(CostValue, "CostValue") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode") + "," + 
-				SEnumChecker.GetMemberName(AnalyticsKey, "AnalyticsKey");
-		}
-	}
-	public class SShopIAPMeta : SShopMeta
-	{
-		public String Pid = string.Empty;
-		public Int32 DiaCount = default(Int32);
-		public SShopIAPMeta()
-		{
-		}
-		public SShopIAPMeta(SShopIAPMeta Obj_) : base(Obj_)
-		{
-			Pid = Obj_.Pid;
-			DiaCount = Obj_.DiaCount;
-		}
-		public SShopIAPMeta(SShopMeta Super_, String Pid_, Int32 DiaCount_) : base(Super_)
-		{
-			Pid = Pid_;
-			DiaCount = DiaCount_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref Pid);
-			Stream_.Pop(ref DiaCount);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("Pid", ref Pid);
-			Value_.Pop("DiaCount", ref DiaCount);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(Pid);
-			Stream_.Push(DiaCount);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("Pid", Pid);
-			Value_.Push("DiaCount", DiaCount);
-		}
-		public void Set(SShopIAPMeta Obj_)
-		{
-			base.Set(Obj_);
-			Pid = Obj_.Pid;
-			DiaCount = Obj_.DiaCount;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Pid) + "," + 
-				SEnumChecker.GetStdName(DiaCount);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Pid, "Pid") + "," + 
-				SEnumChecker.GetMemberName(DiaCount, "DiaCount");
-		}
-	}
-	public class SGachaClientMeta : SGachaMeta
-	{
-		public String TextureName = string.Empty;
-		public Boolean IsEvent = default(Boolean);
-		public EText EventTextName = default(EText);
-		public SGachaClientMeta()
-		{
-		}
-		public SGachaClientMeta(SGachaClientMeta Obj_) : base(Obj_)
-		{
-			TextureName = Obj_.TextureName;
-			IsEvent = Obj_.IsEvent;
-			EventTextName = Obj_.EventTextName;
-		}
-		public SGachaClientMeta(SGachaMeta Super_, String TextureName_, Boolean IsEvent_, EText EventTextName_) : base(Super_)
-		{
-			TextureName = TextureName_;
-			IsEvent = IsEvent_;
-			EventTextName = EventTextName_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref TextureName);
-			Stream_.Pop(ref IsEvent);
-			Stream_.Pop(ref EventTextName);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("TextureName", ref TextureName);
-			Value_.Pop("IsEvent", ref IsEvent);
-			Value_.Pop("EventTextName", ref EventTextName);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(TextureName);
-			Stream_.Push(IsEvent);
-			Stream_.Push(EventTextName);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("TextureName", TextureName);
-			Value_.Push("IsEvent", IsEvent);
-			Value_.Push("EventTextName", EventTextName);
-		}
-		public void Set(SGachaClientMeta Obj_)
-		{
-			base.Set(Obj_);
-			TextureName = Obj_.TextureName;
-			IsEvent = Obj_.IsEvent;
-			EventTextName = Obj_.EventTextName;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(TextureName) + "," + 
-				SEnumChecker.GetStdName(IsEvent) + "," + 
-				"bb.EText";
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(TextureName, "TextureName") + "," + 
-				SEnumChecker.GetMemberName(IsEvent, "IsEvent") + "," + 
-				SEnumChecker.GetMemberName(EventTextName, "EventTextName");
+				SEnumChecker.GetMemberName(Language, "Language");
 		}
 	}
 	public class SRankTierClientMeta : SRankTierMeta
@@ -1805,608 +1743,6 @@ namespace bb
 				SEnumChecker.GetMemberName(RankColorR, "RankColorR") + "," + 
 				SEnumChecker.GetMemberName(RankColorG, "RankColorG") + "," + 
 				SEnumChecker.GetMemberName(RankColorB, "RankColorB");
-		}
-	}
-	public class SRankRewardViewMeta : SProto
-	{
-		public String TextureName = string.Empty;
-		public EText ETextName = default(EText);
-		public Int32 Count = default(Int32);
-		public SRankRewardViewMeta()
-		{
-		}
-		public SRankRewardViewMeta(SRankRewardViewMeta Obj_)
-		{
-			TextureName = Obj_.TextureName;
-			ETextName = Obj_.ETextName;
-			Count = Obj_.Count;
-		}
-		public SRankRewardViewMeta(String TextureName_, EText ETextName_, Int32 Count_)
-		{
-			TextureName = TextureName_;
-			ETextName = ETextName_;
-			Count = Count_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref TextureName);
-			Stream_.Pop(ref ETextName);
-			Stream_.Pop(ref Count);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("TextureName", ref TextureName);
-			Value_.Pop("ETextName", ref ETextName);
-			Value_.Pop("Count", ref Count);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(TextureName);
-			Stream_.Push(ETextName);
-			Stream_.Push(Count);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("TextureName", TextureName);
-			Value_.Push("ETextName", ETextName);
-			Value_.Push("Count", Count);
-		}
-		public void Set(SRankRewardViewMeta Obj_)
-		{
-			TextureName = Obj_.TextureName;
-			ETextName = Obj_.ETextName;
-			Count = Obj_.Count;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(TextureName) + "," + 
-				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(Count);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(TextureName, "TextureName") + "," + 
-				SEnumChecker.GetMemberName(ETextName, "ETextName") + "," + 
-				SEnumChecker.GetMemberName(Count, "Count");
-		}
-	}
-	public class SRankRewardViewPackMeta : SProto
-	{
-		public Int32 Code = default(Int32);
-		public SRankRewardViewMeta RankRewardViewMeta = new SRankRewardViewMeta();
-		public SRankRewardViewPackMeta()
-		{
-		}
-		public SRankRewardViewPackMeta(SRankRewardViewPackMeta Obj_)
-		{
-			Code = Obj_.Code;
-			RankRewardViewMeta = Obj_.RankRewardViewMeta;
-		}
-		public SRankRewardViewPackMeta(Int32 Code_, SRankRewardViewMeta RankRewardViewMeta_)
-		{
-			Code = Code_;
-			RankRewardViewMeta = RankRewardViewMeta_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-			Stream_.Pop(ref RankRewardViewMeta);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-			Value_.Pop("RankRewardViewMeta", ref RankRewardViewMeta);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-			Stream_.Push(RankRewardViewMeta);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-			Value_.Push("RankRewardViewMeta", RankRewardViewMeta);
-		}
-		public void Set(SRankRewardViewPackMeta Obj_)
-		{
-			Code = Obj_.Code;
-			RankRewardViewMeta.Set(Obj_.RankRewardViewMeta);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code) + "," + 
-				SEnumChecker.GetStdName(RankRewardViewMeta);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code") + "," + 
-				SEnumChecker.GetMemberName(RankRewardViewMeta, "RankRewardViewMeta");
-		}
-	}
-	public class SBattleTypeMeta : SBattleType
-	{
-		public Boolean IsServival = default(Boolean);
-		public Boolean IsSingle = default(Boolean);
-		public SBattleTypeMeta()
-		{
-		}
-		public SBattleTypeMeta(SBattleTypeMeta Obj_) : base(Obj_)
-		{
-			IsServival = Obj_.IsServival;
-			IsSingle = Obj_.IsSingle;
-		}
-		public SBattleTypeMeta(SBattleType Super_, Boolean IsServival_, Boolean IsSingle_) : base(Super_)
-		{
-			IsServival = IsServival_;
-			IsSingle = IsSingle_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref IsServival);
-			Stream_.Pop(ref IsSingle);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("IsServival", ref IsServival);
-			Value_.Pop("IsSingle", ref IsSingle);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(IsServival);
-			Stream_.Push(IsSingle);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("IsServival", IsServival);
-			Value_.Push("IsSingle", IsSingle);
-		}
-		public void Set(SBattleTypeMeta Obj_)
-		{
-			base.Set(Obj_);
-			IsServival = Obj_.IsServival;
-			IsSingle = Obj_.IsSingle;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(IsServival) + "," + 
-				SEnumChecker.GetStdName(IsSingle);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(IsServival, "IsServival") + "," + 
-				SEnumChecker.GetMemberName(IsSingle, "IsSingle");
-		}
-	}
-	public class SSingleBalance : SProto
-	{
-		public Single MinSpeed = default(Single);
-		public Single MaxSpeed = default(Single);
-		public Single ShotDelay = default(Single);
-		public Int32 TypeFix = default(Int32);
-		public Int32 CountFix = default(Int32);
-		public Single SpeedFix = default(Single);
-		public Int32 Right = default(Int32);
-		public Int32 Left = default(Int32);
-		public Int32 Bottom = default(Int32);
-		public Int32 Diagonal = default(Int32);
-		public Int32 FixCount = default(Int32);
-		public Int32 FixOnceCount = default(Int32);
-		public Int32 BonusTerm = default(Int32);
-		public Int32 BonusCointStart = default(Int32);
-		public Int32 BonusCoinOnce = default(Int32);
-		public Single BonusCoinSpeed = default(Single);
-		public Single CoinShotDelay = default(Single);
-		public Int32 WaveCountGold = default(Int32);
-		public Int32 InitGold = default(Int32);
-		public Int32 AddGold = default(Int32);
-		public Int32 PlayCountMax = default(Int32);
-		public Int32 ChargeCostGold = default(Int32);
-		public Int32 ScoreFactorWave = default(Int32);
-		public Int32 ScoreFactorTime = default(Int32);
-		public Int32 ScoreFactorGold = default(Int32);
-		public Int32 RefreshDurationMinute = default(Int32);
-		public Int32 StageGoldCount = default(Int32);
-		public Int32 StageGoldWave = default(Int32);
-		public Int32 StageGoldCountMax = default(Int32);
-		public String ItemPattern = string.Empty;
-		public Single ShieldTime = default(Single);
-		public Single StaminaTime = default(Single);
-		public Int32 GoldBarCount = default(Int32);
-		public SSingleBalance()
-		{
-		}
-		public SSingleBalance(SSingleBalance Obj_)
-		{
-			MinSpeed = Obj_.MinSpeed;
-			MaxSpeed = Obj_.MaxSpeed;
-			ShotDelay = Obj_.ShotDelay;
-			TypeFix = Obj_.TypeFix;
-			CountFix = Obj_.CountFix;
-			SpeedFix = Obj_.SpeedFix;
-			Right = Obj_.Right;
-			Left = Obj_.Left;
-			Bottom = Obj_.Bottom;
-			Diagonal = Obj_.Diagonal;
-			FixCount = Obj_.FixCount;
-			FixOnceCount = Obj_.FixOnceCount;
-			BonusTerm = Obj_.BonusTerm;
-			BonusCointStart = Obj_.BonusCointStart;
-			BonusCoinOnce = Obj_.BonusCoinOnce;
-			BonusCoinSpeed = Obj_.BonusCoinSpeed;
-			CoinShotDelay = Obj_.CoinShotDelay;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ScoreFactorTime = Obj_.ScoreFactorTime;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-			StageGoldCount = Obj_.StageGoldCount;
-			StageGoldWave = Obj_.StageGoldWave;
-			StageGoldCountMax = Obj_.StageGoldCountMax;
-			ItemPattern = Obj_.ItemPattern;
-			ShieldTime = Obj_.ShieldTime;
-			StaminaTime = Obj_.StaminaTime;
-			GoldBarCount = Obj_.GoldBarCount;
-		}
-		public SSingleBalance(Single MinSpeed_, Single MaxSpeed_, Single ShotDelay_, Int32 TypeFix_, Int32 CountFix_, Single SpeedFix_, Int32 Right_, Int32 Left_, Int32 Bottom_, Int32 Diagonal_, Int32 FixCount_, Int32 FixOnceCount_, Int32 BonusTerm_, Int32 BonusCointStart_, Int32 BonusCoinOnce_, Single BonusCoinSpeed_, Single CoinShotDelay_, Int32 WaveCountGold_, Int32 InitGold_, Int32 AddGold_, Int32 PlayCountMax_, Int32 ChargeCostGold_, Int32 ScoreFactorWave_, Int32 ScoreFactorTime_, Int32 ScoreFactorGold_, Int32 RefreshDurationMinute_, Int32 StageGoldCount_, Int32 StageGoldWave_, Int32 StageGoldCountMax_, String ItemPattern_, Single ShieldTime_, Single StaminaTime_, Int32 GoldBarCount_)
-		{
-			MinSpeed = MinSpeed_;
-			MaxSpeed = MaxSpeed_;
-			ShotDelay = ShotDelay_;
-			TypeFix = TypeFix_;
-			CountFix = CountFix_;
-			SpeedFix = SpeedFix_;
-			Right = Right_;
-			Left = Left_;
-			Bottom = Bottom_;
-			Diagonal = Diagonal_;
-			FixCount = FixCount_;
-			FixOnceCount = FixOnceCount_;
-			BonusTerm = BonusTerm_;
-			BonusCointStart = BonusCointStart_;
-			BonusCoinOnce = BonusCoinOnce_;
-			BonusCoinSpeed = BonusCoinSpeed_;
-			CoinShotDelay = CoinShotDelay_;
-			WaveCountGold = WaveCountGold_;
-			InitGold = InitGold_;
-			AddGold = AddGold_;
-			PlayCountMax = PlayCountMax_;
-			ChargeCostGold = ChargeCostGold_;
-			ScoreFactorWave = ScoreFactorWave_;
-			ScoreFactorTime = ScoreFactorTime_;
-			ScoreFactorGold = ScoreFactorGold_;
-			RefreshDurationMinute = RefreshDurationMinute_;
-			StageGoldCount = StageGoldCount_;
-			StageGoldWave = StageGoldWave_;
-			StageGoldCountMax = StageGoldCountMax_;
-			ItemPattern = ItemPattern_;
-			ShieldTime = ShieldTime_;
-			StaminaTime = StaminaTime_;
-			GoldBarCount = GoldBarCount_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref MinSpeed);
-			Stream_.Pop(ref MaxSpeed);
-			Stream_.Pop(ref ShotDelay);
-			Stream_.Pop(ref TypeFix);
-			Stream_.Pop(ref CountFix);
-			Stream_.Pop(ref SpeedFix);
-			Stream_.Pop(ref Right);
-			Stream_.Pop(ref Left);
-			Stream_.Pop(ref Bottom);
-			Stream_.Pop(ref Diagonal);
-			Stream_.Pop(ref FixCount);
-			Stream_.Pop(ref FixOnceCount);
-			Stream_.Pop(ref BonusTerm);
-			Stream_.Pop(ref BonusCointStart);
-			Stream_.Pop(ref BonusCoinOnce);
-			Stream_.Pop(ref BonusCoinSpeed);
-			Stream_.Pop(ref CoinShotDelay);
-			Stream_.Pop(ref WaveCountGold);
-			Stream_.Pop(ref InitGold);
-			Stream_.Pop(ref AddGold);
-			Stream_.Pop(ref PlayCountMax);
-			Stream_.Pop(ref ChargeCostGold);
-			Stream_.Pop(ref ScoreFactorWave);
-			Stream_.Pop(ref ScoreFactorTime);
-			Stream_.Pop(ref ScoreFactorGold);
-			Stream_.Pop(ref RefreshDurationMinute);
-			Stream_.Pop(ref StageGoldCount);
-			Stream_.Pop(ref StageGoldWave);
-			Stream_.Pop(ref StageGoldCountMax);
-			Stream_.Pop(ref ItemPattern);
-			Stream_.Pop(ref ShieldTime);
-			Stream_.Pop(ref StaminaTime);
-			Stream_.Pop(ref GoldBarCount);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("MinSpeed", ref MinSpeed);
-			Value_.Pop("MaxSpeed", ref MaxSpeed);
-			Value_.Pop("ShotDelay", ref ShotDelay);
-			Value_.Pop("TypeFix", ref TypeFix);
-			Value_.Pop("CountFix", ref CountFix);
-			Value_.Pop("SpeedFix", ref SpeedFix);
-			Value_.Pop("Right", ref Right);
-			Value_.Pop("Left", ref Left);
-			Value_.Pop("Bottom", ref Bottom);
-			Value_.Pop("Diagonal", ref Diagonal);
-			Value_.Pop("FixCount", ref FixCount);
-			Value_.Pop("FixOnceCount", ref FixOnceCount);
-			Value_.Pop("BonusTerm", ref BonusTerm);
-			Value_.Pop("BonusCointStart", ref BonusCointStart);
-			Value_.Pop("BonusCoinOnce", ref BonusCoinOnce);
-			Value_.Pop("BonusCoinSpeed", ref BonusCoinSpeed);
-			Value_.Pop("CoinShotDelay", ref CoinShotDelay);
-			Value_.Pop("WaveCountGold", ref WaveCountGold);
-			Value_.Pop("InitGold", ref InitGold);
-			Value_.Pop("AddGold", ref AddGold);
-			Value_.Pop("PlayCountMax", ref PlayCountMax);
-			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
-			Value_.Pop("ScoreFactorWave", ref ScoreFactorWave);
-			Value_.Pop("ScoreFactorTime", ref ScoreFactorTime);
-			Value_.Pop("ScoreFactorGold", ref ScoreFactorGold);
-			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
-			Value_.Pop("StageGoldCount", ref StageGoldCount);
-			Value_.Pop("StageGoldWave", ref StageGoldWave);
-			Value_.Pop("StageGoldCountMax", ref StageGoldCountMax);
-			Value_.Pop("ItemPattern", ref ItemPattern);
-			Value_.Pop("ShieldTime", ref ShieldTime);
-			Value_.Pop("StaminaTime", ref StaminaTime);
-			Value_.Pop("GoldBarCount", ref GoldBarCount);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(MinSpeed);
-			Stream_.Push(MaxSpeed);
-			Stream_.Push(ShotDelay);
-			Stream_.Push(TypeFix);
-			Stream_.Push(CountFix);
-			Stream_.Push(SpeedFix);
-			Stream_.Push(Right);
-			Stream_.Push(Left);
-			Stream_.Push(Bottom);
-			Stream_.Push(Diagonal);
-			Stream_.Push(FixCount);
-			Stream_.Push(FixOnceCount);
-			Stream_.Push(BonusTerm);
-			Stream_.Push(BonusCointStart);
-			Stream_.Push(BonusCoinOnce);
-			Stream_.Push(BonusCoinSpeed);
-			Stream_.Push(CoinShotDelay);
-			Stream_.Push(WaveCountGold);
-			Stream_.Push(InitGold);
-			Stream_.Push(AddGold);
-			Stream_.Push(PlayCountMax);
-			Stream_.Push(ChargeCostGold);
-			Stream_.Push(ScoreFactorWave);
-			Stream_.Push(ScoreFactorTime);
-			Stream_.Push(ScoreFactorGold);
-			Stream_.Push(RefreshDurationMinute);
-			Stream_.Push(StageGoldCount);
-			Stream_.Push(StageGoldWave);
-			Stream_.Push(StageGoldCountMax);
-			Stream_.Push(ItemPattern);
-			Stream_.Push(ShieldTime);
-			Stream_.Push(StaminaTime);
-			Stream_.Push(GoldBarCount);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("MinSpeed", MinSpeed);
-			Value_.Push("MaxSpeed", MaxSpeed);
-			Value_.Push("ShotDelay", ShotDelay);
-			Value_.Push("TypeFix", TypeFix);
-			Value_.Push("CountFix", CountFix);
-			Value_.Push("SpeedFix", SpeedFix);
-			Value_.Push("Right", Right);
-			Value_.Push("Left", Left);
-			Value_.Push("Bottom", Bottom);
-			Value_.Push("Diagonal", Diagonal);
-			Value_.Push("FixCount", FixCount);
-			Value_.Push("FixOnceCount", FixOnceCount);
-			Value_.Push("BonusTerm", BonusTerm);
-			Value_.Push("BonusCointStart", BonusCointStart);
-			Value_.Push("BonusCoinOnce", BonusCoinOnce);
-			Value_.Push("BonusCoinSpeed", BonusCoinSpeed);
-			Value_.Push("CoinShotDelay", CoinShotDelay);
-			Value_.Push("WaveCountGold", WaveCountGold);
-			Value_.Push("InitGold", InitGold);
-			Value_.Push("AddGold", AddGold);
-			Value_.Push("PlayCountMax", PlayCountMax);
-			Value_.Push("ChargeCostGold", ChargeCostGold);
-			Value_.Push("ScoreFactorWave", ScoreFactorWave);
-			Value_.Push("ScoreFactorTime", ScoreFactorTime);
-			Value_.Push("ScoreFactorGold", ScoreFactorGold);
-			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
-			Value_.Push("StageGoldCount", StageGoldCount);
-			Value_.Push("StageGoldWave", StageGoldWave);
-			Value_.Push("StageGoldCountMax", StageGoldCountMax);
-			Value_.Push("ItemPattern", ItemPattern);
-			Value_.Push("ShieldTime", ShieldTime);
-			Value_.Push("StaminaTime", StaminaTime);
-			Value_.Push("GoldBarCount", GoldBarCount);
-		}
-		public void Set(SSingleBalance Obj_)
-		{
-			MinSpeed = Obj_.MinSpeed;
-			MaxSpeed = Obj_.MaxSpeed;
-			ShotDelay = Obj_.ShotDelay;
-			TypeFix = Obj_.TypeFix;
-			CountFix = Obj_.CountFix;
-			SpeedFix = Obj_.SpeedFix;
-			Right = Obj_.Right;
-			Left = Obj_.Left;
-			Bottom = Obj_.Bottom;
-			Diagonal = Obj_.Diagonal;
-			FixCount = Obj_.FixCount;
-			FixOnceCount = Obj_.FixOnceCount;
-			BonusTerm = Obj_.BonusTerm;
-			BonusCointStart = Obj_.BonusCointStart;
-			BonusCoinOnce = Obj_.BonusCoinOnce;
-			BonusCoinSpeed = Obj_.BonusCoinSpeed;
-			CoinShotDelay = Obj_.CoinShotDelay;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			PlayCountMax = Obj_.PlayCountMax;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ScoreFactorTime = Obj_.ScoreFactorTime;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-			StageGoldCount = Obj_.StageGoldCount;
-			StageGoldWave = Obj_.StageGoldWave;
-			StageGoldCountMax = Obj_.StageGoldCountMax;
-			ItemPattern = Obj_.ItemPattern;
-			ShieldTime = Obj_.ShieldTime;
-			StaminaTime = Obj_.StaminaTime;
-			GoldBarCount = Obj_.GoldBarCount;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(MinSpeed) + "," + 
-				SEnumChecker.GetStdName(MaxSpeed) + "," + 
-				SEnumChecker.GetStdName(ShotDelay) + "," + 
-				SEnumChecker.GetStdName(TypeFix) + "," + 
-				SEnumChecker.GetStdName(CountFix) + "," + 
-				SEnumChecker.GetStdName(SpeedFix) + "," + 
-				SEnumChecker.GetStdName(Right) + "," + 
-				SEnumChecker.GetStdName(Left) + "," + 
-				SEnumChecker.GetStdName(Bottom) + "," + 
-				SEnumChecker.GetStdName(Diagonal) + "," + 
-				SEnumChecker.GetStdName(FixCount) + "," + 
-				SEnumChecker.GetStdName(FixOnceCount) + "," + 
-				SEnumChecker.GetStdName(BonusTerm) + "," + 
-				SEnumChecker.GetStdName(BonusCointStart) + "," + 
-				SEnumChecker.GetStdName(BonusCoinOnce) + "," + 
-				SEnumChecker.GetStdName(BonusCoinSpeed) + "," + 
-				SEnumChecker.GetStdName(CoinShotDelay) + "," + 
-				SEnumChecker.GetStdName(WaveCountGold) + "," + 
-				SEnumChecker.GetStdName(InitGold) + "," + 
-				SEnumChecker.GetStdName(AddGold) + "," + 
-				SEnumChecker.GetStdName(PlayCountMax) + "," + 
-				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorWave) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorTime) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorGold) + "," + 
-				SEnumChecker.GetStdName(RefreshDurationMinute) + "," + 
-				SEnumChecker.GetStdName(StageGoldCount) + "," + 
-				SEnumChecker.GetStdName(StageGoldWave) + "," + 
-				SEnumChecker.GetStdName(StageGoldCountMax) + "," + 
-				SEnumChecker.GetStdName(ItemPattern) + "," + 
-				SEnumChecker.GetStdName(ShieldTime) + "," + 
-				SEnumChecker.GetStdName(StaminaTime) + "," + 
-				SEnumChecker.GetStdName(GoldBarCount);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(MinSpeed, "MinSpeed") + "," + 
-				SEnumChecker.GetMemberName(MaxSpeed, "MaxSpeed") + "," + 
-				SEnumChecker.GetMemberName(ShotDelay, "ShotDelay") + "," + 
-				SEnumChecker.GetMemberName(TypeFix, "TypeFix") + "," + 
-				SEnumChecker.GetMemberName(CountFix, "CountFix") + "," + 
-				SEnumChecker.GetMemberName(SpeedFix, "SpeedFix") + "," + 
-				SEnumChecker.GetMemberName(Right, "Right") + "," + 
-				SEnumChecker.GetMemberName(Left, "Left") + "," + 
-				SEnumChecker.GetMemberName(Bottom, "Bottom") + "," + 
-				SEnumChecker.GetMemberName(Diagonal, "Diagonal") + "," + 
-				SEnumChecker.GetMemberName(FixCount, "FixCount") + "," + 
-				SEnumChecker.GetMemberName(FixOnceCount, "FixOnceCount") + "," + 
-				SEnumChecker.GetMemberName(BonusTerm, "BonusTerm") + "," + 
-				SEnumChecker.GetMemberName(BonusCointStart, "BonusCointStart") + "," + 
-				SEnumChecker.GetMemberName(BonusCoinOnce, "BonusCoinOnce") + "," + 
-				SEnumChecker.GetMemberName(BonusCoinSpeed, "BonusCoinSpeed") + "," + 
-				SEnumChecker.GetMemberName(CoinShotDelay, "CoinShotDelay") + "," + 
-				SEnumChecker.GetMemberName(WaveCountGold, "WaveCountGold") + "," + 
-				SEnumChecker.GetMemberName(InitGold, "InitGold") + "," + 
-				SEnumChecker.GetMemberName(AddGold, "AddGold") + "," + 
-				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
-				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorWave, "ScoreFactorWave") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorTime, "ScoreFactorTime") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorGold, "ScoreFactorGold") + "," + 
-				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute") + "," + 
-				SEnumChecker.GetMemberName(StageGoldCount, "StageGoldCount") + "," + 
-				SEnumChecker.GetMemberName(StageGoldWave, "StageGoldWave") + "," + 
-				SEnumChecker.GetMemberName(StageGoldCountMax, "StageGoldCountMax") + "," + 
-				SEnumChecker.GetMemberName(ItemPattern, "ItemPattern") + "," + 
-				SEnumChecker.GetMemberName(ShieldTime, "ShieldTime") + "," + 
-				SEnumChecker.GetMemberName(StaminaTime, "StaminaTime") + "," + 
-				SEnumChecker.GetMemberName(GoldBarCount, "GoldBarCount");
-		}
-	}
-	public class SCheatMeta : SProto
-	{
-		public String Cheat = string.Empty;
-		public String CheatCommand = string.Empty;
-		public SCheatMeta()
-		{
-		}
-		public SCheatMeta(SCheatMeta Obj_)
-		{
-			Cheat = Obj_.Cheat;
-			CheatCommand = Obj_.CheatCommand;
-		}
-		public SCheatMeta(String Cheat_, String CheatCommand_)
-		{
-			Cheat = Cheat_;
-			CheatCommand = CheatCommand_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Cheat);
-			Stream_.Pop(ref CheatCommand);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Cheat", ref Cheat);
-			Value_.Pop("CheatCommand", ref CheatCommand);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Cheat);
-			Stream_.Push(CheatCommand);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Cheat", Cheat);
-			Value_.Push("CheatCommand", CheatCommand);
-		}
-		public void Set(SCheatMeta Obj_)
-		{
-			Cheat = Obj_.Cheat;
-			CheatCommand = Obj_.CheatCommand;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Cheat) + "," + 
-				SEnumChecker.GetStdName(CheatCommand);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Cheat, "Cheat") + "," + 
-				SEnumChecker.GetMemberName(CheatCommand, "CheatCommand");
 		}
 	}
 	public class STrackingMetaParam : SProto
@@ -2529,780 +1865,6 @@ namespace bb
 				SEnumChecker.GetMemberName(Param, "Param");
 		}
 	}
-	public class SGachaRewardClientMeta : SGachaRewardMeta
-	{
-		public Boolean Event = default(Boolean);
-		public SGachaRewardClientMeta()
-		{
-		}
-		public SGachaRewardClientMeta(SGachaRewardClientMeta Obj_) : base(Obj_)
-		{
-			Event = Obj_.Event;
-		}
-		public SGachaRewardClientMeta(SGachaRewardMeta Super_, Boolean Event_) : base(Super_)
-		{
-			Event = Event_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref Event);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("Event", ref Event);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(Event);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("Event", Event);
-		}
-		public void Set(SGachaRewardClientMeta Obj_)
-		{
-			base.Set(Obj_);
-			Event = Obj_.Event;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Event);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Event, "Event");
-		}
-	}
-	public class SSingleIslandBalance : SProto
-	{
-		public Single IslandVelocity = default(Single);
-		public Single InitTermMin = default(Single);
-		public Single InitTermMax = default(Single);
-		public Single AddTerm = default(Single);
-		public Single InitHeight = default(Single);
-		public Single ExcludeHeight = default(Single);
-		public Single AddHeight = default(Single);
-		public Single AddExcludeHeight = default(Single);
-		public Int32 StaminaTerm = default(Int32);
-		public Int32 CoinTerm = default(Int32);
-		public Int32 GoldBarTerm = default(Int32);
-		public Int32 GoldBarCount = default(Int32);
-		public Single StaminaBonus = default(Single);
-		public Single StaminaMax = default(Single);
-		public Single StaminaApple = default(Single);
-		public Single StaminaMeat = default(Single);
-		public Single StaminaChicken = default(Single);
-		public Int32 BalanceCount = default(Int32);
-		public Int32 IslandDownPercent = default(Int32);
-		public Int32 IslandTypeRange = default(Int32);
-		public Int32 WaveCountGold = default(Int32);
-		public Int32 InitGold = default(Int32);
-		public Int32 AddGold = default(Int32);
-		public Single IslandInitTime = default(Single);
-		public Single IslandAddTime = default(Single);
-		public Single IslandTimeMin = default(Single);
-		public Int32 SpikeIslandTerm = default(Int32);
-		public Single IslandStamina = default(Single);
-		public Int32 SpikeIslandBalanceCount = default(Int32);
-		public Int32 ScoreFactorIsland = default(Int32);
-		public Int32 ScoreFactorGold = default(Int32);
-		public Int32 ChargeCostGold = default(Int32);
-		public Int32 PlayCountMax = default(Int32);
-		public Int32 RefreshDurationMinute = default(Int32);
-		public String ItemPattern = string.Empty;
-		public SSingleIslandBalance()
-		{
-		}
-		public SSingleIslandBalance(SSingleIslandBalance Obj_)
-		{
-			IslandVelocity = Obj_.IslandVelocity;
-			InitTermMin = Obj_.InitTermMin;
-			InitTermMax = Obj_.InitTermMax;
-			AddTerm = Obj_.AddTerm;
-			InitHeight = Obj_.InitHeight;
-			ExcludeHeight = Obj_.ExcludeHeight;
-			AddHeight = Obj_.AddHeight;
-			AddExcludeHeight = Obj_.AddExcludeHeight;
-			StaminaTerm = Obj_.StaminaTerm;
-			CoinTerm = Obj_.CoinTerm;
-			GoldBarTerm = Obj_.GoldBarTerm;
-			GoldBarCount = Obj_.GoldBarCount;
-			StaminaBonus = Obj_.StaminaBonus;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaApple = Obj_.StaminaApple;
-			StaminaMeat = Obj_.StaminaMeat;
-			StaminaChicken = Obj_.StaminaChicken;
-			BalanceCount = Obj_.BalanceCount;
-			IslandDownPercent = Obj_.IslandDownPercent;
-			IslandTypeRange = Obj_.IslandTypeRange;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			IslandInitTime = Obj_.IslandInitTime;
-			IslandAddTime = Obj_.IslandAddTime;
-			IslandTimeMin = Obj_.IslandTimeMin;
-			SpikeIslandTerm = Obj_.SpikeIslandTerm;
-			IslandStamina = Obj_.IslandStamina;
-			SpikeIslandBalanceCount = Obj_.SpikeIslandBalanceCount;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			PlayCountMax = Obj_.PlayCountMax;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-			ItemPattern = Obj_.ItemPattern;
-		}
-		public SSingleIslandBalance(Single IslandVelocity_, Single InitTermMin_, Single InitTermMax_, Single AddTerm_, Single InitHeight_, Single ExcludeHeight_, Single AddHeight_, Single AddExcludeHeight_, Int32 StaminaTerm_, Int32 CoinTerm_, Int32 GoldBarTerm_, Int32 GoldBarCount_, Single StaminaBonus_, Single StaminaMax_, Single StaminaApple_, Single StaminaMeat_, Single StaminaChicken_, Int32 BalanceCount_, Int32 IslandDownPercent_, Int32 IslandTypeRange_, Int32 WaveCountGold_, Int32 InitGold_, Int32 AddGold_, Single IslandInitTime_, Single IslandAddTime_, Single IslandTimeMin_, Int32 SpikeIslandTerm_, Single IslandStamina_, Int32 SpikeIslandBalanceCount_, Int32 ScoreFactorIsland_, Int32 ScoreFactorGold_, Int32 ChargeCostGold_, Int32 PlayCountMax_, Int32 RefreshDurationMinute_, String ItemPattern_)
-		{
-			IslandVelocity = IslandVelocity_;
-			InitTermMin = InitTermMin_;
-			InitTermMax = InitTermMax_;
-			AddTerm = AddTerm_;
-			InitHeight = InitHeight_;
-			ExcludeHeight = ExcludeHeight_;
-			AddHeight = AddHeight_;
-			AddExcludeHeight = AddExcludeHeight_;
-			StaminaTerm = StaminaTerm_;
-			CoinTerm = CoinTerm_;
-			GoldBarTerm = GoldBarTerm_;
-			GoldBarCount = GoldBarCount_;
-			StaminaBonus = StaminaBonus_;
-			StaminaMax = StaminaMax_;
-			StaminaApple = StaminaApple_;
-			StaminaMeat = StaminaMeat_;
-			StaminaChicken = StaminaChicken_;
-			BalanceCount = BalanceCount_;
-			IslandDownPercent = IslandDownPercent_;
-			IslandTypeRange = IslandTypeRange_;
-			WaveCountGold = WaveCountGold_;
-			InitGold = InitGold_;
-			AddGold = AddGold_;
-			IslandInitTime = IslandInitTime_;
-			IslandAddTime = IslandAddTime_;
-			IslandTimeMin = IslandTimeMin_;
-			SpikeIslandTerm = SpikeIslandTerm_;
-			IslandStamina = IslandStamina_;
-			SpikeIslandBalanceCount = SpikeIslandBalanceCount_;
-			ScoreFactorIsland = ScoreFactorIsland_;
-			ScoreFactorGold = ScoreFactorGold_;
-			ChargeCostGold = ChargeCostGold_;
-			PlayCountMax = PlayCountMax_;
-			RefreshDurationMinute = RefreshDurationMinute_;
-			ItemPattern = ItemPattern_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref IslandVelocity);
-			Stream_.Pop(ref InitTermMin);
-			Stream_.Pop(ref InitTermMax);
-			Stream_.Pop(ref AddTerm);
-			Stream_.Pop(ref InitHeight);
-			Stream_.Pop(ref ExcludeHeight);
-			Stream_.Pop(ref AddHeight);
-			Stream_.Pop(ref AddExcludeHeight);
-			Stream_.Pop(ref StaminaTerm);
-			Stream_.Pop(ref CoinTerm);
-			Stream_.Pop(ref GoldBarTerm);
-			Stream_.Pop(ref GoldBarCount);
-			Stream_.Pop(ref StaminaBonus);
-			Stream_.Pop(ref StaminaMax);
-			Stream_.Pop(ref StaminaApple);
-			Stream_.Pop(ref StaminaMeat);
-			Stream_.Pop(ref StaminaChicken);
-			Stream_.Pop(ref BalanceCount);
-			Stream_.Pop(ref IslandDownPercent);
-			Stream_.Pop(ref IslandTypeRange);
-			Stream_.Pop(ref WaveCountGold);
-			Stream_.Pop(ref InitGold);
-			Stream_.Pop(ref AddGold);
-			Stream_.Pop(ref IslandInitTime);
-			Stream_.Pop(ref IslandAddTime);
-			Stream_.Pop(ref IslandTimeMin);
-			Stream_.Pop(ref SpikeIslandTerm);
-			Stream_.Pop(ref IslandStamina);
-			Stream_.Pop(ref SpikeIslandBalanceCount);
-			Stream_.Pop(ref ScoreFactorIsland);
-			Stream_.Pop(ref ScoreFactorGold);
-			Stream_.Pop(ref ChargeCostGold);
-			Stream_.Pop(ref PlayCountMax);
-			Stream_.Pop(ref RefreshDurationMinute);
-			Stream_.Pop(ref ItemPattern);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("IslandVelocity", ref IslandVelocity);
-			Value_.Pop("InitTermMin", ref InitTermMin);
-			Value_.Pop("InitTermMax", ref InitTermMax);
-			Value_.Pop("AddTerm", ref AddTerm);
-			Value_.Pop("InitHeight", ref InitHeight);
-			Value_.Pop("ExcludeHeight", ref ExcludeHeight);
-			Value_.Pop("AddHeight", ref AddHeight);
-			Value_.Pop("AddExcludeHeight", ref AddExcludeHeight);
-			Value_.Pop("StaminaTerm", ref StaminaTerm);
-			Value_.Pop("CoinTerm", ref CoinTerm);
-			Value_.Pop("GoldBarTerm", ref GoldBarTerm);
-			Value_.Pop("GoldBarCount", ref GoldBarCount);
-			Value_.Pop("StaminaBonus", ref StaminaBonus);
-			Value_.Pop("StaminaMax", ref StaminaMax);
-			Value_.Pop("StaminaApple", ref StaminaApple);
-			Value_.Pop("StaminaMeat", ref StaminaMeat);
-			Value_.Pop("StaminaChicken", ref StaminaChicken);
-			Value_.Pop("BalanceCount", ref BalanceCount);
-			Value_.Pop("IslandDownPercent", ref IslandDownPercent);
-			Value_.Pop("IslandTypeRange", ref IslandTypeRange);
-			Value_.Pop("WaveCountGold", ref WaveCountGold);
-			Value_.Pop("InitGold", ref InitGold);
-			Value_.Pop("AddGold", ref AddGold);
-			Value_.Pop("IslandInitTime", ref IslandInitTime);
-			Value_.Pop("IslandAddTime", ref IslandAddTime);
-			Value_.Pop("IslandTimeMin", ref IslandTimeMin);
-			Value_.Pop("SpikeIslandTerm", ref SpikeIslandTerm);
-			Value_.Pop("IslandStamina", ref IslandStamina);
-			Value_.Pop("SpikeIslandBalanceCount", ref SpikeIslandBalanceCount);
-			Value_.Pop("ScoreFactorIsland", ref ScoreFactorIsland);
-			Value_.Pop("ScoreFactorGold", ref ScoreFactorGold);
-			Value_.Pop("ChargeCostGold", ref ChargeCostGold);
-			Value_.Pop("PlayCountMax", ref PlayCountMax);
-			Value_.Pop("RefreshDurationMinute", ref RefreshDurationMinute);
-			Value_.Pop("ItemPattern", ref ItemPattern);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(IslandVelocity);
-			Stream_.Push(InitTermMin);
-			Stream_.Push(InitTermMax);
-			Stream_.Push(AddTerm);
-			Stream_.Push(InitHeight);
-			Stream_.Push(ExcludeHeight);
-			Stream_.Push(AddHeight);
-			Stream_.Push(AddExcludeHeight);
-			Stream_.Push(StaminaTerm);
-			Stream_.Push(CoinTerm);
-			Stream_.Push(GoldBarTerm);
-			Stream_.Push(GoldBarCount);
-			Stream_.Push(StaminaBonus);
-			Stream_.Push(StaminaMax);
-			Stream_.Push(StaminaApple);
-			Stream_.Push(StaminaMeat);
-			Stream_.Push(StaminaChicken);
-			Stream_.Push(BalanceCount);
-			Stream_.Push(IslandDownPercent);
-			Stream_.Push(IslandTypeRange);
-			Stream_.Push(WaveCountGold);
-			Stream_.Push(InitGold);
-			Stream_.Push(AddGold);
-			Stream_.Push(IslandInitTime);
-			Stream_.Push(IslandAddTime);
-			Stream_.Push(IslandTimeMin);
-			Stream_.Push(SpikeIslandTerm);
-			Stream_.Push(IslandStamina);
-			Stream_.Push(SpikeIslandBalanceCount);
-			Stream_.Push(ScoreFactorIsland);
-			Stream_.Push(ScoreFactorGold);
-			Stream_.Push(ChargeCostGold);
-			Stream_.Push(PlayCountMax);
-			Stream_.Push(RefreshDurationMinute);
-			Stream_.Push(ItemPattern);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("IslandVelocity", IslandVelocity);
-			Value_.Push("InitTermMin", InitTermMin);
-			Value_.Push("InitTermMax", InitTermMax);
-			Value_.Push("AddTerm", AddTerm);
-			Value_.Push("InitHeight", InitHeight);
-			Value_.Push("ExcludeHeight", ExcludeHeight);
-			Value_.Push("AddHeight", AddHeight);
-			Value_.Push("AddExcludeHeight", AddExcludeHeight);
-			Value_.Push("StaminaTerm", StaminaTerm);
-			Value_.Push("CoinTerm", CoinTerm);
-			Value_.Push("GoldBarTerm", GoldBarTerm);
-			Value_.Push("GoldBarCount", GoldBarCount);
-			Value_.Push("StaminaBonus", StaminaBonus);
-			Value_.Push("StaminaMax", StaminaMax);
-			Value_.Push("StaminaApple", StaminaApple);
-			Value_.Push("StaminaMeat", StaminaMeat);
-			Value_.Push("StaminaChicken", StaminaChicken);
-			Value_.Push("BalanceCount", BalanceCount);
-			Value_.Push("IslandDownPercent", IslandDownPercent);
-			Value_.Push("IslandTypeRange", IslandTypeRange);
-			Value_.Push("WaveCountGold", WaveCountGold);
-			Value_.Push("InitGold", InitGold);
-			Value_.Push("AddGold", AddGold);
-			Value_.Push("IslandInitTime", IslandInitTime);
-			Value_.Push("IslandAddTime", IslandAddTime);
-			Value_.Push("IslandTimeMin", IslandTimeMin);
-			Value_.Push("SpikeIslandTerm", SpikeIslandTerm);
-			Value_.Push("IslandStamina", IslandStamina);
-			Value_.Push("SpikeIslandBalanceCount", SpikeIslandBalanceCount);
-			Value_.Push("ScoreFactorIsland", ScoreFactorIsland);
-			Value_.Push("ScoreFactorGold", ScoreFactorGold);
-			Value_.Push("ChargeCostGold", ChargeCostGold);
-			Value_.Push("PlayCountMax", PlayCountMax);
-			Value_.Push("RefreshDurationMinute", RefreshDurationMinute);
-			Value_.Push("ItemPattern", ItemPattern);
-		}
-		public void Set(SSingleIslandBalance Obj_)
-		{
-			IslandVelocity = Obj_.IslandVelocity;
-			InitTermMin = Obj_.InitTermMin;
-			InitTermMax = Obj_.InitTermMax;
-			AddTerm = Obj_.AddTerm;
-			InitHeight = Obj_.InitHeight;
-			ExcludeHeight = Obj_.ExcludeHeight;
-			AddHeight = Obj_.AddHeight;
-			AddExcludeHeight = Obj_.AddExcludeHeight;
-			StaminaTerm = Obj_.StaminaTerm;
-			CoinTerm = Obj_.CoinTerm;
-			GoldBarTerm = Obj_.GoldBarTerm;
-			GoldBarCount = Obj_.GoldBarCount;
-			StaminaBonus = Obj_.StaminaBonus;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaApple = Obj_.StaminaApple;
-			StaminaMeat = Obj_.StaminaMeat;
-			StaminaChicken = Obj_.StaminaChicken;
-			BalanceCount = Obj_.BalanceCount;
-			IslandDownPercent = Obj_.IslandDownPercent;
-			IslandTypeRange = Obj_.IslandTypeRange;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			IslandInitTime = Obj_.IslandInitTime;
-			IslandAddTime = Obj_.IslandAddTime;
-			IslandTimeMin = Obj_.IslandTimeMin;
-			SpikeIslandTerm = Obj_.SpikeIslandTerm;
-			IslandStamina = Obj_.IslandStamina;
-			SpikeIslandBalanceCount = Obj_.SpikeIslandBalanceCount;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			ScoreFactorGold = Obj_.ScoreFactorGold;
-			ChargeCostGold = Obj_.ChargeCostGold;
-			PlayCountMax = Obj_.PlayCountMax;
-			RefreshDurationMinute = Obj_.RefreshDurationMinute;
-			ItemPattern = Obj_.ItemPattern;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(IslandVelocity) + "," + 
-				SEnumChecker.GetStdName(InitTermMin) + "," + 
-				SEnumChecker.GetStdName(InitTermMax) + "," + 
-				SEnumChecker.GetStdName(AddTerm) + "," + 
-				SEnumChecker.GetStdName(InitHeight) + "," + 
-				SEnumChecker.GetStdName(ExcludeHeight) + "," + 
-				SEnumChecker.GetStdName(AddHeight) + "," + 
-				SEnumChecker.GetStdName(AddExcludeHeight) + "," + 
-				SEnumChecker.GetStdName(StaminaTerm) + "," + 
-				SEnumChecker.GetStdName(CoinTerm) + "," + 
-				SEnumChecker.GetStdName(GoldBarTerm) + "," + 
-				SEnumChecker.GetStdName(GoldBarCount) + "," + 
-				SEnumChecker.GetStdName(StaminaBonus) + "," + 
-				SEnumChecker.GetStdName(StaminaMax) + "," + 
-				SEnumChecker.GetStdName(StaminaApple) + "," + 
-				SEnumChecker.GetStdName(StaminaMeat) + "," + 
-				SEnumChecker.GetStdName(StaminaChicken) + "," + 
-				SEnumChecker.GetStdName(BalanceCount) + "," + 
-				SEnumChecker.GetStdName(IslandDownPercent) + "," + 
-				SEnumChecker.GetStdName(IslandTypeRange) + "," + 
-				SEnumChecker.GetStdName(WaveCountGold) + "," + 
-				SEnumChecker.GetStdName(InitGold) + "," + 
-				SEnumChecker.GetStdName(AddGold) + "," + 
-				SEnumChecker.GetStdName(IslandInitTime) + "," + 
-				SEnumChecker.GetStdName(IslandAddTime) + "," + 
-				SEnumChecker.GetStdName(IslandTimeMin) + "," + 
-				SEnumChecker.GetStdName(SpikeIslandTerm) + "," + 
-				SEnumChecker.GetStdName(IslandStamina) + "," + 
-				SEnumChecker.GetStdName(SpikeIslandBalanceCount) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorIsland) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorGold) + "," + 
-				SEnumChecker.GetStdName(ChargeCostGold) + "," + 
-				SEnumChecker.GetStdName(PlayCountMax) + "," + 
-				SEnumChecker.GetStdName(RefreshDurationMinute) + "," + 
-				SEnumChecker.GetStdName(ItemPattern);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(IslandVelocity, "IslandVelocity") + "," + 
-				SEnumChecker.GetMemberName(InitTermMin, "InitTermMin") + "," + 
-				SEnumChecker.GetMemberName(InitTermMax, "InitTermMax") + "," + 
-				SEnumChecker.GetMemberName(AddTerm, "AddTerm") + "," + 
-				SEnumChecker.GetMemberName(InitHeight, "InitHeight") + "," + 
-				SEnumChecker.GetMemberName(ExcludeHeight, "ExcludeHeight") + "," + 
-				SEnumChecker.GetMemberName(AddHeight, "AddHeight") + "," + 
-				SEnumChecker.GetMemberName(AddExcludeHeight, "AddExcludeHeight") + "," + 
-				SEnumChecker.GetMemberName(StaminaTerm, "StaminaTerm") + "," + 
-				SEnumChecker.GetMemberName(CoinTerm, "CoinTerm") + "," + 
-				SEnumChecker.GetMemberName(GoldBarTerm, "GoldBarTerm") + "," + 
-				SEnumChecker.GetMemberName(GoldBarCount, "GoldBarCount") + "," + 
-				SEnumChecker.GetMemberName(StaminaBonus, "StaminaBonus") + "," + 
-				SEnumChecker.GetMemberName(StaminaMax, "StaminaMax") + "," + 
-				SEnumChecker.GetMemberName(StaminaApple, "StaminaApple") + "," + 
-				SEnumChecker.GetMemberName(StaminaMeat, "StaminaMeat") + "," + 
-				SEnumChecker.GetMemberName(StaminaChicken, "StaminaChicken") + "," + 
-				SEnumChecker.GetMemberName(BalanceCount, "BalanceCount") + "," + 
-				SEnumChecker.GetMemberName(IslandDownPercent, "IslandDownPercent") + "," + 
-				SEnumChecker.GetMemberName(IslandTypeRange, "IslandTypeRange") + "," + 
-				SEnumChecker.GetMemberName(WaveCountGold, "WaveCountGold") + "," + 
-				SEnumChecker.GetMemberName(InitGold, "InitGold") + "," + 
-				SEnumChecker.GetMemberName(AddGold, "AddGold") + "," + 
-				SEnumChecker.GetMemberName(IslandInitTime, "IslandInitTime") + "," + 
-				SEnumChecker.GetMemberName(IslandAddTime, "IslandAddTime") + "," + 
-				SEnumChecker.GetMemberName(IslandTimeMin, "IslandTimeMin") + "," + 
-				SEnumChecker.GetMemberName(SpikeIslandTerm, "SpikeIslandTerm") + "," + 
-				SEnumChecker.GetMemberName(IslandStamina, "IslandStamina") + "," + 
-				SEnumChecker.GetMemberName(SpikeIslandBalanceCount, "SpikeIslandBalanceCount") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorIsland, "ScoreFactorIsland") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorGold, "ScoreFactorGold") + "," + 
-				SEnumChecker.GetMemberName(ChargeCostGold, "ChargeCostGold") + "," + 
-				SEnumChecker.GetMemberName(PlayCountMax, "PlayCountMax") + "," + 
-				SEnumChecker.GetMemberName(RefreshDurationMinute, "RefreshDurationMinute") + "," + 
-				SEnumChecker.GetMemberName(ItemPattern, "ItemPattern");
-		}
-	}
-	public class SSingleCharacterMove : SProto
-	{
-		public SPoint Pos = new SPoint();
-		public SPoint Vel = new SPoint();
-		public SSingleCharacterMove()
-		{
-		}
-		public SSingleCharacterMove(SSingleCharacterMove Obj_)
-		{
-			Pos = Obj_.Pos;
-			Vel = Obj_.Vel;
-		}
-		public SSingleCharacterMove(SPoint Pos_, SPoint Vel_)
-		{
-			Pos = Pos_;
-			Vel = Vel_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Pos);
-			Stream_.Pop(ref Vel);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Pos", ref Pos);
-			Value_.Pop("Vel", ref Vel);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Pos);
-			Stream_.Push(Vel);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Pos", Pos);
-			Value_.Push("Vel", Vel);
-		}
-		public void Set(SSingleCharacterMove Obj_)
-		{
-			Pos.Set(Obj_.Pos);
-			Vel.Set(Obj_.Vel);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Pos) + "," + 
-				SEnumChecker.GetStdName(Vel);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Pos, "Pos") + "," + 
-				SEnumChecker.GetMemberName(Vel, "Vel");
-		}
-	}
-	public class SSingleCharacter : SProto
-	{
-		public SSingleCharacterMove Move = new SSingleCharacterMove();
-		public Boolean IsGround = default(Boolean);
-		public SByte Dir = default(SByte);
-		public SByte BalloonCount = default(SByte);
-		public SByte PumpCount = default(SByte);
-		public Single Stamina = default(Single);
-		public SByte Face = default(SByte);
-		public SPoint Acc = new SPoint();
-		public SSingleCharacter()
-		{
-		}
-		public SSingleCharacter(SSingleCharacter Obj_)
-		{
-			Move = Obj_.Move;
-			IsGround = Obj_.IsGround;
-			Dir = Obj_.Dir;
-			BalloonCount = Obj_.BalloonCount;
-			PumpCount = Obj_.PumpCount;
-			Stamina = Obj_.Stamina;
-			Face = Obj_.Face;
-			Acc = Obj_.Acc;
-		}
-		public SSingleCharacter(SSingleCharacterMove Move_, Boolean IsGround_, SByte Dir_, SByte BalloonCount_, SByte PumpCount_, Single Stamina_, SByte Face_, SPoint Acc_)
-		{
-			Move = Move_;
-			IsGround = IsGround_;
-			Dir = Dir_;
-			BalloonCount = BalloonCount_;
-			PumpCount = PumpCount_;
-			Stamina = Stamina_;
-			Face = Face_;
-			Acc = Acc_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Move);
-			Stream_.Pop(ref IsGround);
-			Stream_.Pop(ref Dir);
-			Stream_.Pop(ref BalloonCount);
-			Stream_.Pop(ref PumpCount);
-			Stream_.Pop(ref Stamina);
-			Stream_.Pop(ref Face);
-			Stream_.Pop(ref Acc);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Move", ref Move);
-			Value_.Pop("IsGround", ref IsGround);
-			Value_.Pop("Dir", ref Dir);
-			Value_.Pop("BalloonCount", ref BalloonCount);
-			Value_.Pop("PumpCount", ref PumpCount);
-			Value_.Pop("Stamina", ref Stamina);
-			Value_.Pop("Face", ref Face);
-			Value_.Pop("Acc", ref Acc);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Move);
-			Stream_.Push(IsGround);
-			Stream_.Push(Dir);
-			Stream_.Push(BalloonCount);
-			Stream_.Push(PumpCount);
-			Stream_.Push(Stamina);
-			Stream_.Push(Face);
-			Stream_.Push(Acc);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Move", Move);
-			Value_.Push("IsGround", IsGround);
-			Value_.Push("Dir", Dir);
-			Value_.Push("BalloonCount", BalloonCount);
-			Value_.Push("PumpCount", PumpCount);
-			Value_.Push("Stamina", Stamina);
-			Value_.Push("Face", Face);
-			Value_.Push("Acc", Acc);
-		}
-		public void Set(SSingleCharacter Obj_)
-		{
-			Move.Set(Obj_.Move);
-			IsGround = Obj_.IsGround;
-			Dir = Obj_.Dir;
-			BalloonCount = Obj_.BalloonCount;
-			PumpCount = Obj_.PumpCount;
-			Stamina = Obj_.Stamina;
-			Face = Obj_.Face;
-			Acc.Set(Obj_.Acc);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Move) + "," + 
-				SEnumChecker.GetStdName(IsGround) + "," + 
-				SEnumChecker.GetStdName(Dir) + "," + 
-				SEnumChecker.GetStdName(BalloonCount) + "," + 
-				SEnumChecker.GetStdName(PumpCount) + "," + 
-				SEnumChecker.GetStdName(Stamina) + "," + 
-				SEnumChecker.GetStdName(Face) + "," + 
-				SEnumChecker.GetStdName(Acc);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Move, "Move") + "," + 
-				SEnumChecker.GetMemberName(IsGround, "IsGround") + "," + 
-				SEnumChecker.GetMemberName(Dir, "Dir") + "," + 
-				SEnumChecker.GetMemberName(BalloonCount, "BalloonCount") + "," + 
-				SEnumChecker.GetMemberName(PumpCount, "PumpCount") + "," + 
-				SEnumChecker.GetMemberName(Stamina, "Stamina") + "," + 
-				SEnumChecker.GetMemberName(Face, "Face") + "," + 
-				SEnumChecker.GetMemberName(Acc, "Acc");
-		}
-	}
-	public class SSinglePlayer : SProto
-	{
-		public TUID UID = default(TUID);
-		public String Nick = string.Empty;
-		public String CountryCode = string.Empty;
-		public TTeamCnt TeamIndex = default(TTeamCnt);
-		public Int32 CharCode = default(Int32);
-		public SSingleCharacter Character = new SSingleCharacter();
-		public TimePoint InvulnerableEndTime = default(TimePoint);
-		public SSinglePlayer()
-		{
-		}
-		public SSinglePlayer(SSinglePlayer Obj_)
-		{
-			UID = Obj_.UID;
-			Nick = Obj_.Nick;
-			CountryCode = Obj_.CountryCode;
-			TeamIndex = Obj_.TeamIndex;
-			CharCode = Obj_.CharCode;
-			Character = Obj_.Character;
-			InvulnerableEndTime = Obj_.InvulnerableEndTime;
-		}
-		public SSinglePlayer(TUID UID_, String Nick_, String CountryCode_, TTeamCnt TeamIndex_, Int32 CharCode_, SSingleCharacter Character_, TimePoint InvulnerableEndTime_)
-		{
-			UID = UID_;
-			Nick = Nick_;
-			CountryCode = CountryCode_;
-			TeamIndex = TeamIndex_;
-			CharCode = CharCode_;
-			Character = Character_;
-			InvulnerableEndTime = InvulnerableEndTime_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref UID);
-			Stream_.Pop(ref Nick);
-			Stream_.Pop(ref CountryCode);
-			Stream_.Pop(ref TeamIndex);
-			Stream_.Pop(ref CharCode);
-			Stream_.Pop(ref Character);
-			Stream_.Pop(ref InvulnerableEndTime);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("UID", ref UID);
-			Value_.Pop("Nick", ref Nick);
-			Value_.Pop("CountryCode", ref CountryCode);
-			Value_.Pop("TeamIndex", ref TeamIndex);
-			Value_.Pop("CharCode", ref CharCode);
-			Value_.Pop("Character", ref Character);
-			Value_.Pop("InvulnerableEndTime", ref InvulnerableEndTime);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(UID);
-			Stream_.Push(Nick);
-			Stream_.Push(CountryCode);
-			Stream_.Push(TeamIndex);
-			Stream_.Push(CharCode);
-			Stream_.Push(Character);
-			Stream_.Push(InvulnerableEndTime);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("UID", UID);
-			Value_.Push("Nick", Nick);
-			Value_.Push("CountryCode", CountryCode);
-			Value_.Push("TeamIndex", TeamIndex);
-			Value_.Push("CharCode", CharCode);
-			Value_.Push("Character", Character);
-			Value_.Push("InvulnerableEndTime", InvulnerableEndTime);
-		}
-		public void Set(SSinglePlayer Obj_)
-		{
-			UID = Obj_.UID;
-			Nick = Obj_.Nick;
-			CountryCode = Obj_.CountryCode;
-			TeamIndex = Obj_.TeamIndex;
-			CharCode = Obj_.CharCode;
-			Character.Set(Obj_.Character);
-			InvulnerableEndTime = Obj_.InvulnerableEndTime;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(UID) + "," + 
-				SEnumChecker.GetStdName(Nick) + "," + 
-				SEnumChecker.GetStdName(CountryCode) + "," + 
-				SEnumChecker.GetStdName(TeamIndex) + "," + 
-				SEnumChecker.GetStdName(CharCode) + "," + 
-				SEnumChecker.GetStdName(Character) + "," + 
-				SEnumChecker.GetStdName(InvulnerableEndTime);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(UID, "UID") + "," + 
-				SEnumChecker.GetMemberName(Nick, "Nick") + "," + 
-				SEnumChecker.GetMemberName(CountryCode, "CountryCode") + "," + 
-				SEnumChecker.GetMemberName(TeamIndex, "TeamIndex") + "," + 
-				SEnumChecker.GetMemberName(CharCode, "CharCode") + "," + 
-				SEnumChecker.GetMemberName(Character, "Character") + "," + 
-				SEnumChecker.GetMemberName(InvulnerableEndTime, "InvulnerableEndTime");
-		}
-	}
-	public class SShopPackageClientMeta : SShopPackageServerMeta
-	{
-		public EText ETextName = default(EText);
-		public String TextureName = string.Empty;
-		public SShopPackageClientMeta()
-		{
-		}
-		public SShopPackageClientMeta(SShopPackageClientMeta Obj_) : base(Obj_)
-		{
-			ETextName = Obj_.ETextName;
-			TextureName = Obj_.TextureName;
-		}
-		public SShopPackageClientMeta(SShopPackageServerMeta Super_, EText ETextName_, String TextureName_) : base(Super_)
-		{
-			ETextName = ETextName_;
-			TextureName = TextureName_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref ETextName);
-			Stream_.Pop(ref TextureName);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("ETextName", ref ETextName);
-			Value_.Pop("TextureName", ref TextureName);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(ETextName);
-			Stream_.Push(TextureName);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("ETextName", ETextName);
-			Value_.Push("TextureName", TextureName);
-		}
-		public void Set(SShopPackageClientMeta Obj_)
-		{
-			base.Set(Obj_);
-			ETextName = Obj_.ETextName;
-			TextureName = Obj_.TextureName;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				"bb.EText" + "," + 
-				SEnumChecker.GetStdName(TextureName);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(ETextName, "ETextName") + "," + 
-				SEnumChecker.GetMemberName(TextureName, "TextureName");
-		}
-	}
 	public class SServerAlarmMeta : SProto
 	{
 		public String Key = string.Empty;
@@ -3356,681 +1918,6 @@ namespace bb
 			return 
 				SEnumChecker.GetMemberName(Key, "Key") + "," + 
 				SEnumChecker.GetMemberName(ETextName, "ETextName");
-		}
-	}
-	public class SShopPackageDateMeta : SProto
-	{
-		public Int32 DateId = default(Int32);
-		public String BeginTime = string.Empty;
-		public String EndTime = string.Empty;
-		public Int32 PackageCode = default(Int32);
-		public SShopPackageDateMeta()
-		{
-		}
-		public SShopPackageDateMeta(SShopPackageDateMeta Obj_)
-		{
-			DateId = Obj_.DateId;
-			BeginTime = Obj_.BeginTime;
-			EndTime = Obj_.EndTime;
-			PackageCode = Obj_.PackageCode;
-		}
-		public SShopPackageDateMeta(Int32 DateId_, String BeginTime_, String EndTime_, Int32 PackageCode_)
-		{
-			DateId = DateId_;
-			BeginTime = BeginTime_;
-			EndTime = EndTime_;
-			PackageCode = PackageCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref DateId);
-			Stream_.Pop(ref BeginTime);
-			Stream_.Pop(ref EndTime);
-			Stream_.Pop(ref PackageCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("DateId", ref DateId);
-			Value_.Pop("BeginTime", ref BeginTime);
-			Value_.Pop("EndTime", ref EndTime);
-			Value_.Pop("PackageCode", ref PackageCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(DateId);
-			Stream_.Push(BeginTime);
-			Stream_.Push(EndTime);
-			Stream_.Push(PackageCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("DateId", DateId);
-			Value_.Push("BeginTime", BeginTime);
-			Value_.Push("EndTime", EndTime);
-			Value_.Push("PackageCode", PackageCode);
-		}
-		public void Set(SShopPackageDateMeta Obj_)
-		{
-			DateId = Obj_.DateId;
-			BeginTime = Obj_.BeginTime;
-			EndTime = Obj_.EndTime;
-			PackageCode = Obj_.PackageCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(DateId) + "," + 
-				SEnumChecker.GetStdName(BeginTime) + "," + 
-				SEnumChecker.GetStdName(EndTime) + "," + 
-				SEnumChecker.GetStdName(PackageCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(DateId, "DateId") + "," + 
-				SEnumChecker.GetMemberName(BeginTime, "BeginTime") + "," + 
-				SEnumChecker.GetMemberName(EndTime, "EndTime") + "," + 
-				SEnumChecker.GetMemberName(PackageCode, "PackageCode");
-		}
-	}
-	public class SMultiIslandBalance : SProto
-	{
-		public Single IslandVelocity = default(Single);
-		public Single InitTermMin = default(Single);
-		public Single InitTermMax = default(Single);
-		public Single AddTerm = default(Single);
-		public Single InitHeight = default(Single);
-		public Single ExcludeHeight = default(Single);
-		public Single AddHeight = default(Single);
-		public Single AddExcludeHeight = default(Single);
-		public Int32 StaminaTerm = default(Int32);
-		public Single StaminaBonus = default(Single);
-		public Single StaminaMax = default(Single);
-		public Single StaminaApple = default(Single);
-		public Single StaminaMeat = default(Single);
-		public Single StaminaChicken = default(Single);
-		public String ItemPattern = string.Empty;
-		public Int32 BalanceCount = default(Int32);
-		public Int32 IslandDownPercent = default(Int32);
-		public Int32 IslandTypeRange = default(Int32);
-		public Int32 WaveCountGold = default(Int32);
-		public Int32 InitGold = default(Int32);
-		public Int32 AddGold = default(Int32);
-		public Single IslandInitTime = default(Single);
-		public Single IslandAddTime = default(Single);
-		public Single IslandTimeMin = default(Single);
-		public Int32 SpikeIslandTerm = default(Int32);
-		public Single IslandStamina = default(Single);
-		public Int32 SpikeIslandBalanceCount = default(Int32);
-		public Int32 ScoreFactorIsland = default(Int32);
-		public Int32 PointTerm = default(Int32);
-		public Int32 ScoreFactorPoint = default(Int32);
-		public Int32 ScoreFactorLanding = default(Int32);
-		public Single StaminaRegen = default(Single);
-		public Single RegenDelay = default(Single);
-		public SMultiIslandBalance()
-		{
-		}
-		public SMultiIslandBalance(SMultiIslandBalance Obj_)
-		{
-			IslandVelocity = Obj_.IslandVelocity;
-			InitTermMin = Obj_.InitTermMin;
-			InitTermMax = Obj_.InitTermMax;
-			AddTerm = Obj_.AddTerm;
-			InitHeight = Obj_.InitHeight;
-			ExcludeHeight = Obj_.ExcludeHeight;
-			AddHeight = Obj_.AddHeight;
-			AddExcludeHeight = Obj_.AddExcludeHeight;
-			StaminaTerm = Obj_.StaminaTerm;
-			StaminaBonus = Obj_.StaminaBonus;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaApple = Obj_.StaminaApple;
-			StaminaMeat = Obj_.StaminaMeat;
-			StaminaChicken = Obj_.StaminaChicken;
-			ItemPattern = Obj_.ItemPattern;
-			BalanceCount = Obj_.BalanceCount;
-			IslandDownPercent = Obj_.IslandDownPercent;
-			IslandTypeRange = Obj_.IslandTypeRange;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			IslandInitTime = Obj_.IslandInitTime;
-			IslandAddTime = Obj_.IslandAddTime;
-			IslandTimeMin = Obj_.IslandTimeMin;
-			SpikeIslandTerm = Obj_.SpikeIslandTerm;
-			IslandStamina = Obj_.IslandStamina;
-			SpikeIslandBalanceCount = Obj_.SpikeIslandBalanceCount;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			PointTerm = Obj_.PointTerm;
-			ScoreFactorPoint = Obj_.ScoreFactorPoint;
-			ScoreFactorLanding = Obj_.ScoreFactorLanding;
-			StaminaRegen = Obj_.StaminaRegen;
-			RegenDelay = Obj_.RegenDelay;
-		}
-		public SMultiIslandBalance(Single IslandVelocity_, Single InitTermMin_, Single InitTermMax_, Single AddTerm_, Single InitHeight_, Single ExcludeHeight_, Single AddHeight_, Single AddExcludeHeight_, Int32 StaminaTerm_, Single StaminaBonus_, Single StaminaMax_, Single StaminaApple_, Single StaminaMeat_, Single StaminaChicken_, String ItemPattern_, Int32 BalanceCount_, Int32 IslandDownPercent_, Int32 IslandTypeRange_, Int32 WaveCountGold_, Int32 InitGold_, Int32 AddGold_, Single IslandInitTime_, Single IslandAddTime_, Single IslandTimeMin_, Int32 SpikeIslandTerm_, Single IslandStamina_, Int32 SpikeIslandBalanceCount_, Int32 ScoreFactorIsland_, Int32 PointTerm_, Int32 ScoreFactorPoint_, Int32 ScoreFactorLanding_, Single StaminaRegen_, Single RegenDelay_)
-		{
-			IslandVelocity = IslandVelocity_;
-			InitTermMin = InitTermMin_;
-			InitTermMax = InitTermMax_;
-			AddTerm = AddTerm_;
-			InitHeight = InitHeight_;
-			ExcludeHeight = ExcludeHeight_;
-			AddHeight = AddHeight_;
-			AddExcludeHeight = AddExcludeHeight_;
-			StaminaTerm = StaminaTerm_;
-			StaminaBonus = StaminaBonus_;
-			StaminaMax = StaminaMax_;
-			StaminaApple = StaminaApple_;
-			StaminaMeat = StaminaMeat_;
-			StaminaChicken = StaminaChicken_;
-			ItemPattern = ItemPattern_;
-			BalanceCount = BalanceCount_;
-			IslandDownPercent = IslandDownPercent_;
-			IslandTypeRange = IslandTypeRange_;
-			WaveCountGold = WaveCountGold_;
-			InitGold = InitGold_;
-			AddGold = AddGold_;
-			IslandInitTime = IslandInitTime_;
-			IslandAddTime = IslandAddTime_;
-			IslandTimeMin = IslandTimeMin_;
-			SpikeIslandTerm = SpikeIslandTerm_;
-			IslandStamina = IslandStamina_;
-			SpikeIslandBalanceCount = SpikeIslandBalanceCount_;
-			ScoreFactorIsland = ScoreFactorIsland_;
-			PointTerm = PointTerm_;
-			ScoreFactorPoint = ScoreFactorPoint_;
-			ScoreFactorLanding = ScoreFactorLanding_;
-			StaminaRegen = StaminaRegen_;
-			RegenDelay = RegenDelay_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref IslandVelocity);
-			Stream_.Pop(ref InitTermMin);
-			Stream_.Pop(ref InitTermMax);
-			Stream_.Pop(ref AddTerm);
-			Stream_.Pop(ref InitHeight);
-			Stream_.Pop(ref ExcludeHeight);
-			Stream_.Pop(ref AddHeight);
-			Stream_.Pop(ref AddExcludeHeight);
-			Stream_.Pop(ref StaminaTerm);
-			Stream_.Pop(ref StaminaBonus);
-			Stream_.Pop(ref StaminaMax);
-			Stream_.Pop(ref StaminaApple);
-			Stream_.Pop(ref StaminaMeat);
-			Stream_.Pop(ref StaminaChicken);
-			Stream_.Pop(ref ItemPattern);
-			Stream_.Pop(ref BalanceCount);
-			Stream_.Pop(ref IslandDownPercent);
-			Stream_.Pop(ref IslandTypeRange);
-			Stream_.Pop(ref WaveCountGold);
-			Stream_.Pop(ref InitGold);
-			Stream_.Pop(ref AddGold);
-			Stream_.Pop(ref IslandInitTime);
-			Stream_.Pop(ref IslandAddTime);
-			Stream_.Pop(ref IslandTimeMin);
-			Stream_.Pop(ref SpikeIslandTerm);
-			Stream_.Pop(ref IslandStamina);
-			Stream_.Pop(ref SpikeIslandBalanceCount);
-			Stream_.Pop(ref ScoreFactorIsland);
-			Stream_.Pop(ref PointTerm);
-			Stream_.Pop(ref ScoreFactorPoint);
-			Stream_.Pop(ref ScoreFactorLanding);
-			Stream_.Pop(ref StaminaRegen);
-			Stream_.Pop(ref RegenDelay);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("IslandVelocity", ref IslandVelocity);
-			Value_.Pop("InitTermMin", ref InitTermMin);
-			Value_.Pop("InitTermMax", ref InitTermMax);
-			Value_.Pop("AddTerm", ref AddTerm);
-			Value_.Pop("InitHeight", ref InitHeight);
-			Value_.Pop("ExcludeHeight", ref ExcludeHeight);
-			Value_.Pop("AddHeight", ref AddHeight);
-			Value_.Pop("AddExcludeHeight", ref AddExcludeHeight);
-			Value_.Pop("StaminaTerm", ref StaminaTerm);
-			Value_.Pop("StaminaBonus", ref StaminaBonus);
-			Value_.Pop("StaminaMax", ref StaminaMax);
-			Value_.Pop("StaminaApple", ref StaminaApple);
-			Value_.Pop("StaminaMeat", ref StaminaMeat);
-			Value_.Pop("StaminaChicken", ref StaminaChicken);
-			Value_.Pop("ItemPattern", ref ItemPattern);
-			Value_.Pop("BalanceCount", ref BalanceCount);
-			Value_.Pop("IslandDownPercent", ref IslandDownPercent);
-			Value_.Pop("IslandTypeRange", ref IslandTypeRange);
-			Value_.Pop("WaveCountGold", ref WaveCountGold);
-			Value_.Pop("InitGold", ref InitGold);
-			Value_.Pop("AddGold", ref AddGold);
-			Value_.Pop("IslandInitTime", ref IslandInitTime);
-			Value_.Pop("IslandAddTime", ref IslandAddTime);
-			Value_.Pop("IslandTimeMin", ref IslandTimeMin);
-			Value_.Pop("SpikeIslandTerm", ref SpikeIslandTerm);
-			Value_.Pop("IslandStamina", ref IslandStamina);
-			Value_.Pop("SpikeIslandBalanceCount", ref SpikeIslandBalanceCount);
-			Value_.Pop("ScoreFactorIsland", ref ScoreFactorIsland);
-			Value_.Pop("PointTerm", ref PointTerm);
-			Value_.Pop("ScoreFactorPoint", ref ScoreFactorPoint);
-			Value_.Pop("ScoreFactorLanding", ref ScoreFactorLanding);
-			Value_.Pop("StaminaRegen", ref StaminaRegen);
-			Value_.Pop("RegenDelay", ref RegenDelay);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(IslandVelocity);
-			Stream_.Push(InitTermMin);
-			Stream_.Push(InitTermMax);
-			Stream_.Push(AddTerm);
-			Stream_.Push(InitHeight);
-			Stream_.Push(ExcludeHeight);
-			Stream_.Push(AddHeight);
-			Stream_.Push(AddExcludeHeight);
-			Stream_.Push(StaminaTerm);
-			Stream_.Push(StaminaBonus);
-			Stream_.Push(StaminaMax);
-			Stream_.Push(StaminaApple);
-			Stream_.Push(StaminaMeat);
-			Stream_.Push(StaminaChicken);
-			Stream_.Push(ItemPattern);
-			Stream_.Push(BalanceCount);
-			Stream_.Push(IslandDownPercent);
-			Stream_.Push(IslandTypeRange);
-			Stream_.Push(WaveCountGold);
-			Stream_.Push(InitGold);
-			Stream_.Push(AddGold);
-			Stream_.Push(IslandInitTime);
-			Stream_.Push(IslandAddTime);
-			Stream_.Push(IslandTimeMin);
-			Stream_.Push(SpikeIslandTerm);
-			Stream_.Push(IslandStamina);
-			Stream_.Push(SpikeIslandBalanceCount);
-			Stream_.Push(ScoreFactorIsland);
-			Stream_.Push(PointTerm);
-			Stream_.Push(ScoreFactorPoint);
-			Stream_.Push(ScoreFactorLanding);
-			Stream_.Push(StaminaRegen);
-			Stream_.Push(RegenDelay);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("IslandVelocity", IslandVelocity);
-			Value_.Push("InitTermMin", InitTermMin);
-			Value_.Push("InitTermMax", InitTermMax);
-			Value_.Push("AddTerm", AddTerm);
-			Value_.Push("InitHeight", InitHeight);
-			Value_.Push("ExcludeHeight", ExcludeHeight);
-			Value_.Push("AddHeight", AddHeight);
-			Value_.Push("AddExcludeHeight", AddExcludeHeight);
-			Value_.Push("StaminaTerm", StaminaTerm);
-			Value_.Push("StaminaBonus", StaminaBonus);
-			Value_.Push("StaminaMax", StaminaMax);
-			Value_.Push("StaminaApple", StaminaApple);
-			Value_.Push("StaminaMeat", StaminaMeat);
-			Value_.Push("StaminaChicken", StaminaChicken);
-			Value_.Push("ItemPattern", ItemPattern);
-			Value_.Push("BalanceCount", BalanceCount);
-			Value_.Push("IslandDownPercent", IslandDownPercent);
-			Value_.Push("IslandTypeRange", IslandTypeRange);
-			Value_.Push("WaveCountGold", WaveCountGold);
-			Value_.Push("InitGold", InitGold);
-			Value_.Push("AddGold", AddGold);
-			Value_.Push("IslandInitTime", IslandInitTime);
-			Value_.Push("IslandAddTime", IslandAddTime);
-			Value_.Push("IslandTimeMin", IslandTimeMin);
-			Value_.Push("SpikeIslandTerm", SpikeIslandTerm);
-			Value_.Push("IslandStamina", IslandStamina);
-			Value_.Push("SpikeIslandBalanceCount", SpikeIslandBalanceCount);
-			Value_.Push("ScoreFactorIsland", ScoreFactorIsland);
-			Value_.Push("PointTerm", PointTerm);
-			Value_.Push("ScoreFactorPoint", ScoreFactorPoint);
-			Value_.Push("ScoreFactorLanding", ScoreFactorLanding);
-			Value_.Push("StaminaRegen", StaminaRegen);
-			Value_.Push("RegenDelay", RegenDelay);
-		}
-		public void Set(SMultiIslandBalance Obj_)
-		{
-			IslandVelocity = Obj_.IslandVelocity;
-			InitTermMin = Obj_.InitTermMin;
-			InitTermMax = Obj_.InitTermMax;
-			AddTerm = Obj_.AddTerm;
-			InitHeight = Obj_.InitHeight;
-			ExcludeHeight = Obj_.ExcludeHeight;
-			AddHeight = Obj_.AddHeight;
-			AddExcludeHeight = Obj_.AddExcludeHeight;
-			StaminaTerm = Obj_.StaminaTerm;
-			StaminaBonus = Obj_.StaminaBonus;
-			StaminaMax = Obj_.StaminaMax;
-			StaminaApple = Obj_.StaminaApple;
-			StaminaMeat = Obj_.StaminaMeat;
-			StaminaChicken = Obj_.StaminaChicken;
-			ItemPattern = Obj_.ItemPattern;
-			BalanceCount = Obj_.BalanceCount;
-			IslandDownPercent = Obj_.IslandDownPercent;
-			IslandTypeRange = Obj_.IslandTypeRange;
-			WaveCountGold = Obj_.WaveCountGold;
-			InitGold = Obj_.InitGold;
-			AddGold = Obj_.AddGold;
-			IslandInitTime = Obj_.IslandInitTime;
-			IslandAddTime = Obj_.IslandAddTime;
-			IslandTimeMin = Obj_.IslandTimeMin;
-			SpikeIslandTerm = Obj_.SpikeIslandTerm;
-			IslandStamina = Obj_.IslandStamina;
-			SpikeIslandBalanceCount = Obj_.SpikeIslandBalanceCount;
-			ScoreFactorIsland = Obj_.ScoreFactorIsland;
-			PointTerm = Obj_.PointTerm;
-			ScoreFactorPoint = Obj_.ScoreFactorPoint;
-			ScoreFactorLanding = Obj_.ScoreFactorLanding;
-			StaminaRegen = Obj_.StaminaRegen;
-			RegenDelay = Obj_.RegenDelay;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(IslandVelocity) + "," + 
-				SEnumChecker.GetStdName(InitTermMin) + "," + 
-				SEnumChecker.GetStdName(InitTermMax) + "," + 
-				SEnumChecker.GetStdName(AddTerm) + "," + 
-				SEnumChecker.GetStdName(InitHeight) + "," + 
-				SEnumChecker.GetStdName(ExcludeHeight) + "," + 
-				SEnumChecker.GetStdName(AddHeight) + "," + 
-				SEnumChecker.GetStdName(AddExcludeHeight) + "," + 
-				SEnumChecker.GetStdName(StaminaTerm) + "," + 
-				SEnumChecker.GetStdName(StaminaBonus) + "," + 
-				SEnumChecker.GetStdName(StaminaMax) + "," + 
-				SEnumChecker.GetStdName(StaminaApple) + "," + 
-				SEnumChecker.GetStdName(StaminaMeat) + "," + 
-				SEnumChecker.GetStdName(StaminaChicken) + "," + 
-				SEnumChecker.GetStdName(ItemPattern) + "," + 
-				SEnumChecker.GetStdName(BalanceCount) + "," + 
-				SEnumChecker.GetStdName(IslandDownPercent) + "," + 
-				SEnumChecker.GetStdName(IslandTypeRange) + "," + 
-				SEnumChecker.GetStdName(WaveCountGold) + "," + 
-				SEnumChecker.GetStdName(InitGold) + "," + 
-				SEnumChecker.GetStdName(AddGold) + "," + 
-				SEnumChecker.GetStdName(IslandInitTime) + "," + 
-				SEnumChecker.GetStdName(IslandAddTime) + "," + 
-				SEnumChecker.GetStdName(IslandTimeMin) + "," + 
-				SEnumChecker.GetStdName(SpikeIslandTerm) + "," + 
-				SEnumChecker.GetStdName(IslandStamina) + "," + 
-				SEnumChecker.GetStdName(SpikeIslandBalanceCount) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorIsland) + "," + 
-				SEnumChecker.GetStdName(PointTerm) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorPoint) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorLanding) + "," + 
-				SEnumChecker.GetStdName(StaminaRegen) + "," + 
-				SEnumChecker.GetStdName(RegenDelay);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(IslandVelocity, "IslandVelocity") + "," + 
-				SEnumChecker.GetMemberName(InitTermMin, "InitTermMin") + "," + 
-				SEnumChecker.GetMemberName(InitTermMax, "InitTermMax") + "," + 
-				SEnumChecker.GetMemberName(AddTerm, "AddTerm") + "," + 
-				SEnumChecker.GetMemberName(InitHeight, "InitHeight") + "," + 
-				SEnumChecker.GetMemberName(ExcludeHeight, "ExcludeHeight") + "," + 
-				SEnumChecker.GetMemberName(AddHeight, "AddHeight") + "," + 
-				SEnumChecker.GetMemberName(AddExcludeHeight, "AddExcludeHeight") + "," + 
-				SEnumChecker.GetMemberName(StaminaTerm, "StaminaTerm") + "," + 
-				SEnumChecker.GetMemberName(StaminaBonus, "StaminaBonus") + "," + 
-				SEnumChecker.GetMemberName(StaminaMax, "StaminaMax") + "," + 
-				SEnumChecker.GetMemberName(StaminaApple, "StaminaApple") + "," + 
-				SEnumChecker.GetMemberName(StaminaMeat, "StaminaMeat") + "," + 
-				SEnumChecker.GetMemberName(StaminaChicken, "StaminaChicken") + "," + 
-				SEnumChecker.GetMemberName(ItemPattern, "ItemPattern") + "," + 
-				SEnumChecker.GetMemberName(BalanceCount, "BalanceCount") + "," + 
-				SEnumChecker.GetMemberName(IslandDownPercent, "IslandDownPercent") + "," + 
-				SEnumChecker.GetMemberName(IslandTypeRange, "IslandTypeRange") + "," + 
-				SEnumChecker.GetMemberName(WaveCountGold, "WaveCountGold") + "," + 
-				SEnumChecker.GetMemberName(InitGold, "InitGold") + "," + 
-				SEnumChecker.GetMemberName(AddGold, "AddGold") + "," + 
-				SEnumChecker.GetMemberName(IslandInitTime, "IslandInitTime") + "," + 
-				SEnumChecker.GetMemberName(IslandAddTime, "IslandAddTime") + "," + 
-				SEnumChecker.GetMemberName(IslandTimeMin, "IslandTimeMin") + "," + 
-				SEnumChecker.GetMemberName(SpikeIslandTerm, "SpikeIslandTerm") + "," + 
-				SEnumChecker.GetMemberName(IslandStamina, "IslandStamina") + "," + 
-				SEnumChecker.GetMemberName(SpikeIslandBalanceCount, "SpikeIslandBalanceCount") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorIsland, "ScoreFactorIsland") + "," + 
-				SEnumChecker.GetMemberName(PointTerm, "PointTerm") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorPoint, "ScoreFactorPoint") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorLanding, "ScoreFactorLanding") + "," + 
-				SEnumChecker.GetMemberName(StaminaRegen, "StaminaRegen") + "," + 
-				SEnumChecker.GetMemberName(RegenDelay, "RegenDelay");
-		}
-	}
-	public class SMultiBalance : SProto
-	{
-		public Single MinSpeed = default(Single);
-		public Single MaxSpeed = default(Single);
-		public Single ShotDelay = default(Single);
-		public Int32 TypeFix = default(Int32);
-		public Int32 CountFix = default(Int32);
-		public Single SpeedFix = default(Single);
-		public Int32 Right = default(Int32);
-		public Int32 Left = default(Int32);
-		public Int32 Bottom = default(Int32);
-		public Int32 Diagonal = default(Int32);
-		public Int32 FixCount = default(Int32);
-		public Int32 FixOnceCount = default(Int32);
-		public Int32 ScoreFactorWave = default(Int32);
-		public String ItemPattern = string.Empty;
-		public Single TermTimeItem = default(Single);
-		public Single ShieldTime = default(Single);
-		public Single StaminaTime = default(Single);
-		public Int32 ScoreFactorPoint = default(Int32);
-		public Single TermTimePoint = default(Single);
-		public Single RegenDelay = default(Single);
-		public SMultiBalance()
-		{
-		}
-		public SMultiBalance(SMultiBalance Obj_)
-		{
-			MinSpeed = Obj_.MinSpeed;
-			MaxSpeed = Obj_.MaxSpeed;
-			ShotDelay = Obj_.ShotDelay;
-			TypeFix = Obj_.TypeFix;
-			CountFix = Obj_.CountFix;
-			SpeedFix = Obj_.SpeedFix;
-			Right = Obj_.Right;
-			Left = Obj_.Left;
-			Bottom = Obj_.Bottom;
-			Diagonal = Obj_.Diagonal;
-			FixCount = Obj_.FixCount;
-			FixOnceCount = Obj_.FixOnceCount;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ItemPattern = Obj_.ItemPattern;
-			TermTimeItem = Obj_.TermTimeItem;
-			ShieldTime = Obj_.ShieldTime;
-			StaminaTime = Obj_.StaminaTime;
-			ScoreFactorPoint = Obj_.ScoreFactorPoint;
-			TermTimePoint = Obj_.TermTimePoint;
-			RegenDelay = Obj_.RegenDelay;
-		}
-		public SMultiBalance(Single MinSpeed_, Single MaxSpeed_, Single ShotDelay_, Int32 TypeFix_, Int32 CountFix_, Single SpeedFix_, Int32 Right_, Int32 Left_, Int32 Bottom_, Int32 Diagonal_, Int32 FixCount_, Int32 FixOnceCount_, Int32 ScoreFactorWave_, String ItemPattern_, Single TermTimeItem_, Single ShieldTime_, Single StaminaTime_, Int32 ScoreFactorPoint_, Single TermTimePoint_, Single RegenDelay_)
-		{
-			MinSpeed = MinSpeed_;
-			MaxSpeed = MaxSpeed_;
-			ShotDelay = ShotDelay_;
-			TypeFix = TypeFix_;
-			CountFix = CountFix_;
-			SpeedFix = SpeedFix_;
-			Right = Right_;
-			Left = Left_;
-			Bottom = Bottom_;
-			Diagonal = Diagonal_;
-			FixCount = FixCount_;
-			FixOnceCount = FixOnceCount_;
-			ScoreFactorWave = ScoreFactorWave_;
-			ItemPattern = ItemPattern_;
-			TermTimeItem = TermTimeItem_;
-			ShieldTime = ShieldTime_;
-			StaminaTime = StaminaTime_;
-			ScoreFactorPoint = ScoreFactorPoint_;
-			TermTimePoint = TermTimePoint_;
-			RegenDelay = RegenDelay_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref MinSpeed);
-			Stream_.Pop(ref MaxSpeed);
-			Stream_.Pop(ref ShotDelay);
-			Stream_.Pop(ref TypeFix);
-			Stream_.Pop(ref CountFix);
-			Stream_.Pop(ref SpeedFix);
-			Stream_.Pop(ref Right);
-			Stream_.Pop(ref Left);
-			Stream_.Pop(ref Bottom);
-			Stream_.Pop(ref Diagonal);
-			Stream_.Pop(ref FixCount);
-			Stream_.Pop(ref FixOnceCount);
-			Stream_.Pop(ref ScoreFactorWave);
-			Stream_.Pop(ref ItemPattern);
-			Stream_.Pop(ref TermTimeItem);
-			Stream_.Pop(ref ShieldTime);
-			Stream_.Pop(ref StaminaTime);
-			Stream_.Pop(ref ScoreFactorPoint);
-			Stream_.Pop(ref TermTimePoint);
-			Stream_.Pop(ref RegenDelay);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("MinSpeed", ref MinSpeed);
-			Value_.Pop("MaxSpeed", ref MaxSpeed);
-			Value_.Pop("ShotDelay", ref ShotDelay);
-			Value_.Pop("TypeFix", ref TypeFix);
-			Value_.Pop("CountFix", ref CountFix);
-			Value_.Pop("SpeedFix", ref SpeedFix);
-			Value_.Pop("Right", ref Right);
-			Value_.Pop("Left", ref Left);
-			Value_.Pop("Bottom", ref Bottom);
-			Value_.Pop("Diagonal", ref Diagonal);
-			Value_.Pop("FixCount", ref FixCount);
-			Value_.Pop("FixOnceCount", ref FixOnceCount);
-			Value_.Pop("ScoreFactorWave", ref ScoreFactorWave);
-			Value_.Pop("ItemPattern", ref ItemPattern);
-			Value_.Pop("TermTimeItem", ref TermTimeItem);
-			Value_.Pop("ShieldTime", ref ShieldTime);
-			Value_.Pop("StaminaTime", ref StaminaTime);
-			Value_.Pop("ScoreFactorPoint", ref ScoreFactorPoint);
-			Value_.Pop("TermTimePoint", ref TermTimePoint);
-			Value_.Pop("RegenDelay", ref RegenDelay);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(MinSpeed);
-			Stream_.Push(MaxSpeed);
-			Stream_.Push(ShotDelay);
-			Stream_.Push(TypeFix);
-			Stream_.Push(CountFix);
-			Stream_.Push(SpeedFix);
-			Stream_.Push(Right);
-			Stream_.Push(Left);
-			Stream_.Push(Bottom);
-			Stream_.Push(Diagonal);
-			Stream_.Push(FixCount);
-			Stream_.Push(FixOnceCount);
-			Stream_.Push(ScoreFactorWave);
-			Stream_.Push(ItemPattern);
-			Stream_.Push(TermTimeItem);
-			Stream_.Push(ShieldTime);
-			Stream_.Push(StaminaTime);
-			Stream_.Push(ScoreFactorPoint);
-			Stream_.Push(TermTimePoint);
-			Stream_.Push(RegenDelay);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("MinSpeed", MinSpeed);
-			Value_.Push("MaxSpeed", MaxSpeed);
-			Value_.Push("ShotDelay", ShotDelay);
-			Value_.Push("TypeFix", TypeFix);
-			Value_.Push("CountFix", CountFix);
-			Value_.Push("SpeedFix", SpeedFix);
-			Value_.Push("Right", Right);
-			Value_.Push("Left", Left);
-			Value_.Push("Bottom", Bottom);
-			Value_.Push("Diagonal", Diagonal);
-			Value_.Push("FixCount", FixCount);
-			Value_.Push("FixOnceCount", FixOnceCount);
-			Value_.Push("ScoreFactorWave", ScoreFactorWave);
-			Value_.Push("ItemPattern", ItemPattern);
-			Value_.Push("TermTimeItem", TermTimeItem);
-			Value_.Push("ShieldTime", ShieldTime);
-			Value_.Push("StaminaTime", StaminaTime);
-			Value_.Push("ScoreFactorPoint", ScoreFactorPoint);
-			Value_.Push("TermTimePoint", TermTimePoint);
-			Value_.Push("RegenDelay", RegenDelay);
-		}
-		public void Set(SMultiBalance Obj_)
-		{
-			MinSpeed = Obj_.MinSpeed;
-			MaxSpeed = Obj_.MaxSpeed;
-			ShotDelay = Obj_.ShotDelay;
-			TypeFix = Obj_.TypeFix;
-			CountFix = Obj_.CountFix;
-			SpeedFix = Obj_.SpeedFix;
-			Right = Obj_.Right;
-			Left = Obj_.Left;
-			Bottom = Obj_.Bottom;
-			Diagonal = Obj_.Diagonal;
-			FixCount = Obj_.FixCount;
-			FixOnceCount = Obj_.FixOnceCount;
-			ScoreFactorWave = Obj_.ScoreFactorWave;
-			ItemPattern = Obj_.ItemPattern;
-			TermTimeItem = Obj_.TermTimeItem;
-			ShieldTime = Obj_.ShieldTime;
-			StaminaTime = Obj_.StaminaTime;
-			ScoreFactorPoint = Obj_.ScoreFactorPoint;
-			TermTimePoint = Obj_.TermTimePoint;
-			RegenDelay = Obj_.RegenDelay;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(MinSpeed) + "," + 
-				SEnumChecker.GetStdName(MaxSpeed) + "," + 
-				SEnumChecker.GetStdName(ShotDelay) + "," + 
-				SEnumChecker.GetStdName(TypeFix) + "," + 
-				SEnumChecker.GetStdName(CountFix) + "," + 
-				SEnumChecker.GetStdName(SpeedFix) + "," + 
-				SEnumChecker.GetStdName(Right) + "," + 
-				SEnumChecker.GetStdName(Left) + "," + 
-				SEnumChecker.GetStdName(Bottom) + "," + 
-				SEnumChecker.GetStdName(Diagonal) + "," + 
-				SEnumChecker.GetStdName(FixCount) + "," + 
-				SEnumChecker.GetStdName(FixOnceCount) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorWave) + "," + 
-				SEnumChecker.GetStdName(ItemPattern) + "," + 
-				SEnumChecker.GetStdName(TermTimeItem) + "," + 
-				SEnumChecker.GetStdName(ShieldTime) + "," + 
-				SEnumChecker.GetStdName(StaminaTime) + "," + 
-				SEnumChecker.GetStdName(ScoreFactorPoint) + "," + 
-				SEnumChecker.GetStdName(TermTimePoint) + "," + 
-				SEnumChecker.GetStdName(RegenDelay);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(MinSpeed, "MinSpeed") + "," + 
-				SEnumChecker.GetMemberName(MaxSpeed, "MaxSpeed") + "," + 
-				SEnumChecker.GetMemberName(ShotDelay, "ShotDelay") + "," + 
-				SEnumChecker.GetMemberName(TypeFix, "TypeFix") + "," + 
-				SEnumChecker.GetMemberName(CountFix, "CountFix") + "," + 
-				SEnumChecker.GetMemberName(SpeedFix, "SpeedFix") + "," + 
-				SEnumChecker.GetMemberName(Right, "Right") + "," + 
-				SEnumChecker.GetMemberName(Left, "Left") + "," + 
-				SEnumChecker.GetMemberName(Bottom, "Bottom") + "," + 
-				SEnumChecker.GetMemberName(Diagonal, "Diagonal") + "," + 
-				SEnumChecker.GetMemberName(FixCount, "FixCount") + "," + 
-				SEnumChecker.GetMemberName(FixOnceCount, "FixOnceCount") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorWave, "ScoreFactorWave") + "," + 
-				SEnumChecker.GetMemberName(ItemPattern, "ItemPattern") + "," + 
-				SEnumChecker.GetMemberName(TermTimeItem, "TermTimeItem") + "," + 
-				SEnumChecker.GetMemberName(ShieldTime, "ShieldTime") + "," + 
-				SEnumChecker.GetMemberName(StaminaTime, "StaminaTime") + "," + 
-				SEnumChecker.GetMemberName(ScoreFactorPoint, "ScoreFactorPoint") + "," + 
-				SEnumChecker.GetMemberName(TermTimePoint, "TermTimePoint") + "," + 
-				SEnumChecker.GetMemberName(RegenDelay, "RegenDelay");
 		}
 	}
 	public class SMultiItem : SProto
@@ -4232,234 +2119,114 @@ namespace bb
 				SEnumChecker.GetMemberName(MultiIslandRand, "MultiIslandRand");
 		}
 	}
-	public class SMultiItemMeta : SProto
+	public class QuestTypeValueMeta : SProto
 	{
-		public EMultiItemType ItemType = default(EMultiItemType);
-		public Single MultiDodgeTime = default(Single);
-		public Single MultiDodgeValue = default(Single);
-		public Int32 MultiDodgeRand = default(Int32);
-		public Single MultiIslandTime = default(Single);
-		public Single MultiIslandValue = default(Single);
-		public Int32 MultiIslandRand = default(Int32);
-		public EText Description = default(EText);
-		public SMultiItemMeta()
+		public EText textName = default(EText);
+		public String iconName = string.Empty;
+		public QuestTypeValueMeta()
 		{
 		}
-		public SMultiItemMeta(SMultiItemMeta Obj_)
+		public QuestTypeValueMeta(QuestTypeValueMeta Obj_)
 		{
-			ItemType = Obj_.ItemType;
-			MultiDodgeTime = Obj_.MultiDodgeTime;
-			MultiDodgeValue = Obj_.MultiDodgeValue;
-			MultiDodgeRand = Obj_.MultiDodgeRand;
-			MultiIslandTime = Obj_.MultiIslandTime;
-			MultiIslandValue = Obj_.MultiIslandValue;
-			MultiIslandRand = Obj_.MultiIslandRand;
-			Description = Obj_.Description;
+			textName = Obj_.textName;
+			iconName = Obj_.iconName;
 		}
-		public SMultiItemMeta(EMultiItemType ItemType_, Single MultiDodgeTime_, Single MultiDodgeValue_, Int32 MultiDodgeRand_, Single MultiIslandTime_, Single MultiIslandValue_, Int32 MultiIslandRand_, EText Description_)
+		public QuestTypeValueMeta(EText textName_, String iconName_)
 		{
-			ItemType = ItemType_;
-			MultiDodgeTime = MultiDodgeTime_;
-			MultiDodgeValue = MultiDodgeValue_;
-			MultiDodgeRand = MultiDodgeRand_;
-			MultiIslandTime = MultiIslandTime_;
-			MultiIslandValue = MultiIslandValue_;
-			MultiIslandRand = MultiIslandRand_;
-			Description = Description_;
+			textName = textName_;
+			iconName = iconName_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref ItemType);
-			Stream_.Pop(ref MultiDodgeTime);
-			Stream_.Pop(ref MultiDodgeValue);
-			Stream_.Pop(ref MultiDodgeRand);
-			Stream_.Pop(ref MultiIslandTime);
-			Stream_.Pop(ref MultiIslandValue);
-			Stream_.Pop(ref MultiIslandRand);
-			Stream_.Pop(ref Description);
+			Stream_.Pop(ref textName);
+			Stream_.Pop(ref iconName);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("ItemType", ref ItemType);
-			Value_.Pop("MultiDodgeTime", ref MultiDodgeTime);
-			Value_.Pop("MultiDodgeValue", ref MultiDodgeValue);
-			Value_.Pop("MultiDodgeRand", ref MultiDodgeRand);
-			Value_.Pop("MultiIslandTime", ref MultiIslandTime);
-			Value_.Pop("MultiIslandValue", ref MultiIslandValue);
-			Value_.Pop("MultiIslandRand", ref MultiIslandRand);
-			Value_.Pop("Description", ref Description);
+			Value_.Pop("textName", ref textName);
+			Value_.Pop("iconName", ref iconName);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(ItemType);
-			Stream_.Push(MultiDodgeTime);
-			Stream_.Push(MultiDodgeValue);
-			Stream_.Push(MultiDodgeRand);
-			Stream_.Push(MultiIslandTime);
-			Stream_.Push(MultiIslandValue);
-			Stream_.Push(MultiIslandRand);
-			Stream_.Push(Description);
+			Stream_.Push(textName);
+			Stream_.Push(iconName);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("ItemType", ItemType);
-			Value_.Push("MultiDodgeTime", MultiDodgeTime);
-			Value_.Push("MultiDodgeValue", MultiDodgeValue);
-			Value_.Push("MultiDodgeRand", MultiDodgeRand);
-			Value_.Push("MultiIslandTime", MultiIslandTime);
-			Value_.Push("MultiIslandValue", MultiIslandValue);
-			Value_.Push("MultiIslandRand", MultiIslandRand);
-			Value_.Push("Description", Description);
+			Value_.Push("textName", textName);
+			Value_.Push("iconName", iconName);
 		}
-		public void Set(SMultiItemMeta Obj_)
+		public void Set(QuestTypeValueMeta Obj_)
 		{
-			ItemType = Obj_.ItemType;
-			MultiDodgeTime = Obj_.MultiDodgeTime;
-			MultiDodgeValue = Obj_.MultiDodgeValue;
-			MultiDodgeRand = Obj_.MultiDodgeRand;
-			MultiIslandTime = Obj_.MultiIslandTime;
-			MultiIslandValue = Obj_.MultiIslandValue;
-			MultiIslandRand = Obj_.MultiIslandRand;
-			Description = Obj_.Description;
+			textName = Obj_.textName;
+			iconName = Obj_.iconName;
 		}
 		public override string StdName()
 		{
 			return 
-				"bb.EMultiItemType" + "," + 
-				SEnumChecker.GetStdName(MultiDodgeTime) + "," + 
-				SEnumChecker.GetStdName(MultiDodgeValue) + "," + 
-				SEnumChecker.GetStdName(MultiDodgeRand) + "," + 
-				SEnumChecker.GetStdName(MultiIslandTime) + "," + 
-				SEnumChecker.GetStdName(MultiIslandValue) + "," + 
-				SEnumChecker.GetStdName(MultiIslandRand) + "," + 
-				"bb.EText";
+				"bb.EText" + "," + 
+				SEnumChecker.GetStdName(iconName);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(ItemType, "ItemType") + "," + 
-				SEnumChecker.GetMemberName(MultiDodgeTime, "MultiDodgeTime") + "," + 
-				SEnumChecker.GetMemberName(MultiDodgeValue, "MultiDodgeValue") + "," + 
-				SEnumChecker.GetMemberName(MultiDodgeRand, "MultiDodgeRand") + "," + 
-				SEnumChecker.GetMemberName(MultiIslandTime, "MultiIslandTime") + "," + 
-				SEnumChecker.GetMemberName(MultiIslandValue, "MultiIslandValue") + "," + 
-				SEnumChecker.GetMemberName(MultiIslandRand, "MultiIslandRand") + "," + 
-				SEnumChecker.GetMemberName(Description, "Description");
+				SEnumChecker.GetMemberName(textName, "textName") + "," + 
+				SEnumChecker.GetMemberName(iconName, "iconName");
 		}
 	}
-	public class SModeEventMeta : SProto
+	public class QuestTypeKeyValueMeta : SProto
 	{
-		public EPlayMode Mode = default(EPlayMode);
-		public Int32 BeginHour = default(Int32);
-		public Int32 BeginMin = default(Int32);
-		public Int32 BeginSec = default(Int32);
-		public Int32 EndHour = default(Int32);
-		public Int32 EndMin = default(Int32);
-		public Int32 EndSec = default(Int32);
-		public EText ETextName = default(EText);
-		public SModeEventMeta()
+		public EQuestType questType = default(EQuestType);
+		public QuestTypeValueMeta questTypeValueMeta = new QuestTypeValueMeta();
+		public QuestTypeKeyValueMeta()
 		{
 		}
-		public SModeEventMeta(SModeEventMeta Obj_)
+		public QuestTypeKeyValueMeta(QuestTypeKeyValueMeta Obj_)
 		{
-			Mode = Obj_.Mode;
-			BeginHour = Obj_.BeginHour;
-			BeginMin = Obj_.BeginMin;
-			BeginSec = Obj_.BeginSec;
-			EndHour = Obj_.EndHour;
-			EndMin = Obj_.EndMin;
-			EndSec = Obj_.EndSec;
-			ETextName = Obj_.ETextName;
+			questType = Obj_.questType;
+			questTypeValueMeta = Obj_.questTypeValueMeta;
 		}
-		public SModeEventMeta(EPlayMode Mode_, Int32 BeginHour_, Int32 BeginMin_, Int32 BeginSec_, Int32 EndHour_, Int32 EndMin_, Int32 EndSec_, EText ETextName_)
+		public QuestTypeKeyValueMeta(EQuestType questType_, QuestTypeValueMeta questTypeValueMeta_)
 		{
-			Mode = Mode_;
-			BeginHour = BeginHour_;
-			BeginMin = BeginMin_;
-			BeginSec = BeginSec_;
-			EndHour = EndHour_;
-			EndMin = EndMin_;
-			EndSec = EndSec_;
-			ETextName = ETextName_;
+			questType = questType_;
+			questTypeValueMeta = questTypeValueMeta_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Mode);
-			Stream_.Pop(ref BeginHour);
-			Stream_.Pop(ref BeginMin);
-			Stream_.Pop(ref BeginSec);
-			Stream_.Pop(ref EndHour);
-			Stream_.Pop(ref EndMin);
-			Stream_.Pop(ref EndSec);
-			Stream_.Pop(ref ETextName);
+			Stream_.Pop(ref questType);
+			Stream_.Pop(ref questTypeValueMeta);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Mode", ref Mode);
-			Value_.Pop("BeginHour", ref BeginHour);
-			Value_.Pop("BeginMin", ref BeginMin);
-			Value_.Pop("BeginSec", ref BeginSec);
-			Value_.Pop("EndHour", ref EndHour);
-			Value_.Pop("EndMin", ref EndMin);
-			Value_.Pop("EndSec", ref EndSec);
-			Value_.Pop("ETextName", ref ETextName);
+			Value_.Pop("questType", ref questType);
+			Value_.Pop("questTypeValueMeta", ref questTypeValueMeta);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Mode);
-			Stream_.Push(BeginHour);
-			Stream_.Push(BeginMin);
-			Stream_.Push(BeginSec);
-			Stream_.Push(EndHour);
-			Stream_.Push(EndMin);
-			Stream_.Push(EndSec);
-			Stream_.Push(ETextName);
+			Stream_.Push(questType);
+			Stream_.Push(questTypeValueMeta);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Mode", Mode);
-			Value_.Push("BeginHour", BeginHour);
-			Value_.Push("BeginMin", BeginMin);
-			Value_.Push("BeginSec", BeginSec);
-			Value_.Push("EndHour", EndHour);
-			Value_.Push("EndMin", EndMin);
-			Value_.Push("EndSec", EndSec);
-			Value_.Push("ETextName", ETextName);
+			Value_.Push("questType", questType);
+			Value_.Push("questTypeValueMeta", questTypeValueMeta);
 		}
-		public void Set(SModeEventMeta Obj_)
+		public void Set(QuestTypeKeyValueMeta Obj_)
 		{
-			Mode = Obj_.Mode;
-			BeginHour = Obj_.BeginHour;
-			BeginMin = Obj_.BeginMin;
-			BeginSec = Obj_.BeginSec;
-			EndHour = Obj_.EndHour;
-			EndMin = Obj_.EndMin;
-			EndSec = Obj_.EndSec;
-			ETextName = Obj_.ETextName;
+			questType = Obj_.questType;
+			questTypeValueMeta.Set(Obj_.questTypeValueMeta);
 		}
 		public override string StdName()
 		{
 			return 
-				"bb.EPlayMode" + "," + 
-				SEnumChecker.GetStdName(BeginHour) + "," + 
-				SEnumChecker.GetStdName(BeginMin) + "," + 
-				SEnumChecker.GetStdName(BeginSec) + "," + 
-				SEnumChecker.GetStdName(EndHour) + "," + 
-				SEnumChecker.GetStdName(EndMin) + "," + 
-				SEnumChecker.GetStdName(EndSec) + "," + 
-				"bb.EText";
+				"bb.EQuestType" + "," + 
+				SEnumChecker.GetStdName(questTypeValueMeta);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Mode, "Mode") + "," + 
-				SEnumChecker.GetMemberName(BeginHour, "BeginHour") + "," + 
-				SEnumChecker.GetMemberName(BeginMin, "BeginMin") + "," + 
-				SEnumChecker.GetMemberName(BeginSec, "BeginSec") + "," + 
-				SEnumChecker.GetMemberName(EndHour, "EndHour") + "," + 
-				SEnumChecker.GetMemberName(EndMin, "EndMin") + "," + 
-				SEnumChecker.GetMemberName(EndSec, "EndSec") + "," + 
-				SEnumChecker.GetMemberName(ETextName, "ETextName");
+				SEnumChecker.GetMemberName(questType, "questType") + "," + 
+				SEnumChecker.GetMemberName(questTypeValueMeta, "questTypeValueMeta");
 		}
 	}
 }

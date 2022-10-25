@@ -1,0 +1,30 @@
+fileFormatVersion: 2
+guid: 91f30fab0972a724abce77c4a903d99f
+TrueTypeFontImporter:
+  externalObjects: {}
+  serializedVersion: 4
+  fontSize: 16
+  forceTextureCase: -2
+  characterSpacing: 0
+  characterPadding: 1
+  includeFontData: 1
+  fontName: CookieRun
+  fontNames:
+  - CookieRun
+  - Noto Sans JP
+  - Noto Sans TC
+  - Noto Sans SC
+  - Noto Sans Thai
+  fallbackFontReferences:
+  - {fileID: 12800000, guid: aaa6fb841dd9114468869a6f3a90b4dd, type: 3}
+  - {fileID: 12800000, guid: 7a79cb1b59ac8724fa0cc353b2df7692, type: 3}
+  - {fileID: 12800000, guid: b13ffb8ee2dc43a45a4bbaf445dc1758, type: 3}
+  - {fileID: 12800000, guid: 5c118a9effc601e4087e576faedc4d19, type: 3}
+  customCharacters: 
+  fontRenderingMode: 0
+  ascentCalculationMode: 1
+  useLegacyBoundsCalculation: 0
+  shouldRoundAdvanceValue: 1
+  userData: 
+  assetBundleName: 
+  assetBundleVariant: 

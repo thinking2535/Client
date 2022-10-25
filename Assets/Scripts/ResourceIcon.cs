@@ -22,6 +22,6 @@ public class ResourceIcon : MonoBehaviour
         Velocity = 12.0f;
         Resource = EResource_;
         ResourceCount = ResourceCount_;
-        Icon.sprite = Resources.Load<Sprite>(CGlobal.GetResourcesIconFile(Resource));
+        Icon.sprite = CGlobal.GetResourceSprite(Resource);
     }
 }

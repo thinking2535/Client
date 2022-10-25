@@ -1,329 +1,157 @@
-﻿using rso.core;
-using rso.unity;
-using bb;
+﻿using bb;
 using System;
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
+using UnityEngine.Events;
+using UnityEngine.EventSystems;
 using UnityEngine.UI;
-using Random = UnityEngine.Random;
 
-public class MoneyUI : MonoBehaviour
+public class MoneyUI : MonoBehaviour, IPointerDownHandler, IPointerUpHandler
 {
-    [SerializeField] Text _Ticket = null;
-    [SerializeField] Text _Gold = null;
-    [SerializeField] Text _Dia = null;
-    [SerializeField] Text _CP = null;
-    [SerializeField] GameObject[] _Icons = null;
-    [SerializeField] GameObject[] _EffectIcon = null;
-    [SerializeField] GameObject[] _EffectBGIcon = null;
-    [SerializeField] GameObject _EffectParent = null;
-    [SerializeField] Transform _EffectMinPos = null;
-    [SerializeField] Transform _EffectMaxPos = null;
-    [SerializeField] string _SceneString = ""; //이전 Scene 클래스 명
-    [SerializeField] bool _IsPopupSetting = false;
-    [SerializeField] GameObject _SettingPopup = null;
-    [SerializeField] Image _MusicBtnOn = null;
-    [SerializeField] Image _MusicBtnOff = null;
-    [SerializeField] Image _SoundBtnOn = null;
-    [SerializeField] Image _SoundBtnOff = null;
-    [SerializeField] Image _PadBtnOn = null;
-    [SerializeField] Image _PadBtnOff = null;
+    [SerializeField] ResourceWidget[] _ResourceWidgets = new ResourceWidget[(Int32)EResource.Max];
+    [SerializeField] Button _toolTipButton;
+    [SerializeField] Button _PlusButton = null;
+    [SerializeField] GameObject _DropDown = null;
+    [SerializeField] Button _DropDownButton = null;
+    Image _DropDownPanel = null;
+    Int32[] _LastResources = null;
+    private bool IsActiveDropDown;
+    Canvas _canvas;
+    UnityAction _fToolTipButtonClicked;
 
-    private List<ResourceIcon> ResourceIcons = new List<ResourceIcon>();
-    Int32[] _Resources = new Int32[(Int32)EResource.Max];
-    bool IsResourceEffect = false;
-    float SoundDeltaTime = 0.0f;
     private void Awake()
     {
-        BtnToggle(_MusicBtnOn, _MusicBtnOff, CGlobal.GameOption.Data.IsMusic);
-        BtnToggle(_SoundBtnOn, _SoundBtnOff, CGlobal.GameOption.Data.IsSound);
-        BtnToggle(_PadBtnOn, _PadBtnOff, CGlobal.GameOption.Data.IsPad);
-        _SettingPopup.SetActive(false);
-    }
-    public void MusicClick()
-    {
-        CGlobal.SetIsMusic(!CGlobal.GameOption.Data.IsMusic);
-        BtnToggle(_MusicBtnOn, _MusicBtnOff, CGlobal.GameOption.Data.IsMusic);
-    }
-    public void SoundClick()
-    {
-        CGlobal.SetIsSound(!CGlobal.GameOption.Data.IsSound);
-        BtnToggle(_SoundBtnOn, _SoundBtnOff, CGlobal.GameOption.Data.IsSound);
-    }
-    public void PadClick()
-    {
-        CGlobal.SetIsPad(!CGlobal.GameOption.Data.IsPad);
-        BtnToggle(_PadBtnOn, _PadBtnOff, CGlobal.GameOption.Data.IsPad);
-    }
-    private void BtnToggle(Image On_, Image Off_, bool Value_)
-    {
-        if (Value_)
-        {
-            CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-            On_.gameObject.SetActive(true);
-            Off_.gameObject.SetActive(false);
-        }
-        else
-        {
-            CGlobal.Sound.PlayOneShot((Int32)ESound.Cancel);
-            On_.gameObject.SetActive(false);
-            Off_.gameObject.SetActive(true);
-        }
-    }
+        gameObject.SetActive(false);
+        _toolTipButton.onClick.AddListener(_toolTipButtonClicked);
+        _PlusButton.onClick.AddListener(OnClickPlus);
+        _DropDownButton.onClick.AddListener(OnClickDropDown);
+        _DropDown.SetActive(false);
+        _DropDownPanel = GetComponent<Image>();
+        _DropDownPanel.raycastTarget = false;
+        IsActiveDropDown = false;
 
-    public void SetResources(Int32[] Resources_)
-    {
-        SetTicket(Resources_[(Int32)EResource.Ticket]);
-        SetGold(Resources_[(Int32)EResource.Gold]);
-        SetDia(Resources_[(Int32)EResource.Dia] + Resources_[(Int32)EResource.DiaPaid]);
-        SetCP(Resources_[(Int32)EResource.CP]);
-    }
-    public void SetTicket(Int32 ticket_)
-    {
-        //TO-DO 나중에 아래 코드 참고해서 추가 개발 필요. <추가 개발 시 gold_ 변수 제거 가능.>
-        //CGlobal.LoginNetSc.User.Point
-        _Ticket.text = System.Convert.ToString(ticket_);
-    }
-    public void SetGold(Int32 gold_)
-    {
-        //TO-DO 나중에 아래 코드 참고해서 추가 개발 필요. <추가 개발 시 gold_ 변수 제거 가능.>
-        //CGlobal.LoginNetSc.User.Point
-        _Gold.text = System.Convert.ToString(gold_);
-    }
-    public void SetDia(Int32 dia_)
-    {
-        //TO-DO 나중에 아래 코드 참고해서 추가 개발 필요. <추가 개발 시 gold_ 변수 제거 가능.>
-        //CGlobal.LoginNetSc.User.Point
-        _Dia.text = System.Convert.ToString(dia_);
-    }
-    public void SetCP(Int32 CP_)
-    {
-        //TO-DO 나중에 아래 코드 참고해서 추가 개발 필요. <추가 개발 시 gold_ 변수 제거 가능.>
-        //CGlobal.LoginNetSc.User.Point
-        _CP.text = System.Convert.ToString(CP_);
-    }
-    public void OptionView()
-    {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        if(_IsPopupSetting)
-        {
-            _SettingPopup.SetActive(true);
-        }
-        else
-        {
-            //이전 Scene 클래스 명으로 이동할 Scene 생성.
-            CScene Scene = null;
-            if (_SceneString.Equals("CSceneShop"))
-                Scene = new CSceneShop(null);
-            else if (!_SceneString.Equals("CSceneLobby"))
-                Scene = Activator.CreateInstance(Type.GetType(_SceneString)) as CScene;
+        _LastResources = CGlobal.getEmptyResources();
+        for (Int32 i = 0; i < _ResourceWidgets.Length; ++i)
+            _ResourceWidgets[i].Init(CGlobal.GetResourceSprite((EResource)i), CGlobal.MetaData.MaxResources[i], _LastResources[i]);
 
-            CGlobal.SceneSetNext(new CSceneSetting(Scene));
-        }
+        _canvas = GetComponent<Canvas>();
+        _canvas.renderMode = RenderMode.ScreenSpaceCamera;
+        _canvas.planeDistance = BaseScene.planeDistance;
     }
-    public void SettingPopupClose()
+    private void OnDestroy()
     {
-        _SettingPopup.SetActive(false);
+        _DropDownButton.onClick.RemoveAllListeners();
+        _PlusButton.onClick.RemoveAllListeners();
+        _toolTipButton.onClick.RemoveAllListeners();
     }
-    public bool GetSettingPopup()
+    public async void OptionView()
     {
-        return _SettingPopup.activeSelf;
-    }
-    public void GotoShopGold()
-    {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        Debug.Log("골드 상점 화면!!!");
-        Type Scene = null;
-        if (!_SceneString.Equals("CSceneLobby"))
-            Scene = Type.GetType(_SceneString);
-        CGlobal.SceneSetNext(new CSceneShop(Scene == null ? null : Activator.CreateInstance(Scene) as CScene));
-    }
-    public void GotoShopDia()
-    {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        Debug.Log("다이아 상점 화면!!!");
-        Type Scene = null;
-        if (!_SceneString.Equals("CSceneLobby"))
-            Scene = Type.GetType(_SceneString);
-        CGlobal.SceneSetNext(new CSceneShop(Scene == null ? null : Activator.CreateInstance(Scene) as CScene));
-    }
-    public void ShowRewardEffect(Int32[] Resources_)
-    {
-        for (Int32 i = 0; i < CGlobal.LoginNetSc.User.Resources.Length; ++i)
-            _Resources[i] = CGlobal.LoginNetSc.User.Resources[i];
-        for (Int32 i = 0; i < (Int32)EResource.Max; ++i)
-        {
-            if(Resources_[i] <= 10)
-            {
-                for (Int32 a = 0; a < Resources_[i]; ++a)
-                {
-                    MakeResourceIcon((EResource)i, 1);
-                }
-            }
-            else if(Resources_[i] <= 1000)
-            {
-                Int32 ResourceTenCount = Resources_[i] / 10;
-                Int32 ResourceOneCount = Resources_[i] % 10;
-                for (Int32 a = 0; a < ResourceTenCount; ++a)
-                {
-                    MakeResourceIcon((EResource)i, 10);
-                }
-                MakeResourceIcon((EResource)i, ResourceOneCount);
-            }
-            else if (Resources_[i] <= 10000)
-            {
-                Int32 ResourceTenCount = Resources_[i] / 100;
-                Int32 ResourceOneCount = Resources_[i] % 100;
-                for (Int32 a = 0; a < ResourceTenCount; ++a)
-                {
-                    MakeResourceIcon((EResource)i, 100);
-                }
-                MakeResourceIcon((EResource)i, ResourceOneCount);
-            }
-            else
-            {
-                Int32 ResourceTenCount = Resources_[i] / 1000;
-                Int32 ResourceOneCount = Resources_[i] % 1000;
-                for (Int32 a = 0; a < ResourceTenCount; ++a)
-                {
-                    MakeResourceIcon((EResource)i, 1000);
-                }
-                MakeResourceIcon((EResource)i, ResourceOneCount);
-            }
-            CGlobal.LoginNetSc.User.Resources[i] += Resources_[i];
-        }
-        IsResourceEffect = true;
-        SoundDeltaTime = 0.0f;
-    }
-    void MakeResourceIcon(EResource Resource_, Int32 Count)
-    {
-        var icon = ResourceIconPool();
-        icon.SetResourceIcon(Resource_, Count);
-        icon.transform.position = Vector3.zero;
-        if (Resource_ == EResource.DiaPaid)
-            icon.EndPosition = new Vector2(_Icons[(Int32)EResource.Dia].transform.position.x, _Icons[(Int32)EResource.Dia].transform.position.y);
-        else
-            icon.EndPosition = new Vector2(_Icons[(Int32)Resource_].transform.position.x, _Icons[(Int32)Resource_].transform.position.y);
-        icon.StartPosition = new Vector2(Random.Range(_EffectMinPos.position.x, _EffectMaxPos.position.x), Random.Range(_EffectMinPos.position.y, _EffectMaxPos.position.y));
-        icon.IsAdd = true;
-        icon.IsMove = false;
-    }
-    private void Update()
-    {
-        if(IsResourceEffect)
-        {
-            SoundDeltaTime += Time.deltaTime;
-            if(SoundDeltaTime > 0.3f)
-            {
-                SoundDeltaTime -= 0.3f;
-                CGlobal.Sound.PlayOneShot((Int32)ESound.GetGold);
-            }
-            foreach (var i in ResourceIconActiveList())
-            {
-                if (i.IsAdd)
-                {
-                    i.transform.position = Vector3.MoveTowards(i.transform.position, i.StartPosition, (i.Velocity * 0.7f) * Time.deltaTime);
-                    if (i.transform.position == i.StartPosition)
-                    {
-                        i.IsAdd = false;
-                        i.IsMove = true;
-                    }
-                }
-                if (i.IsMove)
-                {
-                    i.transform.position = Vector3.MoveTowards(i.transform.position, i.EndPosition, i.Velocity * Time.deltaTime);
-                    if (i.transform.position == i.EndPosition)
-                    {
-                        i.IsAdd = false;
-                        i.IsMove = false;
-                        i.IsActive = false;
-                        switch (i.ResourceEnum)
-                        {
-                            case EResource.Ticket:
-                                _Resources[(Int32)EResource.Ticket] += i.ResourceCount;
-                                SetTicket(_Resources[(Int32)EResource.Ticket]);
-                                _EffectIcon[(Int32)EResource.Ticket].SetActive(true);
-                                _EffectBGIcon[(Int32)EResource.Ticket].SetActive(false);
-                                break;
-                            case EResource.Gold:
-                                _Resources[(Int32)EResource.Gold] += i.ResourceCount;
-                                SetGold(_Resources[(Int32)EResource.Gold]);
-                                _EffectIcon[(Int32)EResource.Gold].SetActive(true);
-                                _EffectBGIcon[(Int32)EResource.Gold].SetActive(false);
-                                break;
-                            case EResource.Dia:
-                            case EResource.DiaPaid:
-                                _Resources[(Int32)i.ResourceEnum] += i.ResourceCount;
-                                SetDia(_Resources[(Int32)EResource.Dia]+ _Resources[(Int32)EResource.DiaPaid]);
-                                _EffectIcon[(Int32)EResource.Dia].SetActive(true);
-                                _EffectBGIcon[(Int32)EResource.Dia].SetActive(false);
-                                break;
-                            case EResource.CP:
-                                _Resources[(Int32)EResource.CP] += i.ResourceCount;
-                                SetCP(_Resources[(Int32)EResource.CP]);
-                                _EffectIcon[(Int32)EResource.CP].SetActive(true);
-                                _EffectBGIcon[(Int32)EResource.CP].SetActive(false);
-                                break;
-                        }
-                    }
-                }
-            }
-            if (!IsActiveResourceIcon())
-            {
-                IsResourceEffect = false;
-                SetResources(CGlobal.LoginNetSc.User.Resources);
-                foreach (var i in _EffectIcon)
-                    i.SetActive(false);
-                foreach (var i in _EffectBGIcon)
-                    i.SetActive(true);
-            }
-        }
-    }
-    private ResourceIcon ResourceIconPool()
-    {
-        foreach(var icon in ResourceIcons)
-        {
-            if(icon.IsActive == false)
-            {
-                icon.IsActive = true;
-                return icon;
-            }
-        }
-        var Prefab = Resources.Load<GameObject>("Prefabs/UI/ResourceIcon");
-        Debug.Assert(Prefab != null);
+//#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        if (CGlobal.ConsoleWindow.ShowWithPassWordUserInput())
+            return;
+//#endif
 
-        var Icon = UnityEngine.Object.Instantiate(Prefab, Vector3.zero, Quaternion.identity);
-        Icon.transform.SetParent(_EffectParent.transform);
-        Icon.transform.localScale = Vector3.one;
-        var IconScript = Icon.GetComponent<ResourceIcon>();
-        IconScript.IsActive = true;
-        ResourceIcons.Add(IconScript);
-        return IconScript;
+        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
+        await CGlobal.curScene.pushSettingPopup();
     }
-    private List<ResourceIcon> ResourceIconActiveList()
+    public void UpdateResource(EResource Resource_)
     {
-        var icons = new List<ResourceIcon>();
-        foreach (var icon in ResourceIcons)
-        {
-            if (icon.IsActive == true)
-            {
-                icons.Add(icon);
-            }
-        }
-        return icons;
+        _LastResources[(Int32)Resource_] = CGlobal.LoginNetSc.User.Resources[(Int32)Resource_];
+        _ResourceWidgets[(Int32)Resource_].SetValue(_LastResources[(Int32)Resource_]);
     }
-    private bool IsActiveResourceIcon()
+    public void UpdateResources()
     {
-        bool IsActive = false;
-        foreach (var icon in ResourceIcons)
-        {
-            if (icon.IsActive == true)
-            {
-                IsActive = true;
-                break;
-            }
-        }
-        return IsActive;
+        for (EResource i = 0; i < EResource.Max; ++i)
+            UpdateResource(i);
     }
+    public void UpdateResourceImmediately(EResource Resource_)
+    {
+        _LastResources[(Int32)Resource_] = CGlobal.LoginNetSc.User.Resources[(Int32)Resource_];
+        _ResourceWidgets[(Int32)Resource_].SetValueWithoutAnimation(_LastResources[(Int32)Resource_]);
+    }
+    public void UpdateResourcesImmediately()
+    {
+        for (EResource i = 0; i < EResource.Max; ++i)
+            UpdateResourceImmediately(i);
+    }
+    async void OnClickPlus()
+    {
+        var targetResource = EResource.Ticket;
+        var exchangeValue = CGlobal.MetaData.getExchangeValue(targetResource);
+        const Int32 targetResourceMinValue = 1;
+
+        if (!CGlobal.doesHaveCost(exchangeValue.costResourceType, exchangeValue.getCostValue(targetResourceMinValue)))
+        {
+            await GlobalFunction.ShowResourceNotEnough(exchangeValue.costResourceType);
+            return;
+        }
+
+        var resourceFreeSpace = CGlobal.getResourceFreeSpace(CGlobal.LoginNetSc.User.Resources[(Int32)targetResource], targetResource);
+        if (resourceFreeSpace == 0)
+        {
+            await CGlobal.curScene.pushNoticePopup(true, EText.ReachedMaximumLimit);
+            return;
+        }
+
+        var targetResourceMaxValueCanBuy = (Int32)(CGlobal.LoginNetSc.User.Resources[(Int32)exchangeValue.costResourceType] / exchangeValue.rate);
+        // 절사 로 인한 오차 보정
+        // BuyingResourcePopup 내부에서 실시간 계산 해도 되지만 // 슬라이더를 구매 가용범위와 일치하도록 설정하는 것이 정확도가 올라 갈 수 있으니 여기서 min, max를 정확하게 설정
+        if (CGlobal.doesHaveCost(exchangeValue.costResourceType, exchangeValue.getCostValue(targetResourceMaxValueCanBuy + 1)))
+            ++targetResourceMaxValueCanBuy;
+
+        var targetResourceValue = await CGlobal.curScene.pushBuyingResourcePopup(
+            targetResource,
+            targetResourceMinValue,
+            Math.Min(targetResourceMaxValueCanBuy, resourceFreeSpace),
+            exchangeValue,
+            EText.ShopScene_Popup_CheckBuy,
+            CGlobal.GetResourceText(EResource.Ticket));
+        if (targetResourceValue is null)
+            return;
+
+        CGlobal.ProgressCircle.Activate();
+        CGlobal.NetControl.Send(new SBuyResourceNetCs(new SResourceTypeData(targetResource, (Int32)targetResourceValue)));
+    }
+    public void show(Camera camera, UnityAction fToolTipButtonClicked)
+    {
+        _canvas.worldCamera = camera;
+        _canvas.sortingLayerName = CGlobal.sortingLayerMoneyUI;
+        _fToolTipButtonClicked = fToolTipButtonClicked;
+        gameObject.SetActive(true);
+        UpdateResources();
+    }
+    public void hide()
+    {
+        _fToolTipButtonClicked = null;
+        gameObject.SetActive(false);
+    }
+    void _toolTipButtonClicked()
+    {
+//#if UNITY_EDITOR || DEVELOPMENT_BUILD
+        CGlobal.ConsoleWindow.InputPassword('a');
+//#endif
+        _fToolTipButtonClicked?.Invoke();
+    }
+    #region drop down
+    private void OnClickDropDown()
+    {
+        IsActiveDropDown = !IsActiveDropDown;
+        SetActiveDropDown(IsActiveDropDown);
+    }
+    private void SetActiveDropDown(bool active)
+    {
+        _DropDown.SetActive(active);
+        _DropDownPanel.raycastTarget = active;
+    }
+    public void OnPointerDown(PointerEventData eventData)
+    {
+        //if( eventData.pointerPressRaycast.gameObject != _DropDownButton.gameObject || eventData.pointerPressRaycast.gameObject != _DropDown)
+        {
+            IsActiveDropDown = false;
+            SetActiveDropDown(false);
+        }
+    }
+    public void OnPointerUp(PointerEventData eventData)
+    {
+    }
+    #endregion
 }

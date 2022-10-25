@@ -1,0 +1,68 @@
+%YAML 1.1
+%TAG !u! tag:unity3d.com,2011:
+--- !u!78 &1
+TagManager:
+  serializedVersion: 2
+  tags:
+  - Ground
+  - Balloon
+  - Parachute
+  - PlayerPos
+  - RedDot
+  - Trap
+  - Coin
+  - Dia
+  - Item
+  - Water
+  - Shield
+  - GoldBar
+  - Point
+  - Ink
+  - Slow
+  - Scale
+  layers:
+  - Default
+  - TransparentFX
+  - Ignore Raycast
+  - 
+  - Water
+  - UI
+  - 
+  - 
+  - SingleLayer
+  - Blink
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  - 
+  m_SortingLayers:
+  - name: Default
+    uniqueID: 0
+    locked: 0
+  - name: MoneyUI
+    uniqueID: 8435789
+    locked: 0
+  - name: Popup
+    uniqueID: 850476435
+    locked: 0
+  - name: Particle
+    uniqueID: 1698343545
+    locked: 0

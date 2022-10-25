@@ -4,6 +4,77 @@ namespace rso.physics
 {
     public static class Extension
     {
+        public static SPoint Add(this SPoint Lhs_, SPoint Rhs_)
+        {
+            Lhs_.X += Rhs_.X;
+            Lhs_.Y += Rhs_.Y;
+            return Lhs_;
+        }
+        public static SPoint GetAdd(this SPoint Lhs_, SPoint Rhs_)
+        {
+            return new SPoint(Lhs_).Add(Rhs_);
+        }
+        public static SPoint Sub(this SPoint Lhs_, SPoint Rhs_)
+        {
+            Lhs_.X -= Rhs_.X;
+            Lhs_.Y -= Rhs_.Y;
+            return Lhs_;
+        }
+        public static SPoint GetSub(this SPoint Lhs_, SPoint Rhs_)
+        {
+            return new SPoint(Lhs_).Sub(Rhs_);
+        }
+        public static SPoint Add(this SPoint Lhs_, float Value_)
+        {
+            Lhs_.X += Value_;
+            Lhs_.Y += Value_;
+            return Lhs_;
+        }
+        public static SPoint GetAdd(this SPoint Lhs_, float Value_)
+        {
+            return new SPoint(Lhs_).Add(Value_);
+        }
+        public static SPoint Sub(this SPoint Lhs_, float Value_)
+        {
+            Lhs_.X -= Value_;
+            Lhs_.Y -= Value_;
+            return Lhs_;
+        }
+        public static SPoint GetSub(this SPoint Lhs_, float Value_)
+        {
+            return new SPoint(Lhs_).Sub(Value_);
+        }
+        public static SPoint Multi(this SPoint Lhs_, float Value_)
+        {
+            Lhs_.X *= Value_;
+            Lhs_.Y *= Value_;
+            return Lhs_;
+        }
+        public static SPoint GetMulti(this SPoint Lhs_, float Value_)
+        {
+            return new SPoint(Lhs_).Multi(Value_);
+        }
+        public static SPoint Div(this SPoint Lhs_, float Value_)
+        {
+            Lhs_.X /= Value_;
+            Lhs_.Y /= Value_;
+            return Lhs_;
+        }
+        public static SPoint GetDiv(this SPoint Lhs_, float Value_)
+        {
+            return new SPoint(Lhs_).Div(Value_);
+        }
+        public static SPoint Negative(this SPoint Lhs_)
+        {
+            Lhs_.X = -Lhs_.X;
+            Lhs_.Y = -Lhs_.Y;
+            return Lhs_;
+        }
+        public static SPoint GetNegative(this SPoint Lhs_)
+        {
+            return new SPoint(Lhs_).Negative();
+        }
+
         public static SPoint Center(this SRect Rect_)
         {
             return new SPoint((Rect_.Right + Rect_.Left) * 0.5f, (Rect_.Top + Rect_.Bottom) * 0.5f);
@@ -94,16 +165,32 @@ namespace rso.physics
                 CurDist = ObjectStraight_.Dist;
                 ObjectStraight_.Dist = 0.0f;
                 ObjectStraight_.Time = Time_;
-                return ObjectStraight_.PosTheta.Pos.Add(CBase.Vector(ObjectStraight_.PosTheta.Theta, CurDist));
+                return ObjectStraight_.PosTheta.Pos.Add(CPhysics.Vector(ObjectStraight_.PosTheta.Theta, CurDist));
             }
             else
             {
-                return ObjectStraight_.PosTheta.Pos.GetAdd(CBase.Vector(ObjectStraight_.PosTheta.Theta, CurDist));
+                return ObjectStraight_.PosTheta.Pos.GetAdd(CPhysics.Vector(ObjectStraight_.PosTheta.Theta, CurDist));
             }
         }
         public static SPosTheta GetCurPosTheta(this SObjectStraight ObjectStraight_, float Time_)
         {
             return new SPosTheta(GetCurPos(ObjectStraight_, Time_), ObjectStraight_.PosTheta.Theta);
+        }
+        public static SRect ToRect(this SRectCollider2D Self_)
+        {
+            return new SRect(-Self_.Size.X * 0.5f, Self_.Size.X * 0.5f, -Self_.Size.Y * 0.5f, Self_.Size.Y * 0.5f).Add(Self_.Offset);
+        }
+        public static SRectCollider2D Get90Rotated(this SRectCollider2D Self_) // CCW
+        {
+            return new SRectCollider2D(new SPoint(Self_.Size.Y, Self_.Size.X), new SPoint(-Self_.Offset.Y, Self_.Offset.X));
+        }
+        public static SRectCollider2D Get180Rotated(this SRectCollider2D Self_)
+        {
+            return new SRectCollider2D(Self_.Size, new SPoint(-Self_.Offset.X, -Self_.Offset.Y));
+        }
+        public static SRectCollider2D Get270Rotated(this SRectCollider2D Self_) // CCW
+        {
+            return new SRectCollider2D(new SPoint(Self_.Size.Y, Self_.Size.X), new SPoint(Self_.Offset.Y, -Self_.Offset.X));
         }
     }
 }

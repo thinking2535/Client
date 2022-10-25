@@ -1,12 +1,15 @@
 ﻿using bb;
+using rso.core;
 using System;
 using UnityEngine;
 using UnityEngine.UI;
-using TQuestPair = System.Collections.Generic.KeyValuePair<System.Byte, bb.SQuestBase>;
 
 public class QuestPanel : MonoBehaviour
 {
-    [SerializeField] Text _NextCost = null;
+    struct _QuestInfo
+    {
+    }
+
     [SerializeField] Text _QuestText = null;
     [SerializeField] Text _QuestProgressText = null;
     [SerializeField] Image _QuestProgressBar = null;
@@ -15,140 +18,106 @@ public class QuestPanel : MonoBehaviour
     [SerializeField] GameObject _QuestDeactiveCanvas = null;
     [SerializeField] Image _RewardIcon = null;
     [SerializeField] Text _RewardText = null;
-    [SerializeField] Button _BtnNext = null;
-    [SerializeField] Button _BtnReceive = null;
-    [SerializeField] Button _BtnAD = null;
+    [SerializeField] Button _receiveButton;
+    [SerializeField] Button _disabledButton;
     [SerializeField] Image _QuestIcon = null;
     [SerializeField] Image _QuestDeactiveProgressBar = null;
 
-    private Int32 _TimeCount = 0;
-    private Int32 _MaxTimeCount = 0;
-    private SQuestClientMeta _QuestData;
-    private bool _IsClear = false;
-    private Int32 _SlotIndex = 0;
-    private TQuestPair? _SlotInfo = null;
-    public void Init(SQuestClientMeta QuestData_, Byte SlotIndex_)
+    private Quest _questData;
+    Byte _slotIndex;
+    SQuestBase _questBase;
+    Int32 _secondLeft;
+
+    bool _activated => _secondLeft == 0;
+    void Awake()
     {
-        _QuestData = QuestData_;
-        _SlotIndex = SlotIndex_;
-        _SlotInfo = CGlobal.GetUserQuestInfo(SlotIndex_);
+        _receiveButton.onClick.AddListener(_receive);
+    }
+    void Update()
+    {
+        if (!_activated)
+            _updateTimeLeft();
+    }
+    private void OnDestroy()
+    {
+        _receiveButton.onClick.RemoveAllListeners();
+    }
+    public void init(Byte slotIndex, SQuestBase newQuest)
+    {
+        _slotIndex = slotIndex;
+        _questBase = newQuest;
+        _questData = CGlobal.MetaData.questDatas[newQuest.Code];
 
-        _IsClear = _SlotInfo.Value.Value.CoolEndTime.Ticks > 0;
+        _updateTimeLeft();
+        _updateCanvas();
+        _updateSecondLeftText();
+        updateCount();
 
-        _QuestActiveCanvas.SetActive(!_IsClear);
-        _QuestDeactiveCanvas.SetActive(_IsClear);
-
-        _BtnNext.gameObject.SetActive(false);
-        _NextCost.text = CGlobal.MetaData.ConfigMeta.QuestNextCostGold.ToString();
-        _QuestIcon.sprite = Resources.Load<Sprite>("Textures/Lobby_Resources/" + QuestData_.IconName);
+        _QuestText.text = _questData.text;
+        _QuestIcon.sprite = Resources.Load<Sprite>("Textures/Lobby_Resources/" + _questData.iconName);
 
         //퀘스트 보상은 무조건 1개로 한다.
-        var RewardMeta = CGlobal.MetaData.GetRewardList(QuestData_.RewardCode)[0];
-        _RewardIcon.sprite = Resources.Load<Sprite>(CGlobal.GetResourcesIconFile(RewardMeta.Type));
-        _RewardText.text = RewardMeta.Data.ToString();
-        if (!_IsClear)
+        var UnitReward = _questData.reward.GetFirstUnitReward();
+        if (UnitReward != null)
         {
-            _QuestText.text = string.Format(CGlobal.MetaData.GetText(_QuestData.ETextName), _QuestData.RequirmentCount, _QuestData.Param);
-            UpdatePanel();
+            _RewardIcon.sprite = UnitReward.GetSprite();
+            _RewardText.text = UnitReward.GetText();
         }
+    }
+    void _updateTimeLeft()
+    {
+        var secondLeft = Mathf.CeilToInt((float)(_questBase.CoolEndTime - CGlobal.GetServerTimePoint()).TotalSeconds); ;
+        if (secondLeft < 0)
+            secondLeft = 0;
+
+        if (secondLeft == _secondLeft)
+            return;
+
+        _secondLeft = secondLeft;
+
+        if (_activated)
+            _updateCanvas();
         else
-        {
-            _MaxTimeCount = CGlobal.MetaData.ConfigMeta.QuestCoolMinutes * 60;
-            _TimeCount = Mathf.CeilToInt((float)(_SlotInfo.Value.Value.CoolEndTime - CGlobal.GetServerTimePoint()).TotalSeconds);
-            SetTimeCount();
-        }
+            _updateSecondLeftText();
     }
-    public void UpdatePanel()
+    void _updateCanvas()
     {
-        _QuestProgressText.text = string.Format("{0}/{1}", _SlotInfo.Value.Value.Count, _QuestData.RequirmentCount);
-        _QuestProgressBar.transform.localScale = new Vector3((float)(_SlotInfo.Value.Value.Count) / (float)(_QuestData.RequirmentCount), 1.0f, 1.0f);
-
-        if (_QuestData.RequirmentCount == _SlotInfo.Value.Value.Count)
-        {
-            _BtnAD.gameObject.SetActive(false);
-            _BtnReceive.gameObject.SetActive(true);
-        }
-        else
-        {
-            _BtnAD.gameObject.SetActive(true);
-            _BtnReceive.gameObject.SetActive(false);
-        }
+        _QuestActiveCanvas.SetActive(_activated);
+        _QuestDeactiveCanvas.SetActive(!_activated);
     }
-
-    private void Update()
+    void _updateSecondLeftText()
     {
-        if(_IsClear)
-        {
-            _TimeCount = Mathf.CeilToInt((float)(_SlotInfo.Value.Value.CoolEndTime - CGlobal.GetServerTimePoint()).TotalSeconds);
-            SetTimeCount();
-        }
-    }
-
-    private void SetTimeCount()
-    {
-        if (_TimeCount < 0)
-        {
-            _TimeCount = 0;
-            _IsClear = false;
-            CGlobal.NetControl.Send(new SQuestNextNetCs(_SlotInfo.Value.Key));
-            CGlobal.ProgressLoading.VisibleProgressLoading(1.0f);
-        }
         string timeString = "";
-        var hour = _TimeCount / 3600;
-        var min = _TimeCount % 3600;
+        var hour = _secondLeft / 3600;
+        var min = _secondLeft % 3600;
         var sec = min % 60;
         min = min / 60;
 
-        if(hour > 0)
-            timeString = string.Format("{0}:{1:D2}:{2:D2}",hour, min, sec);
+        if (hour > 0)
+            timeString = string.Format("{0}:{1:D2}:{2:D2}", hour, min, sec);
         else
             timeString = string.Format("{0:D2}:{1:D2}", min, sec);
 
         _QuestRefreshTimeText.text = timeString;
-        _QuestDeactiveProgressBar.transform.localScale = new Vector3((float)(_TimeCount) / (float)(_MaxTimeCount), 1.0f, 1.0f);
+        _QuestDeactiveProgressBar.transform.localScale = new Vector3((float)(_secondLeft) / (float)(CGlobal.MetaData.questConfig.Meta.dailyRefreshMinutes.value * 60), 1.0f, 1.0f);
     }
-
-    public void Destroy()
+    public void updateCount()
     {
-        Destroy(gameObject);
+        _QuestProgressText.text = string.Format("{0}/{1}", _questBase.Count, _questData.completeCount);
+        _QuestProgressBar.transform.localScale = new Vector3((float)(_questBase.Count) / (float)(_questData.completeCount), 1.0f, 1.0f);
+
+        var isCompleted = _questBase.Count >= _questData.completeCount;
+
+        _disabledButton.gameObject.SetActive(!isCompleted);
+        _receiveButton.gameObject.SetActive(isCompleted);
     }
-
-    public void GetQuestReward()
+    public void _receive()
     {
-        if (_QuestData.RequirmentCount == _SlotInfo.Value.Value.Count)
+        if (_questData.completeCount >= _questBase.Count)
         {
             CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-            CGlobal.NetControl.Send(new SQuestRewardNetCs(_SlotInfo.Value.Key));
-            CGlobal.ProgressLoading.VisibleProgressLoading(1.0f);
+            CGlobal.NetControl.Send(new SQuestRewardNetCs(_slotIndex));
+            CGlobal.ProgressCircle.Activate();
         }
-    }
-    public void ViewAD()
-    {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        Debug.Log(string.Format("Click AD"));
-        CGlobal.ADManager.ShowAdQuestRefresh(()=>
-        {
-            var SendPacket = new SQuestNextNetCs(_SlotInfo.Value.Key);
-            if (!CGlobal.NetControl.IsLinked(0))
-            {
-                CGlobal.ADManager.SaveDelayPacket(ADManager.EDelayRewardType.QuestRefresh, SendPacket);
-            }
-            else
-            {
-                CGlobal.NetControl.Send(SendPacket);
-                AnalyticsManager.TrackingEvent(ETrackingKey.ads_quest);
-            }
-        });
-    }
-    public void NextQuest()
-    {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        if (CGlobal.HaveCost(EResource.Gold, CGlobal.MetaData.ConfigMeta.QuestNextCostGold))
-        {
-            CGlobal.NetControl.Send(new SQuestNextNetCs(_SlotInfo.Value.Key));
-            CGlobal.ProgressLoading.VisibleProgressLoading(1.0f);
-        }
-        else
-            CGlobal.ShowResourceNotEnough(EResource.Gold);
     }
 }

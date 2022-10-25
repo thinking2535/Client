@@ -10,23 +10,6 @@ using TUID = System.Int64;
 public class CNetworkControl
 {
     public delegate void TRecvCallback(CKey Key_, SProto Proto_);
-    struct _SRecvCallbackProto
-    {
-        TRecvCallback _RecvCallback;
-        CKey _Key;
-        SProto _Proto;
-        public _SRecvCallbackProto(TRecvCallback RecvCallback_, CKey Key_, SProto Proto_)
-        {
-            _RecvCallback = RecvCallback_;
-            _Key = Key_;
-            _Proto = Proto_;
-        }
-        public void Call()
-        {
-            _RecvCallback(_Key, _Proto);
-        }
-    }
-    Queue<_SRecvCallbackProto> _RecvCallbackProtos = new Queue<_SRecvCallbackProto>();
     rso.game.CClient _Net = null;
     CClientBinder _Binder = null;
 
@@ -49,13 +32,6 @@ public class CNetworkControl
     public void Update()
     {
         _Net.Proc();
-    }
-    public bool Call()
-    {
-        if (_RecvCallbackProtos.Count > 0)
-            _RecvCallbackProtos.Dequeue().Call();
-
-        return _RecvCallbackProtos.Count > 0;
     }
     public void Create(CNamePort NamePort_,string ID_, string Nick_, TUID SubUID_, CStream Stream_, string DataPath_)
     {
@@ -85,8 +61,7 @@ public class CNetworkControl
             {
                 var Proto = new TProto();
                 Proto.Push(Stream_);
-
-                _RecvCallbackProtos.Enqueue(new _SRecvCallbackProto(RecvCallback_, Key_, Proto));
+                RecvCallback_(Key_, Proto);
             });
     }
     public void Send<_TCsProto>(_TCsProto Proto_) where _TCsProto : SProto

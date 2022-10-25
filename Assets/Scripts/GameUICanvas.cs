@@ -64,12 +64,8 @@ public class GameUICanvas : MonoBehaviour
     [SerializeField] GameObject _GameStartView = null;
     [SerializeField] GameObject _GameEndView = null;
 
-    [SerializeField] Image _JoyPadObject = null;
-
     [SerializeField] GameObject _FirstHitObject = null;
     [SerializeField] Text _FirstHitUserText = null;
-
-    [SerializeField] GameObject _JoyPad = null;
 
     [SerializeField] GameObject _EmotionLayer = null;
 
@@ -84,7 +80,7 @@ public class GameUICanvas : MonoBehaviour
 
     //bool _IsOn = false;
 
-    Int32 _CountNum = 0;
+    Int64 _CountNum = 0;
 
     float _MinTimeCountScale = 0.7f;
     float _NowTimeCountScale = 1.0f;
@@ -141,7 +137,7 @@ public class GameUICanvas : MonoBehaviour
 
             _FreeForAllScoreList.Add(MyTeam_, new FreeForAllScore(_FreeForAllSmallPoint[0], _FreeForAllSmallRank[0], _FreeForAllSmallBG[0]));
             Int32 count = 1;
-            for (Int32 i = 0; i < BattleType_.GetPlayerCount(); ++i)
+            for (Int32 i = 0; i < BattleType_.GetAllMemberCount(); ++i)
             {
                 if (i == MyTeam_) continue;
                 _FreeForAllScoreList.Add(i, new FreeForAllScore(_FreeForAllSmallPoint[count], _FreeForAllSmallRank[count], _FreeForAllSmallBG[count]));
@@ -161,7 +157,7 @@ public class GameUICanvas : MonoBehaviour
 
             _FreeForAllScoreList.Add(MyTeam_, new FreeForAllScore(_FreeForAllPoint[0], _FreeForAllRank[0], _FreeForAllBG[0]));
             Int32 count = 1;
-            for (Int32 i = 0; i < BattleType_.GetPlayerCount(); ++i)
+            for (Int32 i = 0; i < BattleType_.GetAllMemberCount(); ++i)
             {
                 if (i == MyTeam_) continue;
                 _FreeForAllScoreList.Add(i, new FreeForAllScore(_FreeForAllPoint[count], _FreeForAllRank[count], _FreeForAllBG[count]));
@@ -179,7 +175,6 @@ public class GameUICanvas : MonoBehaviour
             _TeamCanvas.SetActive(true);
             _FreeForAllSmallCanvas.SetActive(false);
         }
-        _JoyPad.SetActive(CGlobal.GameOption.Data.IsPad);
     }
     public void ShowGameStart()
     {
@@ -215,12 +210,12 @@ public class GameUICanvas : MonoBehaviour
         //    _FirstHitUserText.color = CGlobal.NameColorRed;
     }
 
-    public void SetTime(Int32 time_)
+    public void SetTime(Int64 SecondLeft_)
     {
-        if (time_ < 0) time_ = 0;
+        if (SecondLeft_ < 0) SecondLeft_ = 0;
         string timeString = "";
-        var min = time_ / 60;
-        var sec = time_ % 60;
+        var min = SecondLeft_ / 60;
+        var sec = SecondLeft_ % 60;
 
         timeString = min.ToString() + ":" + string.Format("{0:D2}", sec);
 
@@ -231,25 +226,25 @@ public class GameUICanvas : MonoBehaviour
 
         _Time.text = timeString;
 
-        if(time_ > _StartCountDown) return;
-        else if (time_ == _StartCountDown)
+        if(SecondLeft_ > _StartCountDown) return;
+        else if (SecondLeft_ == _StartCountDown)
         {
             _TimeCount.transform.gameObject.SetActive(true);
-            _TimeCount.text = System.Convert.ToString(time_);
+            _TimeCount.text = System.Convert.ToString(SecondLeft_);
         }
 
-        SetTimeCount(time_);
+        SetTimeCount(SecondLeft_);
         TimeCountEffect();
     }
-    void SetTimeCount(Int32 count_)
+    void SetTimeCount(Int64 SecondLeft_)
     {
-        if(_CountNum > count_)
+        if(_CountNum > SecondLeft_)
         {
-            _TimeCount.text = System.Convert.ToString(count_);
+            _TimeCount.text = System.Convert.ToString(SecondLeft_);
             CGlobal.Sound.PlayOneShot((Int32)ESound.Countdown);
         }
 
-        _CountNum = count_;
+        _CountNum = SecondLeft_;
     }
     void TimeCountEffect()
     {
@@ -261,10 +256,6 @@ public class GameUICanvas : MonoBehaviour
         _TimeCount.rectTransform.localScale = new Vector3(_NowTimeCountScale, _NowTimeCountScale, 1.0f);
     }
 
-    public void SetJoyPadVisible(bool IsView_)
-    {
-        _JoyPadObject.gameObject.SetActive(IsView_);
-    }
     private void Update()
     {
         if(_IsFirstHitView)
@@ -279,7 +270,7 @@ public class GameUICanvas : MonoBehaviour
     }
     public void SendEmotion(Int32 Code_)
     {
-        CGlobal.NetControl.Send<SBattleIconNetCs>(new SBattleIconNetCs(Code_));
+        CGlobal.NetControl.Send(new SMultiBattleIconNetCs(Code_));
         ViewEmotionLayer();
     }
     public void ViewEmotionLayer()

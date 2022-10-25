@@ -205,10 +205,10 @@ namespace Coffee.UIExtensions
 
         protected override void OnDestroy()
         {
-            base.OnDestroy();
-
             DestroyImmediate(_mesh);
             _mesh = null;
+
+            base.OnDestroy();
         }
 
         /// <summary>

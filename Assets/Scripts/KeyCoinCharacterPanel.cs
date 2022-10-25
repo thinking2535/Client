@@ -1,4 +1,5 @@
-﻿using System;
+﻿using bb;
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -8,13 +9,14 @@ public class KeyCoinCharacterPanel : MonoBehaviour
 {
     [SerializeField] Image PanelBG = null;
     [SerializeField] Image PanelIcon = null;
+    [SerializeField] Image _RefundTypeImage = null;
     [SerializeField] Text PanelCoinText = null;
 
-    public void Init(Int32 CharCode_, Int32 KeyCoin_)
+    public void Init(SCharacterMeta CharacterMeta_)
     {
-        var CharMeta = CGlobal.MetaData.Chars[CharCode_];
-        PanelBG.sprite = Resources.Load<Sprite>(CGlobal.PanelKeyBGTextrues[(Int32)CharMeta.Grade]);
-        PanelIcon.sprite = Resources.Load<Sprite>(CGlobal.MetaData.GetPortImagePath() + CharMeta.IconName);
-        PanelCoinText.text = KeyCoin_.ToString();
+        PanelBG.sprite = Resources.Load<Sprite>(CGlobal.PanelKeyBGTextrues[(Int32)CharacterMeta_.grade]);
+        PanelIcon.sprite = CharacterMeta_.GetSprite();
+        _RefundTypeImage.sprite = CGlobal.GetResourceSprite(CharacterMeta_.RefundType);
+        PanelCoinText.text = CharacterMeta_.RefundValue.ToString();
     }
 }

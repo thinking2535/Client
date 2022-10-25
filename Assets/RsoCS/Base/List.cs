@@ -7,12 +7,12 @@ namespace rso
 {
     namespace Base
     {
-        public class CListEnum<TData> : IEnumerator
+        public class CListEnumerator<TData> : IEnumerator
         {
             CList<TData>.SNode _NewedHead;
             CList<TData>.SNode _Current = null;
 
-            public CListEnum(CList<TData>.SNode NewedHead_)
+            public CListEnumerator(CList<TData>.SNode NewedHead_)
             {
                 _NewedHead = NewedHead_;
             }
@@ -77,7 +77,7 @@ namespace rso
                 }
                 public static implicit operator bool(SIterator it_)
                 {
-                    return (it_.Node != null && it_.Node.Data != null);
+                    return (it_.Node != null && it_.Node.Newed);
                 }
             }
             public class SNode
@@ -85,6 +85,7 @@ namespace rso
                 public Int32 Index;
                 public SNode Next;
                 public SNode Prev;
+                public bool Newed;
                 public TData Data;
 
                 public SIterator Iterator
@@ -106,6 +107,7 @@ namespace rso
             void _AttachToNewed(SNode Node_)
             {
                 Node_.Next = null;
+                Node_.Newed = true;
 
                 if (_NewedTail == null)
                 {
@@ -122,6 +124,7 @@ namespace rso
             void _AttachToDeleted(SNode Node_)
             {
                 Node_.Next = null;
+                Node_.Newed = false;
 
                 if (_DeletedTail == null)
                 {
@@ -161,7 +164,8 @@ namespace rso
             public SIterator Get(Int32 Index_)
             {
                 if (Index_ < 0 ||
-                     Index_ >= _Nodes.Count)
+                    Index_ >= _Nodes.Count ||
+                    !_Nodes[Index_].Newed)
                     return new SIterator();
 
                 return _Nodes[Index_].Iterator;
@@ -204,7 +208,7 @@ namespace rso
             }
             public SIterator Add(TData Data_)
             {
-                SNode Node = null;
+                SNode Node;
 
                 // DetachFromDeleted ////////////////////////////////////
                 if (_DeletedHead != null)
@@ -215,7 +219,18 @@ namespace rso
                 }
                 else
                 {
-                    _Nodes.Add(new SNode());
+                    _Nodes.Add(null);
+
+                    try
+                    {
+                        _Nodes[_Nodes.Count - 1] = new SNode();
+                    }
+                    catch
+                    {
+                        _Nodes.RemoveAt(_Nodes.Count - 1);
+                        throw;
+                    }
+
                     _Nodes.Last().Data = Data_;
 
                     Node = _Nodes.Last();
@@ -230,12 +245,12 @@ namespace rso
             }
             public SIterator AddAt(Int32 Index_, TData Data_)
             {
-                SNode Node = null;
+                SNode Node;
 
                 // _Nodes 범위 이내 이면
                 if (Index_ < _Nodes.Count)
                 {
-                    if (_Nodes[Index_].Data != null)
+                    if (_Nodes[Index_].Newed)
                         throw new Exception();
 
                     _Nodes[Index_].Data = Data_;
@@ -247,7 +262,18 @@ namespace rso
 
                     for (var i = LastSize; i < Index_ + 1; ++i)
                     {
-                        _Nodes.Add(new SNode());
+                        _Nodes.Add(null);
+
+                        try
+                        {
+                            _Nodes[_Nodes.Count - 1] = new SNode();
+                        }
+                        catch
+                        {
+                            _Nodes.RemoveAt(_Nodes.Count - 1);
+                            throw;
+                        }
+
                         _Nodes.Last().Index = _Nodes.Count - 1;
                         _AttachToDeleted(_Nodes.Last());
                     }
@@ -265,7 +291,7 @@ namespace rso
             }
             bool _Remove(SNode Node_)
             {
-                if (Node_.Data == null)
+                if (!Node_.Newed)
                     return false;
 
                 _Detach(Node_);
@@ -313,9 +339,9 @@ namespace rso
                 return GetEnumerator();
             }
 
-            public CListEnum<TData> GetEnumerator()
+            public CListEnumerator<TData> GetEnumerator()
             {
-                return new CListEnum<TData>(_NewedHead);
+                return new CListEnumerator<TData>(_NewedHead);
             }
             public Int32 RemoveAll(Predicate<TData> match)
             {

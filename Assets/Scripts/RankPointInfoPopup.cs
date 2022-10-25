@@ -16,7 +16,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void OneOnOneView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_Solo);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_Solo);
         _OnoOnOneObject.SetActive(true);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(false);
@@ -30,7 +30,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void DodgeView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_DodgeArrowRace);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_DodgeArrowRace);
         _OnoOnOneObject.SetActive(true);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(false);
@@ -44,7 +44,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void IslandView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_FlyAwayRace);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_FlyAwayRace);
         _OnoOnOneObject.SetActive(true);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(false);
@@ -58,7 +58,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void TeamView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_Team);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_Team);
         _OnoOnOneObject.SetActive(false);
         _TeamObject.SetActive(true);
         _FreeForAllObject.SetActive(false);
@@ -72,7 +72,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void TeamSmallView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_TeamSmall);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_TeamSmall);
         _OnoOnOneObject.SetActive(false);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(false);
@@ -86,7 +86,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void FreeForAllView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_Survival);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_Survival);
         _OnoOnOneObject.SetActive(false);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(true);
@@ -100,7 +100,7 @@ public class RankPointInfoPopup : MonoBehaviour
     public void FreeForAllSmallView()
     {
         gameObject.SetActive(true);
-        _TitleText.text = CGlobal.MetaData.GetText(EText.LobbyScene_3PSurvival);
+        _TitleText.text = CGlobal.MetaData.getText(EText.LobbyScene_3PSurvival);
         _OnoOnOneObject.SetActive(false);
         _TeamObject.SetActive(false);
         _FreeForAllObject.SetActive(false);

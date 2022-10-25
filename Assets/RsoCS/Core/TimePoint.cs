@@ -4,7 +4,7 @@ namespace rso
 {
     namespace core
     {
-        public struct TimePoint
+        public struct TimePoint : IComparable<TimePoint>
         {
             public Int64 Ticks;
 
@@ -31,19 +31,24 @@ namespace rso
                     return new TimePoint(DateTime.UtcNow);
                 }
             }
+            public Int32 CompareTo(TimePoint value)
+            {
+                if (Ticks > value.Ticks) return 1;
+                else if (Ticks < value.Ticks) return -1;
+                else return 0;
+            }
             public override string ToString()
             {
                 return ToDateTime().ToString();
             }
-            public override bool Equals(object Obj_)
-            {
-                var p = (TimePoint)Obj_;
-
-                return (this == p);
-            }
             public override Int32 GetHashCode()
             {
                 return (Int32)Ticks;
+            }
+            public override bool Equals(object Obj_)
+            {
+                var p = (TimePoint)Obj_;
+                return (this == p);
             }
             public static bool operator ==(TimePoint lhs_, TimePoint rhs_)
             {
@@ -78,6 +83,47 @@ namespace rso
             {
                 return new TimePoint(lhs_.Ticks - rhs_.Ticks);
             }
+            public static TimePoint operator +(TimePoint lhs_, Microseconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks + rhs_.ticks);
+            }
+            public static TimePoint operator -(TimePoint lhs_, Microseconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks - rhs_.ticks);
+            }
+            public static TimePoint operator +(TimePoint lhs_, Milliseconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks + rhs_.ticks);
+            }
+            public static TimePoint operator -(TimePoint lhs_, Milliseconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks - rhs_.ticks);
+            }
+            public static TimePoint operator +(TimePoint lhs_, Seconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks + rhs_.ticks);
+            }
+            public static TimePoint operator -(TimePoint lhs_, Seconds rhs_)
+            {
+                return new TimePoint(lhs_.Ticks - rhs_.ticks);
+            }
+            public static TimePoint operator +(TimePoint lhs_, Minutes rhs_)
+            {
+                return new TimePoint(lhs_.Ticks + rhs_.ticks);
+            }
+            public static TimePoint operator -(TimePoint lhs_, Minutes rhs_)
+            {
+                return new TimePoint(lhs_.Ticks - rhs_.ticks);
+            }
+            public static TimePoint operator +(TimePoint lhs_, Hours rhs_)
+            {
+                return new TimePoint(lhs_.Ticks + rhs_.ticks);
+            }
+            public static TimePoint operator -(TimePoint lhs_, Hours rhs_)
+            {
+                return new TimePoint(lhs_.Ticks - rhs_.ticks);
+            }
+
             public static TimeSpan operator -(TimePoint lhs_, TimePoint rhs_)
             {
                 return TimeSpan.FromTicks(lhs_.Ticks - rhs_.Ticks);

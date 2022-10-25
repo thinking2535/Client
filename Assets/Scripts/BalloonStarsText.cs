@@ -8,12 +8,13 @@ using UnityEngine.UI;
 [AddComponentMenu("UI/BalloonStarsText - Text", 12)]
 public class BalloonStarsText : Text
 {
-    public ELanguage _eLanguage;
-    public EText _eText;
+    [SerializeField] public ELanguage _eLanguage;
+    [SerializeField] public EText _eText;
 
-    private new void Awake()
+    protected override void Awake()
     {
         base.Awake();
+
         CMetaData data = null;
 #if UNITY_EDITOR
         if (Application.isPlaying == true)
@@ -23,7 +24,7 @@ public class BalloonStarsText : Text
 #else
         data = CGlobal.MetaData;
 #endif
-        text = data.GetText(_eText);
+        text = data.getText(_eText);
     }
 }
 
@@ -49,13 +50,11 @@ public class BalloonStarsTextEditor : Editor
 #if UNITY_EDITOR
             if (Application.isPlaying == true)
             {
-                CGlobal.MetaData.ChangeLanguage(balloonText._eLanguage);
-                balloonText.text = CGlobal.MetaData.GetText(balloonText._eText);
+                balloonText.text = CGlobal.MetaData.getText(balloonText._eText, balloonText._eLanguage);
             }
             else
             {
-                ComponentMetaData.GetMetaData().ChangeLanguage(balloonText._eLanguage);
-                balloonText.text = ComponentMetaData.GetMetaData().GetText(balloonText._eText);
+                balloonText.text = ComponentMetaData.GetMetaData().getText(balloonText._eText, balloonText._eLanguage);
             }
 #else
             CGlobal.MetaData.ChangeLanguage(balloonText._eLanguage);
@@ -74,13 +73,11 @@ public class BalloonStarsTextEditor : Editor
 #if UNITY_EDITOR
             if (Application.isPlaying == true)
             {
-                CGlobal.MetaData.ChangeLanguage(balloonText._eLanguage);
-                balloonText.text = CGlobal.MetaData.GetText(balloonText._eText);
+                balloonText.text = CGlobal.MetaData.getText(balloonText._eText, balloonText._eLanguage);
             }
             else
             {
-                ComponentMetaData.GetMetaData().ChangeLanguage(balloonText._eLanguage);
-                balloonText.text = ComponentMetaData.GetMetaData().GetText(balloonText._eText);
+                balloonText.text = ComponentMetaData.GetMetaData().getText(balloonText._eText, balloonText._eLanguage);
             }
 #else
             CGlobal.MetaData.ChangeLanguage(balloonText._eLanguage);

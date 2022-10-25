@@ -14,65 +14,32 @@ public class UIUserInfo : MonoBehaviour
     [SerializeField] Text _UserPoint = null;
     [SerializeField] Image _UserPointGauge = null;
 
-    Int32 _MyRankPoint = 0;
-    SRankTierClientMeta _NextRankMeta = null;
-    SRankTierClientMeta _NowRankMeta = null;
+    KeyValuePair<Int32, SRankTierClientMeta>? _LastRankKeyValuePair;
 
     public void InitUserInfo()
     {
         _UserName.text = CGlobal.NickName;
-        _UserPic.sprite = Resources.Load<Sprite>(CGlobal.MetaData.GetPortImagePath() + CGlobal.MetaData.Chars[CGlobal.LoginNetSc.User.SelectedCharCode].IconName);
-
-        _MyRankPoint = CGlobal.LoginNetSc.User.Point;
-        SetRankMetas(_MyRankPoint);
-
-        _UserRank.text = _NowRankMeta.Level.ToString();
-        //_UserRankIcon.sprite = Resources.Load<Sprite>("Textures/" + _NowRankMeta.TextureName);
-
-        RankUpdate(_MyRankPoint);
-
-    }
-    void SetRankMetas(Int32 Point_)
-    {
-        var RankMeta = CGlobal.MetaData.RankMetas.Get(Point_);
-        if (RankMeta == null)
-            RankMeta = CGlobal.MetaData.RankMetas.First();
-
-        _NowRankMeta = RankMeta.Value.Value;
-
-        AnalyticsManager.AddRank(_NowRankMeta.Tier, _NowRankMeta.Rank);
-
-        _NextRankMeta = CGlobal.MetaData.RankMetas.LastOrDefault(
-            x => (_NowRankMeta.Tier == 1 ?
-            (x.Value.Tier == 5 && x.Value.Rank == (ERank)(_NowRankMeta.Rank + 1)) :
-            (x.Value.Tier == _NowRankMeta.Tier - 1 && x.Value.Rank == _NowRankMeta.Rank))).Value;
+        _UserPic.sprite = CGlobal.LoginNetSc.GetSelectedCharacterSprite();
+        RankUpdate(CGlobal.Point);
     }
     public void RankUpdate(Int32 RankPoint_)
     {
-        if (_NextRankMeta != null)
+        var NewRankKeyValuePair = CGlobal.MetaData.RankTiers.Get(RankPoint_);
+        if (_LastRankKeyValuePair == null || NewRankKeyValuePair.Value.Key != _LastRankKeyValuePair.Value.Key)
         {
-            if (_MyRankPoint >= _NextRankMeta.MinPoint || _MyRankPoint < _NowRankMeta.MinPoint)
-            {
-                SetRankMetas(_MyRankPoint);
+            if (_LastRankKeyValuePair != null && NewRankKeyValuePair.Value.Key > _LastRankKeyValuePair.Value.Key)
+                CGlobal.Sound.PlayOneShot((Int32)ESound.RankUp);
 
-                if (_MyRankPoint >= _NextRankMeta.MinPoint)
-                    CGlobal.Sound.PlayOneShot((Int32)ESound.RankUp);
-                _UserRank.text = _NowRankMeta.Level.ToString();
-                //_UserRankIcon.sprite = Resources.Load<Sprite>("Textures/" + _NowRankMeta.TextureName);
-            }
-            _UserPoint.text = string.Format("{0}/{1}", _MyRankPoint, _NextRankMeta.MinPoint);
-            _UserPointGauge.transform.localScale = new Vector3((float)(_MyRankPoint - _NowRankMeta.MinPoint) / (float)(_NextRankMeta.MinPoint - _NowRankMeta.MinPoint), 1.0f, 1.0f);
+            _UserRank.text = NewRankKeyValuePair.Value.Value.Level.ToString();
+            _LastRankKeyValuePair = NewRankKeyValuePair.Value;
         }
-        else
-        {
-            _UserRank.text = _NowRankMeta.Level.ToString();
-            //_UserRankIcon.sprite = Resources.Load<Sprite>("Textures/" + _NowRankMeta.TextureName);
-            _UserPoint.text = string.Format("{0}", _MyRankPoint);
-            _UserPointGauge.transform.localScale = new Vector3(1.0f, 1.0f, 1.0f);
-        }
+
+        var StringXScale = CGlobal.GetPointGaugeStringAndXScale(CGlobal.LoginNetSc.User.Point, _LastRankKeyValuePair.Value);
+        _UserPoint.text = StringXScale.Item1;
+        _UserPointGauge.transform.localScale = new Vector3(StringXScale.Item2, 1.0f, 1.0f);
     }
     public void CharacterChange()
     {
-        _UserPic.sprite = Resources.Load<Sprite>(CGlobal.MetaData.GetPortImagePath() + CGlobal.MetaData.Chars[CGlobal.LoginNetSc.User.SelectedCharCode].IconName);
+        _UserPic.sprite = CGlobal.LoginNetSc.GetSelectedCharacterSprite();
     }
 }

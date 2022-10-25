@@ -23,13 +23,6 @@ namespace uTools {
 			from = 0;
 			to = mPathsCount;
 		}
-		
-		// Update is called once per frame
-		void Update () {
-		
-		}
-
-
 		protected override void ValueUpdate (float _factor, bool _isFinished)
 		{
 			if (!mCache) { Cache();}

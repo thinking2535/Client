@@ -62,6 +62,136 @@ namespace rso
 					SEnumChecker.GetMemberName(Y, "Y");
 			}
 		}
+		public class SPoint3 : SProto
+		{
+			public Single X = default(Single);
+			public Single Y = default(Single);
+			public Single Z = default(Single);
+			public SPoint3()
+			{
+			}
+			public SPoint3(SPoint3 Obj_)
+			{
+				X = Obj_.X;
+				Y = Obj_.Y;
+				Z = Obj_.Z;
+			}
+			public SPoint3(Single X_, Single Y_, Single Z_)
+			{
+				X = X_;
+				Y = Y_;
+				Z = Z_;
+			}
+			public override void Push(CStream Stream_)
+			{
+				Stream_.Pop(ref X);
+				Stream_.Pop(ref Y);
+				Stream_.Pop(ref Z);
+			}
+			public override void Push(JsonDataObject Value_)
+			{
+				Value_.Pop("X", ref X);
+				Value_.Pop("Y", ref Y);
+				Value_.Pop("Z", ref Z);
+			}
+			public override void Pop(CStream Stream_)
+			{
+				Stream_.Push(X);
+				Stream_.Push(Y);
+				Stream_.Push(Z);
+			}
+			public override void Pop(JsonDataObject Value_)
+			{
+				Value_.Push("X", X);
+				Value_.Push("Y", Y);
+				Value_.Push("Z", Z);
+			}
+			public void Set(SPoint3 Obj_)
+			{
+				X = Obj_.X;
+				Y = Obj_.Y;
+				Z = Obj_.Z;
+			}
+			public override string StdName()
+			{
+				return 
+					SEnumChecker.GetStdName(X) + "," + 
+					SEnumChecker.GetStdName(Y) + "," + 
+					SEnumChecker.GetStdName(Z);
+			}
+			public override string MemberName()
+			{
+				return 
+					SEnumChecker.GetMemberName(X, "X") + "," + 
+					SEnumChecker.GetMemberName(Y, "Y") + "," + 
+					SEnumChecker.GetMemberName(Z, "Z");
+			}
+		}
+		public class STransform : SProto
+		{
+			public SPoint LocalPosition = new SPoint();
+			public SPoint3 LocalRotation = new SPoint3();
+			public SPoint LocalScale = new SPoint();
+			public STransform()
+			{
+			}
+			public STransform(STransform Obj_)
+			{
+				LocalPosition = Obj_.LocalPosition;
+				LocalRotation = Obj_.LocalRotation;
+				LocalScale = Obj_.LocalScale;
+			}
+			public STransform(SPoint LocalPosition_, SPoint3 LocalRotation_, SPoint LocalScale_)
+			{
+				LocalPosition = LocalPosition_;
+				LocalRotation = LocalRotation_;
+				LocalScale = LocalScale_;
+			}
+			public override void Push(CStream Stream_)
+			{
+				Stream_.Pop(ref LocalPosition);
+				Stream_.Pop(ref LocalRotation);
+				Stream_.Pop(ref LocalScale);
+			}
+			public override void Push(JsonDataObject Value_)
+			{
+				Value_.Pop("LocalPosition", ref LocalPosition);
+				Value_.Pop("LocalRotation", ref LocalRotation);
+				Value_.Pop("LocalScale", ref LocalScale);
+			}
+			public override void Pop(CStream Stream_)
+			{
+				Stream_.Push(LocalPosition);
+				Stream_.Push(LocalRotation);
+				Stream_.Push(LocalScale);
+			}
+			public override void Pop(JsonDataObject Value_)
+			{
+				Value_.Push("LocalPosition", LocalPosition);
+				Value_.Push("LocalRotation", LocalRotation);
+				Value_.Push("LocalScale", LocalScale);
+			}
+			public void Set(STransform Obj_)
+			{
+				LocalPosition.Set(Obj_.LocalPosition);
+				LocalRotation.Set(Obj_.LocalRotation);
+				LocalScale.Set(Obj_.LocalScale);
+			}
+			public override string StdName()
+			{
+				return 
+					SEnumChecker.GetStdName(LocalPosition) + "," + 
+					SEnumChecker.GetStdName(LocalRotation) + "," + 
+					SEnumChecker.GetStdName(LocalScale);
+			}
+			public override string MemberName()
+			{
+				return 
+					SEnumChecker.GetMemberName(LocalPosition, "LocalPosition") + "," + 
+					SEnumChecker.GetMemberName(LocalRotation, "LocalRotation") + "," + 
+					SEnumChecker.GetMemberName(LocalScale, "LocalScale");
+			}
+		}
 		public class SVector : SProto
 		{
 			public SPoint Pos = new SPoint();
@@ -956,7 +1086,6 @@ namespace rso
 		{
 			public SPoint Size = new SPoint();
 			public SPoint Offset = new SPoint();
-			public SPoint Scale = new SPoint();
 			public SRectCollider2D()
 			{
 			}
@@ -964,57 +1093,48 @@ namespace rso
 			{
 				Size = Obj_.Size;
 				Offset = Obj_.Offset;
-				Scale = Obj_.Scale;
 			}
-			public SRectCollider2D(SPoint Size_, SPoint Offset_, SPoint Scale_)
+			public SRectCollider2D(SPoint Size_, SPoint Offset_)
 			{
 				Size = Size_;
 				Offset = Offset_;
-				Scale = Scale_;
 			}
 			public override void Push(CStream Stream_)
 			{
 				Stream_.Pop(ref Size);
 				Stream_.Pop(ref Offset);
-				Stream_.Pop(ref Scale);
 			}
 			public override void Push(JsonDataObject Value_)
 			{
 				Value_.Pop("Size", ref Size);
 				Value_.Pop("Offset", ref Offset);
-				Value_.Pop("Scale", ref Scale);
 			}
 			public override void Pop(CStream Stream_)
 			{
 				Stream_.Push(Size);
 				Stream_.Push(Offset);
-				Stream_.Push(Scale);
 			}
 			public override void Pop(JsonDataObject Value_)
 			{
 				Value_.Push("Size", Size);
 				Value_.Push("Offset", Offset);
-				Value_.Push("Scale", Scale);
 			}
 			public void Set(SRectCollider2D Obj_)
 			{
 				Size.Set(Obj_.Size);
 				Offset.Set(Obj_.Offset);
-				Scale.Set(Obj_.Scale);
 			}
 			public override string StdName()
 			{
 				return 
 					SEnumChecker.GetStdName(Size) + "," + 
-					SEnumChecker.GetStdName(Offset) + "," + 
-					SEnumChecker.GetStdName(Scale);
+					SEnumChecker.GetStdName(Offset);
 			}
 			public override string MemberName()
 			{
 				return 
 					SEnumChecker.GetMemberName(Size, "Size") + "," + 
-					SEnumChecker.GetMemberName(Offset, "Offset") + "," + 
-					SEnumChecker.GetMemberName(Scale, "Scale");
+					SEnumChecker.GetMemberName(Offset, "Offset");
 			}
 		}
 		public class SStructMove : SProto
@@ -1132,6 +1252,58 @@ namespace rso
 				return 
 					base.MemberName() + "," + 
 					SEnumChecker.GetMemberName(LocalPosition, "LocalPosition");
+			}
+		}
+		public class SBoxCollider2D : STransform
+		{
+			public SRectCollider2D RectCollider2D = new SRectCollider2D();
+			public SBoxCollider2D()
+			{
+			}
+			public SBoxCollider2D(SBoxCollider2D Obj_) : base(Obj_)
+			{
+				RectCollider2D = Obj_.RectCollider2D;
+			}
+			public SBoxCollider2D(STransform Super_, SRectCollider2D RectCollider2D_) : base(Super_)
+			{
+				RectCollider2D = RectCollider2D_;
+			}
+			public override void Push(CStream Stream_)
+			{
+				base.Push(Stream_);
+				Stream_.Pop(ref RectCollider2D);
+			}
+			public override void Push(JsonDataObject Value_)
+			{
+				base.Push(Value_);
+				Value_.Pop("RectCollider2D", ref RectCollider2D);
+			}
+			public override void Pop(CStream Stream_)
+			{
+				base.Pop(Stream_);
+				Stream_.Push(RectCollider2D);
+			}
+			public override void Pop(JsonDataObject Value_)
+			{
+				base.Pop(Value_);
+				Value_.Push("RectCollider2D", RectCollider2D);
+			}
+			public void Set(SBoxCollider2D Obj_)
+			{
+				base.Set(Obj_);
+				RectCollider2D.Set(Obj_.RectCollider2D);
+			}
+			public override string StdName()
+			{
+				return 
+					base.StdName() + "," + 
+					SEnumChecker.GetStdName(RectCollider2D);
+			}
+			public override string MemberName()
+			{
+				return 
+					base.MemberName() + "," + 
+					SEnumChecker.GetMemberName(RectCollider2D, "RectCollider2D");
 			}
 		}
 	}

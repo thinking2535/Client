@@ -12,41 +12,29 @@ public class RankingWeekRewardPanel : MonoBehaviour
     [SerializeField] Text _RankingText = null;
     [SerializeField] GameObject _RewardItemParent = null;
 
-    public void Init(string Title_, Int32 RewardCode_, Int32 Ranking_)
+    public void Init(string Title_, Int32 myRanking, SReward reward)
     {
+        Int32 oneBaseRanking = myRanking + 1;
+
         _Title.text = Title_;
-        if(Ranking_ <= 3)
+        if(myRanking < 3)
         {
             var r = _RankingTrophyImage.GetComponentInChildren<MeshRenderer>();
-            r.material = Resources.Load<Material>("Material/" + CGlobal.GetRankingRewardImagePath(Ranking_));
+            r.material = Resources.Load<Material>("Material/" + CGlobal.GetRankingRewardImagePath(oneBaseRanking));
         }
 
-        _RankingTrophyImage.SetActive(Ranking_ <= 3);
-        _RankingText.gameObject.SetActive(Ranking_ > 3);
-        _RankingText.text = Ranking_.ToString();
+        _RankingTrophyImage.SetActive(myRanking < 3);
+        _RankingText.gameObject.SetActive(myRanking >= 3);
+        _RankingText.text = oneBaseRanking.ToString();
 
-        RankingRewardItemSet RankingRewardItemSet = Resources.Load<RankingRewardItemSet>("Prefabs/UI/RankingRewardItemSet");
-        var RewardItems = CGlobal.MetaData.GetRewardList(RewardCode_);
-        foreach (var i in RewardItems)
+        var UnitRewards = reward.GetUnitRewards();
+
+        foreach (var i in UnitRewards)
         {
-            var Panel = UnityEngine.Object.Instantiate<RankingRewardItemSet>(RankingRewardItemSet);
+            var Panel = UnityEngine.Object.Instantiate<RankingRewardItemSet>(Resources.Load<RankingRewardItemSet>("Prefabs/UI/RankingRewardItemSet"));
             Panel.transform.SetParent(_RewardItemParent.transform);
             Panel.transform.localScale = Vector3.one;
-            var Type = EResource.Gold;
-            switch(i.Type)
-            {
-                case ERewardType.Resource_Gold:
-                    Type = EResource.Gold;
-                    break;
-                case ERewardType.Resource_Dia:
-                    Type = EResource.Dia;
-                    break;
-                case ERewardType.Resource_CP:
-                    Type = EResource.CP;
-                    break;
-            }
-
-            Panel.Init(Type, i.Data);
+            Panel.Init(i.GetSprite(), i.GetText());
         }
     }
 }

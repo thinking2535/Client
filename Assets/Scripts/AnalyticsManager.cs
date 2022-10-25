@@ -18,7 +18,6 @@ public static class AnalyticsManager
     public static string PrefKey_multiplay_select_island = "multiplay_select_island";
     public static string PrefKey_multiplay_select_arrow = "multiplay_select_arrow";
     public static string PrefKey_quest_reward_complete = "quest_reward_complete";
-    public static string PrefKey_ads_shop_free = "ads_shop_free";
     public static string PrefKey_app_close = "app_close";
     public static string PrefKey_RankLevel = "RankLevel";
     public static string PrefKey_RankGrade = "RankGrade";
@@ -43,7 +42,6 @@ public static class AnalyticsManager
             PlayerPrefs.SetInt(PrefKey_multiplay_select_island, 0);
             PlayerPrefs.SetInt(PrefKey_multiplay_select_arrow, 0);
             PlayerPrefs.SetInt(PrefKey_quest_reward_complete, 0);
-            PlayerPrefs.SetInt(PrefKey_ads_shop_free, 0);
             PlayerPrefs.SetInt(PrefKey_app_close, 0);
         }
         else
@@ -94,10 +92,6 @@ public static class AnalyticsManager
     public static Int32 QuestCompleteCount()
     {
         return PlayerPrefs.GetInt(PrefKey_quest_reward_complete, 0);
-    }
-    public static Int32 ShopFreeCount()
-    {
-        return PlayerPrefs.GetInt(PrefKey_ads_shop_free, 0);
     }
     public static Tuple<Int32, ERank> Rank()
     {
@@ -249,27 +243,6 @@ public static class AnalyticsManager
             AnalyticsManager.TrackingEvent(ETrackingKey.quest_reward_complete_7);
         }
         PlayerPrefs.SetInt(PrefKey_quest_reward_complete, QuestCompleteCount() + 1);
-    }
-    public static void SetShopFreeCount(Int32 Count_)
-    {
-        AnalyticsManager.TrackingEvent(ETrackingKey.ads_shop_free);
-        if (AnalyticsManager.ShopFreeCount() == 0)
-        {
-            AnalyticsManager.TrackingEvent(ETrackingKey.ads_shop_free_1);
-        }
-        else if (AnalyticsManager.ShopFreeCount() == 2)
-        {
-            AnalyticsManager.TrackingEvent(ETrackingKey.ads_shop_free_3);
-        }
-        else if (AnalyticsManager.ShopFreeCount() == 4)
-        {
-            AnalyticsManager.TrackingEvent(ETrackingKey.ads_shop_free_5);
-        }
-        else if (AnalyticsManager.ShopFreeCount() == 9)
-        {
-            AnalyticsManager.TrackingEvent(ETrackingKey.ads_shop_free_10);
-        }
-        PlayerPrefs.SetInt(PrefKey_ads_shop_free, Count_);
     }
     public static void AddRank(Int32 Level_, ERank Grade_)
     {

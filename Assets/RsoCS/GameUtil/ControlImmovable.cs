@@ -31,7 +31,7 @@ namespace rso
                 _Vector.X = Point_.X - _Center.X;
                 _Vector.Y = Point_.Y - _Center.Y;
 
-                var Distance = CBase.Distance(_Center, Point_);
+                var Distance = CPhysics.Distance(_Center, Point_);
                 if (Distance > _EffectiveRadius)
                 {
                     var Ratio = _EffectiveRadius / Distance;

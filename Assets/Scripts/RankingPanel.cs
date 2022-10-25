@@ -26,47 +26,9 @@ public class RankingPanel : MonoBehaviour
             _RankText.text = "-";
         _RankNick.text = Rank_.Nick;
         _RankScore.text = Rank_.Point.ToString();
-        _RankIcon.texture = Resources.Load<Texture>(CGlobal.MetaData.GetPortImagePath() + CGlobal.MetaData.GetCharacterIconName(Rank_.CharCode));
 
-        if (Rank_.CountryCode.Length > 0)
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/" + Rank_.CountryCode);
-        else
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/unknown");
-
-        //_MyRankBG.SetActive(CGlobal.UID == Rank_.UID);
-    }
-    public void InitRankingPanel(SRankingUserSingle Rank_, Int32 Ranking_)
-    {
-        if (Ranking_ > 0)
-            _RankText.text = Ranking_.ToString();
-        else
-            _RankText.text = "-";
-        _RankNick.text = Rank_.Nick;
-        _RankScore.text = Rank_.Point.ToString();
-        _RankIcon.texture = Resources.Load<Texture>(CGlobal.MetaData.GetPortImagePath() + CGlobal.MetaData.GetCharacterIconName(Rank_.CharCode));
-
-        if (Rank_.CountryCode.Length > 0)
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/" + Rank_.CountryCode);
-        else
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/unknown");
-
-        //_MyRankBG.SetActive(CGlobal.UID == Rank_.UID);
-    }
-    public void InitRankingPanel(SRankingUserIsland Rank_, Int32 Ranking_)
-    {
-        if (Ranking_ > 0)
-            _RankText.text = Ranking_.ToString();
-        else
-            _RankText.text = "-";
-        _RankNick.text = Rank_.Nick;
-        _RankScore.text = Rank_.Point.ToString();
-        _RankIcon.texture = Resources.Load<Texture>(CGlobal.MetaData.GetPortImagePath() + CGlobal.MetaData.GetCharacterIconName(Rank_.CharCode));
-
-        if (Rank_.CountryCode.Length > 0)
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/" + Rank_.CountryCode);
-        else
-            _RankFlag.sprite = Resources.Load<Sprite>("Flag/unknown");
-
-        //_MyRankBG.SetActive(CGlobal.UID == Rank_.UID);
+        var characterMeta = CGlobal.MetaData.Characters[Rank_.CharCode];
+        _RankIcon.texture = characterMeta.GetTexture();
+        _RankFlag.sprite = CGlobal.GetFlagSprite(Rank_.CountryCode);
     }
 }

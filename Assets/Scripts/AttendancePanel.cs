@@ -57,6 +57,6 @@
 //        RewardIcon.SetActive(true);
 //        foreach (var i in RewardIconEff)
 //            i.SetActive(false);
-//        CGlobal.NetControl.Send<SAttendanceRewardNetCs>(new SAttendanceRewardNetCs());
+//        CGlobal.NetControl.Send(new SAttendanceRewardNetCs());
 //    }
 //}

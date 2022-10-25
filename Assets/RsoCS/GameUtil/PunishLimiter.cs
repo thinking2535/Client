@@ -7,7 +7,7 @@ namespace rso
 {
     namespace gameutil
     {
-		public class PunishLimiter
+		public class CPunishLimiter
 		{
 			struct _SLimiter
 			{

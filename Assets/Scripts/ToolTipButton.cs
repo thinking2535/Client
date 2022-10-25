@@ -7,9 +7,9 @@ using UnityEngine;
 public class ToolTipButton : MonoBehaviour
 {
     [SerializeField] EText ToolTipText = EText.Null;
-    public void OnClick()
+    public async void OnClick()
     {
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.ToolTipPopup.ShowToolTip(CGlobal.MetaData.GetText(ToolTipText));
+        await CGlobal.curScene.pushToolTipPopup(ToolTipText);
     }
 }

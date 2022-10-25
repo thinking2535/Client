@@ -63,7 +63,7 @@ public class ChainKillMark : MonoBehaviour
         MaskImage.transform.localPosition = MaskStartPos;
         KillImage.sprite = Resources.Load<Sprite>(_KillMarkImageNames[_KillCount]);
         KillName.text = UserName_;
-        KillText.text = CGlobal.MetaData.GetText(_KillMarkTextNames[_KillCount]);
+        KillText.text = CGlobal.MetaData.getText(_KillMarkTextNames[_KillCount]);
         KillNameBG.transform.localScale = MaskStartScale;
         KillNameBG.gameObject.SetActive(false);
         _IsViewKillMark = true;

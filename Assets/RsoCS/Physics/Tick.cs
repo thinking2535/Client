@@ -30,5 +30,9 @@ namespace rso.gameutil
         {
             return _Stopwatch.ElapsedTicks - _StartTick;
         }
+        public bool IsStarted()
+        {
+            return _Stopwatch.IsRunning;
+        }
     }
 }

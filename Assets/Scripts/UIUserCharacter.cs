@@ -9,7 +9,7 @@ public class UIUserCharacter : MonoBehaviour
     private GameObject _UserCharacter = null;
     public void MakeCharacter(Int32 CharCode_)
     {
-        var character = CGlobal.MetaData.Chars[CharCode_];
+        var character = CGlobal.MetaData.Characters[CharCode_];
         string prefabDir = string.Format("Prefabs/Char/{0}", character.PrefabName);
         var Prefab = Resources.Load(prefabDir);
         Debug.Assert(Prefab != null);

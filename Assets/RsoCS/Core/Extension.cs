@@ -11,68 +11,68 @@ namespace rso
             {
                 return new DateTime(1970, 1, 1, 0, 0, 0, DateTimeKind.Utc);
             }
-            public static Int64 ToTimePointTicks(this DateTime Self_)
+            public static Int64 ToTimePointTicks(this DateTime seld)
             {
-                return (Self_.ToUniversalTime() - BaseDateTime()).Ticks;
+                return (seld.ToUniversalTime() - BaseDateTime()).Ticks;
             }
-            public static TimePoint ToTimePoint(this DateTime Self_)
+            public static TimePoint ToTimePoint(this DateTime slef)
             {
-                return new TimePoint(Self_);
+                return new TimePoint(slef);
             }
-            public static Int64 TotalMillisecondsLong(this TimeSpan Self_)
+            public static Int64 TotalMillisecondsLong(this TimeSpan self)
             {
-                return Self_.Ticks / 10000;
+                return self.Ticks / 10000;
             }
-            public static Int64 TotalSecondsLong(this TimeSpan Self_)
+            public static Int64 TotalSecondsLong(this TimeSpan self)
             {
-                return Self_.Ticks / 10000000;
+                return self.Ticks / 10000000;
             }
-            public static Int64 TotalMinutesLong(this TimeSpan Self_)
+            public static Int64 TotalMinutesLong(this TimeSpan self)
             {
-                return Self_.Ticks / 600000000;
+                return self.Ticks / 600000000;
             }
-            public static Int64 TotalHoursLong(this TimeSpan Self_)
+            public static Int64 TotalHoursLong(this TimeSpan self)
             {
-                return Self_.Ticks / 36000000000;
+                return self.Ticks / 36000000000;
             }
-            public static Int64 TotalDaysLong(this TimeSpan Self_)
+            public static Int64 TotalDaysLong(this TimeSpan self)
             {
-                return Self_.Ticks / 864000000000;
+                return self.Ticks / 864000000000;
             }
-            public static Int64 TotalMillisecondsLongCeil(this TimeSpan Self_)
+            public static Int64 TotalMillisecondsLongCeil(this TimeSpan self)
             {
-                if (Self_.Ticks % 10000 != 0)
-                    return (Self_.TotalMillisecondsLong() + (Self_.Ticks >= 0 ? 1 : -1));
+                if (self.Ticks % 10000 != 0)
+                    return (self.TotalMillisecondsLong() + (self.Ticks >= 0 ? 1 : -1));
 
-                return Self_.TotalMillisecondsLong();
+                return self.TotalMillisecondsLong();
             }
-            public static Int64 TotalSecondsLongCeil(this TimeSpan Self_)
+            public static Int64 TotalSecondsLongCeil(this TimeSpan self)
             {
-                if (Self_.Ticks % 10000000 != 0)
-                    return (Self_.TotalSecondsLong() + (Self_.Ticks >= 0 ? 1 : -1));
+                if (self.Ticks % 10000000 != 0)
+                    return (self.TotalSecondsLong() + (self.Ticks >= 0 ? 1 : -1));
 
-                return Self_.TotalSecondsLong();
+                return self.TotalSecondsLong();
             }
-            public static Int64 TotalMinutesLongCeil(this TimeSpan Self_)
+            public static Int64 TotalMinutesLongCeil(this TimeSpan self)
             {
-                if (Self_.Ticks % 600000000 != 0)
-                    return (Self_.TotalMinutesLong() + (Self_.Ticks >= 0 ? 1 : -1));
+                if (self.Ticks % 600000000 != 0)
+                    return (self.TotalMinutesLong() + (self.Ticks >= 0 ? 1 : -1));
 
-                return Self_.TotalMinutesLong();
+                return self.TotalMinutesLong();
             }
-            public static Int64 TotalHoursLongCeil(this TimeSpan Self_)
+            public static Int64 TotalHoursLongCeil(this TimeSpan self)
             {
-                if (Self_.Ticks % 36000000000 != 0)
-                    return (Self_.TotalHoursLong() + (Self_.Ticks >= 0 ? 1 : -1));
+                if (self.Ticks % 36000000000 != 0)
+                    return (self.TotalHoursLong() + (self.Ticks >= 0 ? 1 : -1));
 
-                return Self_.TotalHoursLong();
+                return self.TotalHoursLong();
             }
-            public static Int64 TotalDaysLongCeil(this TimeSpan Self_)
+            public static Int64 TotalDaysLongCeil(this TimeSpan self)
             {
-                if (Self_.Ticks % 864000000000 != 0)
-                    return (Self_.TotalDaysLong() + (Self_.Ticks >= 0 ? 1 : -1));
+                if (self.Ticks % 864000000000 != 0)
+                    return (self.TotalDaysLong() + (self.Ticks >= 0 ? 1 : -1));
 
-                return Self_.TotalDaysLong();
+                return self.TotalDaysLong();
             }
             public static TimeSpan FromDays(Int64 Days_)
             {
@@ -94,14 +94,14 @@ namespace rso
             {
                 return TimeSpan.FromTicks(Milliseconds_ * 10000);
             }
-            public static Int32 IndexNotOfAny(this string Self_, char[] anyOf, Int32 startIndex, Int32 length)
+            public static Int32 IndexNotOfAny(this string self, char[] anyOf, Int32 startIndex, Int32 length)
             {
                 for (Int32 i = startIndex; i < length; ++i)
                 {
                     bool AllNotMatch = true;
 
                     foreach (var a in anyOf)
-                        if (a == Self_[i])
+                        if (a == self[i])
                         {
                             AllNotMatch = false;
                             break;
@@ -113,22 +113,22 @@ namespace rso
 
                 return -1;
             }
-            public static Int32 IndexNotOfAny(this string Self_, char[] anyOf, Int32 startIndex)
+            public static Int32 IndexNotOfAny(this string self, char[] anyOf, Int32 startIndex)
             {
-                return IndexNotOfAny(Self_, anyOf, startIndex, Self_.Length - startIndex);
+                return IndexNotOfAny(self, anyOf, startIndex, self.Length - startIndex);
             }
-            public static Int32 IndexNotOfAny(this string Self_, char[] anyOf)
+            public static Int32 IndexNotOfAny(this string self, char[] anyOf)
             {
-                return IndexNotOfAny(Self_, anyOf, 0, Self_.Length);
+                return IndexNotOfAny(self, anyOf, 0, self.Length);
             }
-            public static Int32 LastIndexNotOfAny(this string Self_, char[] anyOf, Int32 startIndex, Int32 length)
+            public static Int32 LastIndexNotOfAny(this string self, char[] anyOf, Int32 startIndex, Int32 length)
             {
                 for (Int32 i = length; i > startIndex; --i)
                 {
                     bool AllNotMatch = true;
 
                     foreach (var a in anyOf)
-                        if (a == Self_[i - 1])
+                        if (a == self[i - 1])
                         {
                             AllNotMatch = false;
                             break;
@@ -140,13 +140,13 @@ namespace rso
 
                 return -1;
             }
-            public static Int32 LastIndexNotOfAny(this string Self_, char[] anyOf, Int32 startIndex)
+            public static Int32 LastIndexNotOfAny(this string self, char[] anyOf, Int32 startIndex)
             {
-                return LastIndexNotOfAny(Self_, anyOf, startIndex, Self_.Length - startIndex);
+                return LastIndexNotOfAny(self, anyOf, startIndex, self.Length - startIndex);
             }
-            public static Int32 LastIndexNotOfAny(this string Self_, char[] anyOf)
+            public static Int32 LastIndexNotOfAny(this string self, char[] anyOf)
             {
-                return LastIndexNotOfAny(Self_, anyOf, 0, Self_.Length);
+                return LastIndexNotOfAny(self, anyOf, 0, self.Length);
             }
             public static KeyValuePair<TKey, TValue> GetPair<TKey, TValue>(this IDictionary<TKey, TValue> dictionary, TKey key)
             {

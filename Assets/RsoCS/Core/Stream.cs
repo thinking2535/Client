@@ -275,6 +275,51 @@ namespace rso
 
                 return this;
             }
+            public CStream Pop(ref Microseconds value)
+            {
+                Int64 Ticks = 0;
+                Pop(ref Ticks);
+
+                value = new Microseconds(Ticks);
+
+                return this;
+            }
+            public CStream Pop(ref Milliseconds value)
+            {
+                Int64 Ticks = 0;
+                Pop(ref Ticks);
+
+                value = new Milliseconds(Ticks);
+
+                return this;
+            }
+            public CStream Pop(ref Seconds value)
+            {
+                Int64 Ticks = 0;
+                Pop(ref Ticks);
+
+                value = new Seconds(Ticks);
+
+                return this;
+            }
+            public CStream Pop(ref Minutes value)
+            {
+                Int64 Ticks = 0;
+                Pop(ref Ticks);
+
+                value = new Minutes(Ticks);
+
+                return this;
+            }
+            public CStream Pop(ref Hours value)
+            {
+                Int64 Ticks = 0;
+                Pop(ref Ticks);
+
+                value = new Hours(Ticks);
+
+                return this;
+            }
             public CStream Pop(ref DateTime Value_)
             {
                 Int16 year = 0;
@@ -493,7 +538,31 @@ namespace rso
             public CStream Push(TimePoint Value_)
             {
                 Push(Value_.Ticks);
-
+                return this;
+            }
+            public CStream Push(Microseconds value)
+            {
+                Push(value.ticks);
+                return this;
+            }
+            public CStream Push(Milliseconds value)
+            {
+                Push(value.ticks);
+                return this;
+            }
+            public CStream Push(Seconds value)
+            {
+                Push(value.ticks);
+                return this;
+            }
+            public CStream Push(Minutes value)
+            {
+                Push(value.ticks);
+                return this;
+            }
+            public CStream Push(Hours value)
+            {
+                Push(value.ticks);
                 return this;
             }
             public CStream Push(DateTime Value_)
@@ -674,7 +743,7 @@ namespace rso
             }
             public UInt64 CheckSum()
             {
-                return CBase.GetCheckSum(_Bytes.Data, 0, _Bytes.Size);
+                return CCore.GetCheckSum(_Bytes.Data, 0, _Bytes.Size);
             }
             // 아래 함수들로 중첩 컨테이너는 처리 불가하지만 Excel Export 용으로 1단계의 컨테이너는 처리 가능하도록 남겨둠.
             public CStream Push<T>(T Data_)
@@ -728,6 +797,21 @@ namespace rso
                             {
                                 case "rso.core.TimePoint":
                                     Push((TimePoint)(object)Data_);
+                                    break;
+                                case "rso.core.Microseconds":
+                                    Push((Microseconds)(object)Data_);
+                                    break;
+                                case "rso.core.Milliseconds":
+                                    Push((Milliseconds)(object)Data_);
+                                    break;
+                                case "rso.core.Seconds":
+                                    Push((Seconds)(object)Data_);
+                                    break;
+                                case "rso.core.Minutes":
+                                    Push((Minutes)(object)Data_);
+                                    break;
+                                case "rso.core.Hours":
+                                    Push((Hours)(object)Data_);
                                     break;
                                 case "rso.core.CStream":
                                     Push((CStream)(object)Data_);
@@ -849,6 +933,41 @@ namespace rso
                                 case "rso.core.TimePoint":
                                     {
                                         var Data = (TimePoint)(object)Data_;
+                                        Pop(ref Data);
+                                        Data_ = (T)(object)Data;
+                                    }
+                                    break;
+                                case "rso.core.Microseconds":
+                                    {
+                                        var Data = (Microseconds)(object)Data_;
+                                        Pop(ref Data);
+                                        Data_ = (T)(object)Data;
+                                    }
+                                    break;
+                                case "rso.core.Milliseconds":
+                                    {
+                                        var Data = (Milliseconds)(object)Data_;
+                                        Pop(ref Data);
+                                        Data_ = (T)(object)Data;
+                                    }
+                                    break;
+                                case "rso.core.Seconds":
+                                    {
+                                        var Data = (Seconds)(object)Data_;
+                                        Pop(ref Data);
+                                        Data_ = (T)(object)Data;
+                                    }
+                                    break;
+                                case "rso.core.Minutes":
+                                    {
+                                        var Data = (Minutes)(object)Data_;
+                                        Pop(ref Data);
+                                        Data_ = (T)(object)Data;
+                                    }
+                                    break;
+                                case "rso.core.Hours":
+                                    {
+                                        var Data = (Hours)(object)Data_;
                                         Pop(ref Data);
                                         Data_ = (T)(object)Data;
                                     }

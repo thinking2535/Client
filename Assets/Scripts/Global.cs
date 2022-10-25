@@ -10,7 +10,13 @@ using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.UI;
 using TUID = System.Int64;
-using TQuestPair = System.Collections.Generic.KeyValuePair<System.Byte, bb.SQuestBase>;
+using static rso.game.CClient;
+using System.Linq;
+using rso.Base;
+using TDoneQuests = System.Collections.Generic.List<bb.SQuestSlotIndexCount>;
+using System.IO;
+using System.Threading.Tasks;
+using TResource = System.Int32;
 
 public enum EPlayList
 {
@@ -45,10 +51,6 @@ public enum ESound
     Popup,
     GetGold,
     GetChar,
-    Gacha_bounce,
-    Gacha_openani,
-    Gacha_shoot,
-    Gacha_Start,
     single_Coin,
     single_Dia,
     getitem_2,
@@ -58,6 +60,7 @@ public enum ESound
     Max
 }
 
+// rso todo GlobalVariable, GlobalFunction 및 또다른 클래스로 분리할것.
 public class ExceptionRet : Exception
 {
     ERet _Ret;
@@ -79,36 +82,92 @@ public class ExceptionRet : Exception
         return _Ret;
     }
 }
+public class SResourceInfo
+{
+    public Sprite sprite;
+    public EText TextName;
+    Sprite[] _bigSprites;
+    double _multiplierForBigSprite;
+    Int32 _maxValueForBigSprite;
+    public SResourceInfo(string spritePath, EText TextName_, string[] bigSpritePaths, Int32 maxValueForBigSprite)
+    {
+        sprite = Resources.Load<Sprite>(spritePath);
+        TextName = TextName_;
 
+        _bigSprites = new Sprite[bigSpritePaths.Length];
+        for (Int32 i = 0; i < _bigSprites.Length; ++i)
+            _bigSprites[i] = Resources.Load<Sprite>(bigSpritePaths[i]);
+
+        _maxValueForBigSprite = maxValueForBigSprite;
+        _multiplierForBigSprite = _maxValueForBigSprite / (Math.Pow(_bigSprites.Length, 2.0));
+    }
+    public Sprite getBigSprite(Int32 value)
+    {
+        if (_bigSprites.Length == 0)
+            return sprite;
+        else if (value <= 0)
+            return _bigSprites.First();
+        else if (value >= _maxValueForBigSprite)
+            return _bigSprites.Last();
+
+        var index = (Int32)Math.Pow(value / _multiplierForBigSprite, 0.5);
+        if (index >= _bigSprites.Length)
+            index = _bigSprites.Length - 1;
+
+        return _bigSprites[index];
+    }
+    public string GetText()
+    {
+        return CGlobal.MetaData.getText(TextName);
+    }
+}
+public class SRankingTypeInfo
+{
+    public EText TextName;
+    public string GetText()
+    {
+        return CGlobal.MetaData.getText(TextName);
+    }
+    public SRankingTypeInfo(EText TextName_)
+    {
+        TextName = TextName_;
+    }
+}
+public class GradeInfo
+{
+    public Sprite sprite { get; private set; }
+    public Sprite characterBackgroundSprite { get; private set; }
+    public Sprite shopCharacterBackgroundSprite { get; private set; }
+    public Color color { get; private set; }
+    public EText textName { get; private set; }
+    public Int32 subGradeCount = 0;
+
+    public GradeInfo(string spritePath, string characterBackgroundSpritePath, string shopCharacterBackgroundSpritePath, Color color, EText textName)
+    {
+        this.sprite = Resources.Load<Sprite>(spritePath);
+        this.characterBackgroundSprite = Resources.Load<Sprite>(characterBackgroundSpritePath);
+        this.shopCharacterBackgroundSprite = Resources.Load<Sprite>(shopCharacterBackgroundSpritePath);
+        this.color = color;
+        this.textName = textName;
+    }
+}
 public static class CGlobal
 {
-    public struct _SServer
+    public struct SServerURLPort
     {
-        public CNamePort Game;
-        public CNamePort Ranking;
+        public string ServerUrl;
+        public UInt16 GameServerPort;
+        public UInt16 RankingServerPort;
 
-        public _SServer(CNamePort Game_, CNamePort Ranking_)
+        public SServerURLPort(string ServerUrl_, UInt16 GameServerPort_, UInt16 RankingServerPort_)
         {
-            Game = Game_;
-            Ranking = Ranking_;
+            ServerUrl = ServerUrl_;
+            GameServerPort = GameServerPort_;
+            RankingServerPort = RankingServerPort_;
         }
     }
-    public static CNamePort GameIPPort
-    {
-        get
-        {
-            return Servers[(Int32)Server].Game;
-        }
-    }
-    public static CNamePort RankingIPPort
-    {
-        get
-        {
-            return Servers[(Int32)Server].Ranking;
-        }
-    }
+
     public static readonly string c_PropName = "Prop";
-
     public static readonly string c_LayerDefault = "Default";
     public static readonly string c_LayerUI = "UI";
     public static readonly string c_TagGround = "Ground";
@@ -127,48 +186,24 @@ public static class CGlobal
     public static readonly string c_TagScale = "Scale";
     public static readonly string c_TagSlow = "Slow";
 
-    //재화 아이콘 Textrue
-    public static readonly string c_TextureTicket = "GUI/Contents/img_icon_coin";
-    public static readonly string c_TextureGold = "GUI/Contents/img_icon_coin";
-    public static readonly string c_TextureDia = "GUI/Contents/img_icon_gem";
-    public static readonly string c_TextureCP = "GUI/Contents/img_icon_keyWing";
+    public static readonly string sortingLayerMoneyUI = "MoneyUI";
+    public static readonly string sortingLayerPopup = "Popup";
 
     public static readonly Color NameColorRed = new Color(239.0f / 255.0f, 22.0f / 255.0f, 129.0f / 255.0f);
     public static readonly Color NameColorBlue = new Color(40.0f / 255.0f, 122.0f / 255.0f, 241.0f / 255.0f);
     public static readonly Color NameColorGreen = new Color(43.0f / 255.0f, 43.0f / 255.0f, 43.0f / 255.0f);
 
     public static readonly Color Grey = new Color(0.2f, 0.2f, 0.2f);
-    public static readonly string[] PanelBGTextrues = {
-        "GUI/Common/img_bg_9charcterSlotBgGreen",
-        "GUI/Common/img_bg_9charcterSlotBgBlue",
-        "GUI/Common/img_bg_9charcterSlotBgPurple",
-        "GUI/Common/img_bg_9charcterSlotBgYellow" };
     public static readonly string[] PanelKeyBGTextrues = {
         "GUI/Common/img_bg_chKeyBgGreen",
         "GUI/Common/img_bg_chKeyBgBlue",
         "GUI/Common/img_bg_chKeyBgPurple",
         "GUI/Common/img_bg_chKeyBgYellow" };
-    public static readonly string[] CharInfoBGTextrues = { "Gacha/TM_GachaBG01_2", "Gacha/TM_GachaBG01", "Gacha/TM_GachaBG01_1", "Gacha/TM_GachaBG01_1" };
-    public static readonly Int32 MaxStatusStarsCount = 10;
 
-    public static readonly float OrthographicSize = 0.96975f;
-
-    public static float c_Balloon2Width = 0.17f;
-    public static float c_Balloon2Height = 0.12f;
-    public static float c_Balloon2Width_2 = c_Balloon2Width * 0.5f;
-    public static float c_Balloon1Width = 0.088f;
-    public static float c_Balloon1Height = 0.121f;
-    public static float c_Balloon1Width_2 = c_Balloon1Width * 0.5f;
-    public static float c_BalloonGap = 0.037f;
-    public static float c_PlayerWidth = 0.118f;
-    public static float c_PlayerHeight = 0.169f;
-    public static float c_PlayerWidth_2 = c_PlayerWidth * 0.5f;
-
-    //캐릭터의 둘레길이 (반지금을 3으로 기준.)
-    public static readonly float CircleRound = 6.0f * Mathf.PI;
-
+    //캐릭터의 둘레길이
+    public static readonly float CircleRound = Mathf.PI;
     public static COptionJson<SGameOption> GameOption;
-    public static CMetaData MetaData { get; private set; } = new CMetaData();
+    public static CMetaData MetaData { get; private set; }
     static CAudioMusic _Music = null;
     public static CAudioSound Sound { get; private set; } = null;
     private static CVibrationControl Vibe = null;
@@ -178,61 +213,26 @@ public static class CGlobal
     public static SRanking Ranking = null;
 
     public static rso.balance.CClient NetRanking = null;
-    static CSceneControl _SceneControl = null;
     public static TUID UID = 0;
     public static string NickName = "";
     public static SLoginNetSc LoginNetSc { get; private set; } = null;
+    public static Int32 Point { get { return LoginNetSc.User.Point; } }
     static TimeSpan TimeOffset;
-    public static CreatePopup CreatePopup { get; private set; } = null;
-    public static PopupSystem SystemPopup { get; private set; } = null;
-    public static RewardPopup RewardPopup { get; private set; } = null;
-    public static ToolTipPopup ToolTipPopup { get; private set; } = null;
-    public static ProgressLoading ProgressLoading { get; private set; } = null;
-    public static ScrollConfirmPopup ScrollConfirmPopup { get; private set; } = null;
-    public static UpdateInfoPopup UpdateInfoPopup { get; private set; } = null;
-    public static TimePoint RankingTimePoint = new TimePoint();
+    public static ConsoleWindow ConsoleWindow;
+    public static ProgressCircle ProgressCircle { get; private set; } = null;
+    public static MoneyUI MoneyUI { get; private set; } = null;
+    public static SceneController sceneController;
+    public static BaseScene curScene => sceneController.curScene as BaseScene;
+    public static TimePoint PreventRequestRankingEndTimePoint = new TimePoint();
 
-    public static RedDotControl RedDotControl = new RedDotControl();
-
-    //인앱 결제 클래스.
-    public static IAPManager IAPManager = null;
-
-    //광고 모듈 클래스.
-    public static ADManager ADManager = null;
+    public static RedDotControl RedDotControl;
+    public static bool CheckQuestRedDot = false;
 
     public static bool IsDebugMode = false;
     public static bool ServerAnchor = false;
 
-    public static bool IsMatchingCancel = false;
+    public static bool IsWarnedNeedToLinkAccount = false;
 
-    public static SRoomInfo MyRoomInfo = null;
-    public static Dictionary<Int32, SRoomInfo> RoomDictionary = null;
-
-    public static Int32 IntroTitle = 0;
-
-    public enum RankingType
-    {
-        Multi,
-        Single,
-        Island,
-        Max,
-        Null,
-    };
-
-    //검수 서버 여부.
-    public static bool IsTestServer = false;
-
-    //게임 모드 선택 변수.
-    public static EPlayMode PlayMode = EPlayMode.Null;
-
-    //디버그 패널 임시
-    public static LogPanel LogPanel { get; private set; } = null;
-    public static bool ViewLogPanel = false;
-    public static bool IsGoogleAdTest = false;
-    public static void SetDebug(LogPanel logPanel_)
-    {
-        LogPanel = logPanel_;
-    }
     public enum EServer
     {
         Test,
@@ -241,43 +241,169 @@ public static class CGlobal
         AWSTest,
     }
 
-    public static EServer Server = EServer.Internal;
-    public static _SServer[] Servers = null;
+    static SServerURLPort[] _ServerURLPorts;
+    public static SServerURLPort SelectedServerURLPort { get; private set; }
+    public static CNamePort GameServerNamePort;
+    public static CNamePort RankingServerNamePort;
 
-    //디버그 패널 임시
     public static bool WillClose = false;
     public static bool IsGuest = false;
 
     public static string PrefsKey_UpdateInfo = "UpdateInfo";
-    public static bool IsUpdateInfoPopup = false;
 
-    public static void Init(CAudioMusic Music_, CAudioSound Sound_, EServer Server_, bool ServerAnchor_, rso.game.CClient Net_, CreatePopup CreatePopup_, PopupSystem Popup_, RewardPopup RewardPopup_, ToolTipPopup ToolTipPopup_, ProgressLoading ProgressLoading_, ScrollConfirmPopup ScrollConfirmPopup_, UpdateInfoPopup UpdateInfoPopup_, IAPManager IAPManager_, ADManager ADManager_)
+    static SResourceInfo[] _ResourceInfos = new SResourceInfo[(Int32)EResource.Max];
+    public static SResourceInfo GetResourceInfo(EResource Resource_)
+    {
+        return _ResourceInfos[(Int32)Resource_];
+    }
+    public static Sprite GetResourceSprite(EResource Resource_)
+    {
+        return GetResourceInfo(Resource_).sprite;
+    }
+    public static Sprite GetResourceBigSprite(EResource Resource_, Int32 value)
+    {
+        return GetResourceInfo(Resource_).getBigSprite(value);
+    }
+    public static string GetResourceText(EResource Resource_)
+    {
+        return GetResourceInfo(Resource_).GetText();
+    }
+    public static Sprite GetFlagSprite(String CountryCode_)
+    {
+        if (CountryCode_.Length > 0)
+            return Resources.Load<Sprite>("Flag/" + CountryCode_);
+        else
+            return Resources.Load<Sprite>("Flag/unknown");
+    }
+    public static SResourceInfo nftInfo;
+    public static SRankingTypeInfo[] RankingTypeInfos { get; private set; } = new SRankingTypeInfo[(Int32)ERankingType.Max];
+    public static SRankingTypeInfo GetRarnkingTypeInfo(ERankingType RankingType_)
+    {
+        return RankingTypeInfos[(Int32)RankingType_];
+    }
+    static GradeInfo[] _gradeInfos = new GradeInfo[(Int32)EGrade.Max];
+    public static GradeInfo getGradeInfo(EGrade grade)
+    {
+        return _gradeInfos[(Int32)grade];
+    }
+    static void ConsoleEditEnd(string Text_)
+    {
+        NetControl.Send(new SChatNetCs(Text_));
+    }
+    public static CDevice Device;
+
+    public static void Init(
+        CAudioMusic Music_,
+        CAudioSound Sound_,
+        EServer Server_,
+        bool ServerAnchor_,
+        rso.game.CClient.TLinkFunc LinkFunc_,
+        rso.game.CClient.TLinkFailFunc LinkFailFunc_,
+        rso.game.CClient.TUnLinkFunc UnLinkFunc_,
+        TRecvFunc RecvFunc_,
+        TErrorFunc ErrorFunc_,
+        TCheckFunc CheckFunc_)
     {
 #if UNITY_EDITOR
-        var DataPath = Application.dataPath + "/../";
+        Device = new CEditor();
+#elif UNITY_ANDROID
+        Device = new CAndroid();
+#elif UNITY_IOS
+        Device = new CIOS();
 #else
-        var DataPath = Application.persistentDataPath + "/";
+        throw new Exception("Invalid Device");
 #endif
-        string FilePath = DataPath + "GameOption.ini";
+
+        _ResourceInfos[(Int32)EResource.Ticket] = new SResourceInfo(
+            "GUI/Contents/img_icon_Ticket01",
+            EText.Global_Text_Ticket,
+            new string[] { },
+            0);
+        _ResourceInfos[(Int32)EResource.Gold] = new SResourceInfo(
+            "GUI/Contents/img_icon_coin",
+            EText.Global_Text_Gold,
+            new string[] { "Textures/GoldGoods_1", "Textures/GoldGoods_2", "Textures/GoldGoods_3", "Textures/GoldGoods_4", "Textures/GoldGoods_5", "Textures/GoldGoods_6" },
+            10000);
+        _ResourceInfos[(Int32)EResource.Dia00] = new SResourceInfo(
+            "GUI/Contents/img_icon_gem01",
+            EText.Global_Text_Dia00,
+            new string[] { },
+            0);
+        _ResourceInfos[(Int32)EResource.Dia01] = new SResourceInfo(
+            "GUI/Contents/img_icon_gem02",
+            EText.Global_Text_Dia01,
+            new string[] { },
+            0);
+        _ResourceInfos[(Int32)EResource.Dia02] = new SResourceInfo(
+            "GUI/Contents/img_icon_gem03",
+            EText.Global_Text_Dia02,
+            new string[] { },
+            0);
+        _ResourceInfos[(Int32)EResource.Dia03] = new SResourceInfo(
+            "GUI/Contents/img_icon_gem04",
+            EText.Global_Text_Dia03,
+            new string[] { },
+            0);
+
+        for (Int32 i= 0; i < (Int32)EResource.Max; ++i)
+            Debug.Assert(_ResourceInfos[i] != null);
+
+        {
+            nftInfo = new SResourceInfo("GUI/Common/img_icon_NFT", EText.NFT, new string[] { }, 0);
+        }
+
+
+        {
+            RankingTypeInfos[(Int32)ERankingType.Multi] = new SRankingTypeInfo(EText.RankingScene_Multi);
+            RankingTypeInfos[(Int32)ERankingType.Single] = new SRankingTypeInfo(EText.LobbyScene_Dodge);
+            RankingTypeInfos[(Int32)ERankingType.Island] = new SRankingTypeInfo(EText.LobbyScene_FlyAway);
+
+            for (Int32 i = 0; i < (Int32)ERankingType.Max; ++i)
+                Debug.Assert(RankingTypeInfos[i] != null);
+        }
+
+        {
+            _gradeInfos[(Int32)EGrade.Normal] = new GradeInfo(
+                "Gacha/TM_GachaBG01_2",
+                "GUI/Common/img_bg_9charcterSlotBgGreen",
+                "GUI/Contents/img_bg_9shopBgGreen",
+                new Color(184.0f/255.0f, 212.0f/255.0f, 127.0f/255.0f),
+                EText.Global_Grade_Normal);
+            _gradeInfos[(Int32)EGrade.Rare] = new GradeInfo(
+                "Gacha/TM_GachaBG01",
+                "GUI/Common/img_bg_9charcterSlotBgBlue",
+                "GUI/Contents/img_bg_9shopBgBlue",
+                new Color(94.0f / 255.0f, 170.0f / 255.0f, 255.0f / 255.0f),
+                EText.Global_Grade_Rare);
+            _gradeInfos[(Int32)EGrade.Epic] = new GradeInfo(
+                "Gacha/TM_GachaBG01_1",
+                "GUI/Common/img_bg_9charcterSlotBgPurple",
+                "GUI/Contents/img_bg_9shopBgPurple",
+                new Color(208.0f / 255.0f, 106.0f / 255.0f, 255.0f / 255.0f),
+                EText.Global_Grade_Epic);
+            _gradeInfos[(Int32)EGrade.Unique] = new GradeInfo(
+                "Gacha/TM_GachaBG01_3",
+                "GUI/Common/img_bg_9charcterSlotBgYellow",
+                "GUI/Contents/img_bg_9shopBgYellow",
+                new Color(246.0f / 255.0f, 206.0f / 255.0f, 122.0f / 255.0f),
+                EText.Global_Grade_Unique);
+
+        for (Int32 i = 0; i < (Int32)EGrade.Max; ++i)
+                Debug.Assert(_gradeInfos[i] != null);
+        }
+
+        string FilePath = Device.GetDataPath() + "GameOption.ini";
         try
         {
             GameOption = new COptionJson<SGameOption>(FilePath, false);
         }
         catch
         {
-            GameOption = new COptionJson<SGameOption>(FilePath, new SGameOption(true, true, true, true, true, false, GetSystemLanguage(Application.systemLanguage), EPlayMode.Null));
+            GameOption = new COptionJson<SGameOption>(FilePath, new SGameOption(true, true, true, true, true, false, GetSystemLanguage(Application.systemLanguage)));
         }
+        MetaData = new CMetaData();
         _Music = Music_;
         Sound = Sound_;
-
-        SetIsVibe(GameOption.Data.IsVibe);
-        SetIsMusic(GameOption.Data.IsMusic);
-        SetIsSound(GameOption.Data.IsSound);
-        SetIsPush(GameOption.Data.IsPush);
-        SetIsPad(GameOption.Data.IsPad);
-        SetIsTutorial(GameOption.Data.IsTutorial);
-        SetLanguage(GameOption.Data.Language);
-        SetPlayMode(GameOption.Data.SelectMode);
 
         Vibe = new CVibrationControl(
             new CVibrationControl.SVibration[] {
@@ -286,54 +412,149 @@ public static class CGlobal
                     )
             });
 
-        Servers = new _SServer[Enum.GetValues(typeof(EServer)).Length];
-        Servers[(Int32)EServer.Test] = new _SServer(new CNamePort("192.168.0.211", 40130), new CNamePort("192.168.0.211", 45020));
-        Servers[(Int32)EServer.Internal] = new _SServer(new CNamePort("115.90.183.62", 30130), new CNamePort("115.90.183.62", 35020));
-        Servers[(Int32)EServer.Dev] = new _SServer(new CNamePort("127.0.0.1", 30130), new CNamePort("127.0.0.1", 35020));
-        Servers[(Int32)EServer.AWSTest] = new _SServer(new CNamePort("ec2-3-39-170-246.ap-northeast-2.compute.amazonaws.com", 30130), new CNamePort("ec2-3-39-170-246.ap-northeast-2.compute.amazonaws.com", 35020));
+        _ServerURLPorts = new SServerURLPort[Enum.GetValues(typeof(EServer)).Length];
+        _ServerURLPorts[(Int32)EServer.Test] = new SServerURLPort("file://" + Directory.GetCurrentDirectory() + "/ServerInfo/Test_ServerInfo.txt", 40130, 45020);
+        _ServerURLPorts[(Int32)EServer.Internal] = new SServerURLPort("file://" + Directory.GetCurrentDirectory() + "/ServerInfo/Internal_ServerInfo.txt", 30130, 35020);
+        _ServerURLPorts[(Int32)EServer.Dev] = new SServerURLPort("file://" + Directory.GetCurrentDirectory() + "/ServerInfo/Dev_ServerInfo.txt", 30130, 35020);
+        //_ServerURLPorts[(Int32)EServer.AWSTest] = new SServerURLPort("https://any-balloon.s3.ap-northeast-2.amazonaws.com/ServerInfo.txt", 30130, 35020);
+        _ServerURLPorts[(Int32)EServer.AWSTest] = new SServerURLPort("", 30130, 35020);
 
-        foreach (var i in Servers)
-            Debug.Assert(i.Game != null, "Input All Servers' NamePort");
+        foreach (var i in _ServerURLPorts)
+            Debug.Assert(i.ServerUrl != null, "Input All Servers");
 
-        Server = Server_;
+        SelectedServerURLPort = _ServerURLPorts[(Int32)Server_];
         ServerAnchor = ServerAnchor_;
 
-        NetControl = new CNetworkControl(Net_);
-        _SceneControl = new CSceneControl();
-        CreatePopup = CreatePopup_;
-        SystemPopup = Popup_;
-        RewardPopup = RewardPopup_;
-        ToolTipPopup = ToolTipPopup_;
-        ProgressLoading = ProgressLoading_;
-        ScrollConfirmPopup = ScrollConfirmPopup_;
-        UpdateInfoPopup = UpdateInfoPopup_;
-        IAPManager = IAPManager_;
-        ADManager = ADManager_;
+        var Client = new rso.game.CClient(new SVersion(bb.global.c_Ver_Main, MetaData.Checksum));
+        Client.LinkFunc = LinkFunc_;
+        Client.LinkFailFunc = LinkFailFunc_;
+        Client.UnLinkFunc = UnLinkFunc_;
+        Client.RecvFunc = RecvFunc_;
+        Client.ErrorFunc = ErrorFunc_;
+        Client.CheckFunc = CheckFunc_;
 
-        IsTestServer = false;
+        NetControl = new CNetworkControl(Client);
+
+        {
+            ConsoleWindow = UnityEngine.Object.Instantiate(Resources.Load<ConsoleWindow>("Prefabs/UI/ConsoleWindow"), Vector3.zero, Quaternion.identity);
+            ConsoleWindow.Init(ConsoleEditEnd, "aaa", "type \"/help\" to show cheat commands");
+        }
+
+        {
+            ProgressCircle = UnityEngine.Object.Instantiate(Resources.Load<ProgressCircle>("Prefabs/UI/ProgressCircle"), Vector3.zero, Quaternion.identity);
+        }
+
+        {
+            MoneyUI = UnityEngine.Object.Instantiate(Resources.Load<MoneyUI>("Prefabs/UI/MoneyUI"), Vector3.zero, Quaternion.identity);
+        }
+
+        RedDotControl = new RedDotControl();
+        sceneController = new SceneController(_createIntroScene);
+
 #if UNITY_EDITOR
         IsDebugMode = true;
 #endif
     }
-    public static TScene GetScene<TScene>() where TScene : CScene
+    public static TScene GetScene<TScene>() where TScene : BaseScene
     {
-        return _SceneControl.CurScene as TScene;
+        return sceneController.curScene as TScene;
     }
-    public static void SceneSetNext(CScene Scene_)
+    public static TScene UpdateResourcesAndGetScene<TScene>() where TScene : BaseScene
     {
-        _SceneControl.SetNext(Scene_);
+        var BaseScene = sceneController.curScene as BaseScene;
+        BaseScene.UpdateResources();
+
+        return BaseScene as TScene;
     }
-    public static void SceneSetNextForce(CScene Scene_)
+    public static void UpdateResourcesCurrentScene()
     {
-        _SceneControl.SetNextForce(Scene_);
+        var BaseScene = sceneController.curScene as BaseScene;
+        BaseScene.UpdateResources();
+    }
+    public static void clearAndPushIntroScene()
+    {
+        sceneController.clearAndPush(_createIntroScene);
+    }
+    static Scene _createIntroScene()
+    {
+        var scene = SceneController.create(GlobalVariable.main.introScenePrefab);
+        scene.init();
+        return scene;
+    }
+    public static void pushBattleTutorialScene()
+    {
+        sceneController.push(_createBattleTutorialScene);
+    }
+    static Scene _createBattleTutorialScene()
+    {
+        var scene = SceneController.create(GlobalVariable.main.battleTutorialScenePrefab);
+        scene.init();
+        return scene;
+    }
+    public static void setLobbyScene()
+    {
+        sceneController.set(
+            () =>
+            {
+                var scene = SceneController.create(GlobalVariable.main.lobbyScenePrefab);
+                scene.init();
+                return scene;
+            });
+    }
+    public static void pushCharacterListScene()
+    {
+        sceneController.push(_createCharacterListScene);
+    }
+    public static void setCharacterListScene()
+    {
+        sceneController.set(_createCharacterListScene);
+    }
+    static Scene _createCharacterListScene()
+    {
+        var scene = SceneController.create(GlobalVariable.main.characterListScenePrefab);
+        scene.init();
+        return scene;
+    }
+    public static void pushShopScene()
+    {
+        sceneController.push(
+            () =>
+            {
+                var scene = SceneController.create(GlobalVariable.main.shopScenePrefab);
+                scene.init();
+                return scene;
+            });
+    }
+    public static void pushRankingRewardScene()
+    {
+        sceneController.push(
+            () =>
+            {
+                var scene = SceneController.create(GlobalVariable.main.rankingRewardScenePrefab);
+                scene.init();
+                return scene;
+            });
+    }
+    public static void setMultiMatchingScene()
+    {
+        sceneController.set(
+            () =>
+            {
+                var scene = SceneController.create(GlobalVariable.main.multiMatchingScenePrefab);
+                scene.init();
+                return scene;
+            });
     }
     public static void Dispose()
     {
         Logout();
         NetControl.Dispose();
 
-        if (_SceneControl != null)
-            _SceneControl = null;
+        if (sceneController != null)
+        {
+            sceneController.clear();
+            sceneController = null;
+        }
 
         if (MetaData != null)
             MetaData = null;
@@ -341,16 +562,6 @@ public static class CGlobal
     public static void Update()
     {
         NetControl.Update();
-
-        while (!_SceneControl.HaveNext())
-        {
-            if (!NetControl.Call())
-                break;
-        }
-
-        if (!_SceneControl.Update()) // return false : _SceneControl 에 등록된 Scene이 없으며, 이는 앱이 종료절차가 완료 되었다는 것을 의미.
-            rso.unity.CBase.ApplicationQuit();
-
         _Music.Update();
     }
     public static void Create(string NickName_)
@@ -358,31 +569,29 @@ public static class CGlobal
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
 
         CStream Stream = new CStream();
-        Stream.Push(new SUserCreateOption(new SUserLoginOption(rso.unity.CBase.GetOS()), ELanguage.English));
-#if UNITY_EDITOR
-        var DataPath = Application.dataPath + "/../";
-#else
-        var DataPath = Application.persistentDataPath + "/";
-#endif
-        CGlobal.NetControl.Create(CGlobal.GameIPPort, Guid.NewGuid().ToString(), NickName_, 0, Stream, DataPath + CGlobal.GameIPPort.Name + "_" + CGlobal.GameIPPort.Port.ToString() + "_" + "Data/");
+        Stream.Push(new SUserCreateOption(new SUserLoginOption(CUnity.GetOS()), ELanguage.English));
 
+        CGlobal.ProgressCircle.Activate();
+
+        CGlobal.NetControl.Create(
+            CGlobal.GameServerNamePort,
+            Guid.NewGuid().ToString(),
+            NickName_,
+            0,
+            Stream,
+            CGlobal.Device.GetDataPath() + CGlobal.GameServerNamePort.Name + "_" + CGlobal.GameServerNamePort.Port.ToString() + "_" + "Data/");
     }
-    public static void Link(TUID UID_, string Nick_)
+    public static void Link(TUID UID_, string NickName_)
     {
         UID = UID_;
-        NickName = Nick_;
+        NickName = NickName_;
         WillClose = false;
-        IAPManager.InitializePurchasing();
     }
     public static void Login(SLoginNetSc Proto_)
     {
         LoginNetSc = Proto_;
-        if (LoginNetSc.RoomIdx != -1)
-        {
-            MyRoomInfo = new SRoomInfo();
-            MyRoomInfo.RoomIdx = LoginNetSc.RoomIdx;
-        }
         TimeOffset = Proto_.ServerTime - TimePoint.Now;
+        MoneyUI.UpdateResourcesImmediately();
     }
     public static void Logout()
     {
@@ -464,14 +673,7 @@ public static class CGlobal
     }
     public static void SetLanguage(ELanguage Language_)
     {
-        MetaData.ChangeLanguage(Language_);
         GameOption.Data.Language = Language_;
-        GameOption.Save();
-    }
-    public static void SetPlayMode(EPlayMode value)
-    {
-        PlayMode = value;
-        GameOption.Data.SelectMode = value;
         GameOption.Save();
     }
     public static void SetIsTutorial(bool value)
@@ -479,165 +681,38 @@ public static class CGlobal
         GameOption.Data.IsTutorial = value;
         GameOption.Save();
     }
-    public static string GetPlayModeString(EPlayMode value)
+    public static Int32[] getEmptyResources()
     {
-        switch(value)
-        {
-            case EPlayMode.Solo:
-                return MetaData.GetText(EText.LobbyScene_Solo);
-            case EPlayMode.Team:
-                return MetaData.GetText(EText.LobbyScene_Team);
-            case EPlayMode.Survival:
-                return MetaData.GetText(EText.LobbyScene_Survival);
-            case EPlayMode.SurvivalSmall:
-                return MetaData.GetText(EText.LobbyScene_3PSurvival);
-            case EPlayMode.TeamSmall:
-                return MetaData.GetText(EText.LobbyScene_TeamSmall);
-            case EPlayMode.IslandSolo:
-                return MetaData.GetText(EText.LobbyScene_FlyAwayRace);
-            case EPlayMode.DodgeSolo:
-                return MetaData.GetText(EText.LobbyScene_DodgeArrowRace);
-            case EPlayMode.Island:
-                return MetaData.GetText(EText.LobbyScene_FlyAway);
-            case EPlayMode.Dodge:
-                return MetaData.GetText(EText.LobbyScene_Dodge);
-            default:
-                return MetaData.GetText(EText.LobbyScene_SelectMode);
-        }
+        return new Int32[(Int32)EResource.Max];
     }
-    public static string GetPlayModeADImage(EGameMode value)
+    public static Int32[] getFullResources()
     {
-        switch(value)
-        {
-            case EGameMode.Solo:            return "img_chatSlot1on1";
-            case EGameMode.TeamSmall:       return "img_chatSlot2on2";
-            case EGameMode.Team:            return "img_chatSlot3on3";
-            case EGameMode.SurvivalSmall:   return "img_chatSlot3Survival";
-            case EGameMode.Survival:        return "img_chatSlot6Survival";
-            case EGameMode.DodgeSolo:       return "img_chatSlotArrow";
-            case EGameMode.IslandSolo:      return "img_chatSlotLand";
-            default:
-                return "";
-        }
+        var resources = getEmptyResources();
+
+        for (var i = 0; i < resources.Length; ++i)
+            resources[i] = Int32.MaxValue;
+
+        return resources;
     }
-    public static string GetPlayModeTitle(EGameMode value)
+    public static TResource getResourceFreeSpace(TResource currentResource, EResource resourceType)
     {
-        switch (value)
-        {
-            case EGameMode.Solo:
-                return MetaData.GetText(EText.MultiScene_Solo);
-            case EGameMode.Team:
-                return MetaData.GetText(EText.LobbyScene_Team);
-            case EGameMode.Survival:
-                return MetaData.GetText(EText.LobbyScene_Survival);
-            case EGameMode.SurvivalSmall:
-                return MetaData.GetText(EText.LobbyScene_3PSurvival);
-            case EGameMode.TeamSmall:
-                return MetaData.GetText(EText.LobbyScene_TeamSmall);
-            case EGameMode.IslandSolo:
-                return MetaData.GetText(EText.LobbyScene_FlyAwayRace);
-            case EGameMode.DodgeSolo:
-                return MetaData.GetText(EText.LobbyScene_DodgeArrowRace);
-            default:
-                return "";
-        }
+        return getResourceFreeSpace(currentResource, (Int32)resourceType);
     }
-    public static string GetPlayModeType(EGameMode value)
+    public static TResource getResourceFreeSpace(TResource currentResource, Int32 index)
     {
-        switch (value)
-        {
-            case EGameMode.Solo:
-            case EGameMode.IslandSolo:
-            case EGameMode.DodgeSolo:
-                return MetaData.GetText(EText.LobbyScene_Solo);
-            case EGameMode.Survival:
-            case EGameMode.SurvivalSmall:
-                return MetaData.GetText(EText.MultiScene_Individual);
-            case EGameMode.Team:
-            case EGameMode.TeamSmall:
-                return MetaData.GetText(EText.MultiScene_Team);
-            default:
-                return "";
-        }
+        return CGlobal.MetaData.MaxResources[index] - currentResource;
     }
-    public static string GetResourcesIconFile(EResource Resource_)
+    public static bool doesHaveCost(SResourceTypeData cost)
     {
-        switch(Resource_)
-        {
-            case EResource.Ticket: return c_TextureTicket;
-            case EResource.Gold: return c_TextureGold;
-            case EResource.Dia: return c_TextureDia;
-            case EResource.CP: return c_TextureCP;
-            case EResource.DiaPaid: return c_TextureDia;
-            default:
-                return "";
-        }
+        return LoginNetSc.User.Resources.doesHaveCost(cost);
     }
-    public static string GetResourcesLimitedIconFile(EResource Resource_)
+    public static bool doesHaveCost(EResource costType, Int32 costValue)
     {
-        switch (Resource_)
-        {
-            case EResource.Ticket: return c_TextureTicket;
-            case EResource.Gold: return c_TextureGold;
-            case EResource.Dia: return c_TextureDia;
-            case EResource.CP: return c_TextureCP;
-            case EResource.DiaPaid: return c_TextureDia;
-            default:
-                return "";
-        }
+        return LoginNetSc.User.Resources.doesHaveCost(costType, costValue);
     }
-    public static string GetResourcesIconFile(ERewardType RewardType_)
+    public static bool doesHaveCost(Int32[] cost)
     {
-        switch (RewardType_)
-        {
-            case ERewardType.Resource_Ticket: return c_TextureTicket;
-            case ERewardType.Resource_Gold: return c_TextureGold;
-            case ERewardType.Resource_Dia: return c_TextureDia;
-            case ERewardType.Resource_CP: return c_TextureCP;
-            default:
-                return "";
-        }
-    }
-    public static string GetResourcesText(EResource Resource_)
-    {
-        switch(Resource_)
-        {
-            case EResource.Ticket: return MetaData.GetText(EText.Global_Text_Ticket);
-            case EResource.Gold: return MetaData.GetText(EText.Global_Text_Gold);
-            case EResource.Dia: return MetaData.GetText(EText.Global_Text_Dia);
-            case EResource.CP: return MetaData.GetText(EText.Global_Text_CP);
-            case EResource.DiaPaid: return MetaData.GetText(EText.Global_Text_Dia);
-            default:
-                return "";
-        }
-    }
-    public static ERewardType GetResourcesToRewardType(EResource Resource_)
-    {
-        switch (Resource_)
-        {
-            case EResource.Ticket: return ERewardType.Resource_Ticket;
-            case EResource.Gold: return ERewardType.Resource_Gold;
-            case EResource.Dia: 
-            case EResource.DiaPaid: return ERewardType.Resource_Dia;
-            case EResource.CP: return ERewardType.Resource_CP;
-            default:
-                return ERewardType.Max;
-        }
-    }
-    public static bool HaveCost(EResource Resource_, Int32 Value_)
-    {
-        return LoginNetSc.User.Resources.HaveCost(Resource_, Value_);
-    }
-    public static void ShowResourceNotEnough(EResource Resource_)
-    {
-        if (Resource_ == EResource.CP)
-            SystemPopup.ShowPopup(MetaData.GetText(EText.Global_Popup_CpNotEnough), PopupSystem.PopupType.Confirm, null, true);
-        else
-            SystemPopup.ShowPopup(string.Format(MetaData.GetText(EText.Global_Popup_ResourceNotEnough), GetResourcesText(Resource_)),PopupSystem.PopupType.Confirm, null, true);
-    }
-    public static void ShowHaveForbiddenWord(string ForbiddenWord_)
-    {
-        SystemPopup.ShowPopup(string.Format(MetaData.GetText(EText.Have_ForbiddenWord), ForbiddenWord_), PopupSystem.PopupType.Confirm, null, true);
+        return LoginNetSc.User.Resources.doesHaveCost(cost);
     }
     public static Tuple<EResource,Int32> ToOneResource(this Int32[] Resources_)
     {
@@ -649,54 +724,13 @@ public static class CGlobal
 
         return new Tuple<EResource, Int32>(EResource.Gold, 0);
     }
-    public static void AddUserBattleEnd(Int32 AddPoint_)
+    public static void AddResources(Int32[] Resources_)
     {
-        LoginNetSc.User.Point += AddPoint_;
-        if (LoginNetSc.User.Point < 0)
-            LoginNetSc.User.Point = 0;
-        if (LoginNetSc.User.Point > LoginNetSc.User.PointBest)
-            LoginNetSc.User.PointBest = LoginNetSc.User.Point;
+        LoginNetSc.User.Resources.AddResources(Resources_);
     }
-    public static void SubResources(Int32[] Resources_)
+    public static void AddResource(SResourceTypeData resourceTypeData)
     {
-        LoginNetSc.User.Resources.SubResources(Resources_);
-    }
-    public static Int32[] GetReward(List<SRewardMeta> RewardMetas_)
-    {
-        Int32[] RewardResource = new Int32[(Int32)EResource.Max];
-        for (var i = 0; i < RewardMetas_.Count; ++i)
-        {
-            switch(RewardMetas_[i].Type)
-            {
-                case ERewardType.Character:
-                    if (!CGlobal.LoginNetSc.Chars.Contains(RewardMetas_[i].Data))
-                    {
-                        CGlobal.LoginNetSc.Chars.Add(RewardMetas_[i].Data);
-                        CGlobal.RedDotControl.SetReddotChar(RewardMetas_[i].Data);
-                    }
-                    else
-                    {
-                        RewardResource[(Int32)EResource.CP] = CGlobal.MetaData.Chars[RewardMetas_[i].Data].CPRefund;
-                    }
-                    break;
-                case ERewardType.Resource_Ticket:
-                    RewardResource[(Int32)EResource.Ticket] = RewardMetas_[i].Data;
-                    break;
-                case ERewardType.Resource_Gold:
-                    RewardResource[(Int32)EResource.Gold] = RewardMetas_[i].Data;
-                    break;
-                case ERewardType.Resource_Dia:
-                    RewardResource[(Int32)EResource.Dia] = RewardMetas_[i].Data;
-                    break;
-                case ERewardType.Resource_CP:
-                    RewardResource[(Int32)EResource.CP] = RewardMetas_[i].Data;
-                    break;
-                default:
-                    Debug.Log("GetReward Reward Type Error !!!");
-                    break;
-            }
-        }
-        return RewardResource;
+        LoginNetSc.User.Resources.AddResource(resourceTypeData);
     }
     public static string HaveForbiddenWord(string String_)
     {
@@ -737,10 +771,6 @@ public static class CGlobal
 
         return language;
     }
-    public static TQuestPair GetUserQuestInfo(Byte SlotIndex_)
-    {
-        return LoginNetSc.Quests.GetPair(SlotIndex_);
-    }
     public static string VersionText()
     {
         ulong checkSum = MetaData.Checksum % 10000;
@@ -756,27 +786,27 @@ public static class CGlobal
         var NewSingleRefreshTime = LoginNetSc.User.SingleRefreshTime;
         var Now = GetServerTimePoint();
 
-        if (NewSingleCount < MetaData.SingleBalanceMeta.PlayCountMax)
+        if (NewSingleCount < MetaData.arrowDodgeConfigMeta.PlayCountMax)
         {
-            Int64 UnitMinutes = TimeSpan.FromMinutes(MetaData.SingleBalanceMeta.RefreshDurationMinute).Ticks / 600000000;
+            Int64 UnitMinutes = TimeSpan.FromMinutes(MetaData.arrowDodgeConfigMeta.RefreshDurationMinute).Ticks / 600000000;
             Int64 ElapsedMinutes = ((Now - NewSingleRefreshTime).Ticks / 600000000);
             Int32 ElapsedCount = (Int32)(ElapsedMinutes / UnitMinutes);
             NewSingleCount += ElapsedCount;
 
-            if (NewSingleCount > MetaData.SingleBalanceMeta.PlayCountMax)
-                NewSingleCount = MetaData.SingleBalanceMeta.PlayCountMax;
+            if (NewSingleCount > MetaData.arrowDodgeConfigMeta.PlayCountMax)
+                NewSingleCount = MetaData.arrowDodgeConfigMeta.PlayCountMax;
 
-            if (NewSingleCount >= MetaData.SingleBalanceMeta.PlayCountMax)
+            if (NewSingleCount >= MetaData.arrowDodgeConfigMeta.PlayCountMax)
                 NewSingleRefreshTime = Now;
             else
                 NewSingleRefreshTime += TimeSpan.FromMinutes(UnitMinutes * ElapsedCount);
         }
-        else if (NewSingleCount >= MetaData.SingleBalanceMeta.PlayCountMax)
+        else if (NewSingleCount >= MetaData.arrowDodgeConfigMeta.PlayCountMax)
         {
             NewSingleRefreshTime = Now;
         }
 
-        return new Tuple<Int32, TimeSpan>(NewSingleCount, NewSingleRefreshTime + TimeSpan.FromMinutes(MetaData.SingleBalanceMeta.RefreshDurationMinute) - Now);
+        return new Tuple<Int32, TimeSpan>(NewSingleCount, NewSingleRefreshTime + TimeSpan.FromMinutes(MetaData.arrowDodgeConfigMeta.RefreshDurationMinute) - Now);
     }
     public static Tuple<Int32, TimeSpan> GetSingleIslandPlayCountLeftTime()
     {
@@ -784,27 +814,27 @@ public static class CGlobal
         var NewSingleRefreshTime = LoginNetSc.User.IslandRefreshTime;
         var Now = GetServerTimePoint();
 
-        if (NewSingleCount < MetaData.SingleIslandBalanceMeta.PlayCountMax)
+        if (NewSingleCount < MetaData.flyAwayConfigMeta.PlayCountMax)
         {
-            Int64 UnitMinutes = TimeSpan.FromMinutes(MetaData.SingleIslandBalanceMeta.RefreshDurationMinute).Ticks / 600000000;
+            Int64 UnitMinutes = TimeSpan.FromMinutes(MetaData.flyAwayConfigMeta.RefreshDurationMinute).Ticks / 600000000;
             Int64 ElapsedMinutes = ((Now - NewSingleRefreshTime).Ticks / 600000000);
             Int32 ElapsedCount = (Int32)(ElapsedMinutes / UnitMinutes);
             NewSingleCount += ElapsedCount;
 
-            if (NewSingleCount > MetaData.SingleIslandBalanceMeta.PlayCountMax)
-                NewSingleCount = MetaData.SingleIslandBalanceMeta.PlayCountMax;
+            if (NewSingleCount > MetaData.flyAwayConfigMeta.PlayCountMax)
+                NewSingleCount = MetaData.flyAwayConfigMeta.PlayCountMax;
 
-            if (NewSingleCount >= MetaData.SingleIslandBalanceMeta.PlayCountMax)
+            if (NewSingleCount >= MetaData.flyAwayConfigMeta.PlayCountMax)
                 NewSingleRefreshTime = Now;
             else
                 NewSingleRefreshTime += TimeSpan.FromMinutes(UnitMinutes * ElapsedCount);
         }
-        else if (NewSingleCount >= MetaData.SingleIslandBalanceMeta.PlayCountMax)
+        else if (NewSingleCount >= MetaData.flyAwayConfigMeta.PlayCountMax)
         {
             NewSingleRefreshTime = Now;
         }
 
-        return new Tuple<Int32, TimeSpan>(NewSingleCount, NewSingleRefreshTime + TimeSpan.FromMinutes(MetaData.SingleBalanceMeta.RefreshDurationMinute) - Now);
+        return new Tuple<Int32, TimeSpan>(NewSingleCount, NewSingleRefreshTime + TimeSpan.FromMinutes(MetaData.flyAwayConfigMeta.RefreshDurationMinute) - Now);
     }
     public static string GetRankingRewardImagePath(Int32 Ranking_)
     {
@@ -816,8 +846,9 @@ public static class CGlobal
                 return "RankingTrophy_2nd";
             case 3:
                 return "RankingTrophy_3rd";
+            default:
+                throw new Exception();
         }
-        return "";
     }
     public static string GetCharStatusIcon(EStatusType Status_)
     {
@@ -831,8 +862,9 @@ public static class CGlobal
                 return "img_icon_statusBlowing";
             case EStatusType.Land:
                 return "img_icon_statusLand";
+            default:
+                throw new Exception();
         }
-        return "";
     }
     public static void PushStatusLanguageOn()
     {
@@ -901,5 +933,63 @@ public static class CGlobal
     public static void SendRequestRanking()
     {
         NetRanking.Send(0, (Int32)EProtoRankingNetCs.RequestRanking);
+    }
+    public static CPadSimulator getJoypadSimulator(InputTouch.FJoypad fTouched_, InputTouch.FButton fPushed_, float activeRange, Vector2 defaultPosition)
+    {
+        return new CPadSimulator(fTouched_, fPushed_, activeRange, defaultPosition);
+    }
+    public static Tuple<string, float> GetPointGaugeStringAndXScale(Int32 RankPoint_, KeyValuePair<Int32, SRankTierClientMeta> CurrentRankKeyValuePair_)
+    {
+        string String;
+        float XScale;
+        if (RankPoint_ < CurrentRankKeyValuePair_.Key)
+        {
+            String = string.Format("{0}/{1}", RankPoint_, CurrentRankKeyValuePair_.Value.MaxPoint);
+            float PrevMaxPoint = 0;
+            try
+            {
+                PrevMaxPoint = CGlobal.MetaData.RankTiers.TakeWhile(kvp => kvp.Key < CurrentRankKeyValuePair_.Value.MaxPoint).Last().Value.MaxPoint;
+            }
+            catch
+            {
+            }
+
+            XScale = (float)(RankPoint_ - PrevMaxPoint) / (float)(CurrentRankKeyValuePair_.Value.MaxPoint - PrevMaxPoint);
+        }
+        else
+        {
+            String = string.Format("{0}", RankPoint_);
+            XScale = 1.0f;
+        }
+
+        return new Tuple<string, float>(String, XScale);
+    }
+    public static void UpdateQuest(TDoneQuests DoneQuests_)
+    {
+        foreach (var i in DoneQuests_)
+            CGlobal.LoginNetSc.Quests[i.SlotIndex].Count = i.Count;
+    }
+    public static CUnitReward CharCodeToUnitReward(Int32 CharCode_)
+    {
+        return new CUnitRewardCharacter(MetaData.Characters[CharCode_], CGlobal.LoginNetSc.doesHaveCharacter(CharCode_));
+    }
+    public static List<CUnitReward> CharCodesToUnitRewards(List<Int32> CharCodes_)
+    {
+        var UnitRewards = new List<CUnitReward>();
+
+        foreach (var i in CharCodes_)
+            UnitRewards.Add(CharCodeToUnitReward(i));
+
+        return UnitRewards;
+    }
+    public static SCharacterMeta GetSelectCharacterMeta()
+    {
+        return MetaData.Characters[LoginNetSc.User.SelectedCharCode];
+    }
+    public static void Quit()
+    {
+        WillClose = true;
+        NetControl.Logout();
+        CUnity.ApplicationQuit();
     }
 }

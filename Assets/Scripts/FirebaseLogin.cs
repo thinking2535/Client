@@ -1,4 +1,5 @@
 ﻿using bb;
+using rso.unity;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -65,7 +66,7 @@ public class FirebaseLogin : MonoBehaviour
 #if UNITY_STANDALONE
 
 #elif !UNITY_EDITOR
-        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(task =>
+        Firebase.FirebaseApp.CheckAndFixDependenciesAsync().ContinueWith(async task =>
         {
             var dependencyStatus = task.Result;
             if (dependencyStatus == Firebase.DependencyStatus.Available)
@@ -77,14 +78,12 @@ public class FirebaseLogin : MonoBehaviour
             }
             else
             {
-                CGlobal.SystemPopup.ShowPopup(System.String.Format(CGlobal.MetaData.GetText(EText.SceneAccount_ModuelInitFailed), dependencyStatus),
-                    PopupSystem.PopupType.Confirm, (PopupSystem.PopupBtnType type_) =>
-                    {
-                        CGlobal.WillClose = true;
-                        CGlobal.NetControl.Logout();
-                        rso.unity.CBase.ApplicationQuit();
-                        return;
-                    });
+                if (await CGlobal.curScene.pushAskingPopup(EText.SceneAccount_ModuelInitFailed, dependencyStatus) is true)
+                {
+                    CGlobal.WillClose = true;
+                    CGlobal.NetControl.Logout();
+                    CUnity.ApplicationQuit();
+                }
             }
         });
         if(GoogleSignIn.Configuration == null)
@@ -158,14 +157,14 @@ public class FirebaseLogin : MonoBehaviour
     {
 #if UNITY_IOS
         PlayerPrefs.SetString("ProviderID", "Apple");
-        CGlobal.ProgressLoading.VisibleProgressLoading();
+        CGlobal.ProgressCircle.Show();
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
         RawNonce = System.Guid.NewGuid().ToString();
         Nonce = GenerateNonce(RawNonce);
 
         var loginArgs = new AppleAuthLoginArgs(LoginOptions.IncludeEmail, Nonce);
         appleAuthManager.LoginWithAppleId(loginArgs,
-        Credential_ => {
+        async Credential_ => {
             try
             {
                 var appleIdCredential = Credential_ as IAppleIDCredential;
@@ -186,18 +185,18 @@ public class FirebaseLogin : MonoBehaviour
             }
             catch (System.Exception e)
             {
-                CGlobal.ProgressLoading.InvisibleProgressLoading();
-                CGlobal.SystemPopup.ShowPopup(string.Format(CGlobal.MetaData.GetText(EText.SceneAccount_LoginFailed), 1), PopupSystem.PopupType.Confirm, null);
+                CGlobal.ProgressCircle.Hide();
+                await CGlobal.curScene.CGlobal.curScene.pushNoticePopup(EText.SceneAccount_LoginFailed, 1);
             }
         },
         error => {
-            CGlobal.ProgressLoading.InvisibleProgressLoading();
-            CGlobal.SystemPopup.ShowPopup(string.Format(CGlobal.MetaData.GetText(EText.SceneAccount_LoginFailed), error.Code), PopupSystem.PopupType.Confirm, null);
+            CGlobal.ProgressCircle.Hide();
+            await CGlobal.curScene.CGlobal.curScene.pushNoticePopup(EText.SceneAccount_LoginFailed, error.Code);
         });
 #endif
     }
 
-    private void Update()
+    async void Update()
     {
 #if UNITY_IOS
         appleAuthManager?.Update();
@@ -206,24 +205,30 @@ public class FirebaseLogin : MonoBehaviour
         {
             PlayerPrefs.SetString("ProviderID", "Guest");
             _IsError = false;
-            CGlobal.ProgressLoading.InvisibleProgressLoading();
-            CGlobal.SystemPopup.ShowPopup(string.Format(CGlobal.MetaData.GetText(EText.SceneAccount_LoginFailed), 1), PopupSystem.PopupType.Confirm, null);
+            CGlobal.ProgressCircle.Deactivate();
+
+            await CGlobal.curScene.pushNoticePopup(true, EText.SceneAccount_LoginFailed, 1);
+
             ErrorCallback?.Invoke();
         }
         if(_IsCancel)
         {
             PlayerPrefs.SetString("ProviderID", "Guest");
             _IsCancel = false;
-            CGlobal.ProgressLoading.InvisibleProgressLoading();
-            CGlobal.SystemPopup.ShowPopup(EText.SceneAccount_LoginCancel, PopupSystem.PopupType.Confirm);
+            CGlobal.ProgressCircle.Deactivate();
+
+            await CGlobal.curScene.pushNoticePopup(false, EText.SceneAccount_LoginCancel);
+
             ErrorCallback?.Invoke();
         }
         if(_IsErrorDuplicate)
         {
             PlayerPrefs.SetString("ProviderID", "Guest");
             _IsErrorDuplicate = false;
-            CGlobal.ProgressLoading.InvisibleProgressLoading();
-            CGlobal.SystemPopup.ShowPopup(EText.Firebase_Login_Duplicate, PopupSystem.PopupType.Confirm);
+            CGlobal.ProgressCircle.Deactivate();
+
+            await CGlobal.curScene.pushNoticePopup(true, EText.Firebase_Login_Duplicate);
+
             ErrorCallback?.Invoke();
         }
         if(_IsComplelet)
@@ -236,7 +241,7 @@ public class FirebaseLogin : MonoBehaviour
     {
         PlayerPrefs.SetString("ProviderID", "Google");
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.ProgressLoading.VisibleProgressLoading();
+        CGlobal.ProgressCircle.Activate();
         Task<GoogleSignInUser> signIn = GoogleSignIn.DefaultInstance.SignIn();
 
         signIn.ContinueWith(Task_ => {
@@ -268,7 +273,7 @@ public class FirebaseLogin : MonoBehaviour
     {
         PlayerPrefs.SetString("ProviderID", "Facebook");
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.ProgressLoading.VisibleProgressLoading();
+        CGlobal.ProgressCircle.Activate();
         FB.LogInWithReadPermissions(new List<string>() { "email", "public_profile" }, async LoginResult_ =>
         {
             if (LoginResult_ == null)
@@ -319,7 +324,7 @@ public class FirebaseLogin : MonoBehaviour
     {
         PlayerPrefs.SetString("ProviderID", "Guest");
         CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.ProgressLoading.VisibleProgressLoading();
+        CGlobal.ProgressCircle.Activate();
         _Auth.SignInAnonymouslyAsync().ContinueWith(Task_ => {
             if (Task_.IsCanceled)
             {

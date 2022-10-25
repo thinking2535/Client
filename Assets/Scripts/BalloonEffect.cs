@@ -15,15 +15,16 @@ public class BalloonEffect : MonoBehaviour
         EffectXPosition = HalfWidth_;
     }
 
-    public void ViewEffectBallon(sbyte AttackerRelativeDir_, Int32 AddPoint_)
+    public void ShowPopEffectAndPoint(sbyte AttackerRelativeDir_, Int32 Point_)
     {
-        ViewEffectBallon(AttackerRelativeDir_);
-
-        EffectText.SetStart(AddPoint_);
-
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Pop);
+        ShowPopEffect(AttackerRelativeDir_);
+        ShowPoint(Point_);
     }
-    public void ViewEffectBallon(sbyte AttackerRelativeDir_)
+    public void ShowPoint(Int32 Point_)
+    {
+        EffectText.SetStart(Point_);
+    }
+    public void ShowPopEffect(sbyte AttackerRelativeDir_)
     {
         BalloonPaticle.gameObject.SetActive(true);
         float effectPosX = EffectXPosition * AttackerRelativeDir_;
@@ -31,6 +32,7 @@ public class BalloonEffect : MonoBehaviour
         EffectText.gameObject.SetActive(false);
 
         BalloonPaticle.Play();
+        CGlobal.Sound.PlayOneShot((Int32)ESound.Pop);
     }
 
     public void EndEffect()

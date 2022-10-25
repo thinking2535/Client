@@ -4,7 +4,6 @@ using Random = UnityEngine.Random;
 
 public class BalloonSub : MonoBehaviour
 {
-    CEngineGameMode _GameMode;
     [SerializeField] Transform[] BalloonTrans = null;
 
     //상하 운동만 계산이 필요함 그래서 Y 좌표만 별도로 정리.
@@ -16,18 +15,10 @@ public class BalloonSub : MonoBehaviour
     private float EndUpPosY = 0.01f;            //풍선의 최고 높이.
     private float EndDownPosY = -0.01f;           //풍선의 최소 높이.
 
-    public void Init(CEngineGameMode GameMode_, SByte TeamIdx_, SByte MyTeamIdx_)
+    public void Init(Material material)
     {
-        _GameMode = GameMode_;
-
-        var m = Resources.Load<Material>(_GameMode.GetBalloonMaterialName(TeamIdx_, MyTeamIdx_));
-
-        //Material[] ms = { m, m2 }; //풍선 스킨 작업.
         foreach (var i in GetComponentsInChildren<MeshRenderer>())
-        {
-            //i.materials = ms; //풍선 스킨 작업.
-            i.material = m;
-        }
+            i.material = material;
 
         if (BalloonTrans.Length > 1)
         {
@@ -45,36 +36,6 @@ public class BalloonSub : MonoBehaviour
             InitMoveBalloon(0);
         }
     }
-    public void SingleInit()
-    {
-        Material m = null;
-        //Material m2 = Resources.Load<Material>("Material/BalloonSkin/BalloonSkin_12"); //풍선 스킨 작업.
-        m = Resources.Load<Material>("Material/Balloon_01_Blue");
-        var r = GetComponentsInChildren<MeshRenderer>();
-        //Material[] ms = { m, m2 }; //풍선 스킨 작업.
-        foreach (var i in r)
-        {
-            //i.materials = ms; //풍선 스킨 작업.
-            i.material = m;
-        }
-
-        if (BalloonTrans.Length > 1)
-        {
-            StartVelocity[0] = MinBounceVelocity - Random.Range(0.0f, BounceRandomRange);
-            InitMoveBalloon(0);
-            StartVelocity[1] = MinBounceVelocity - Random.Range(0.0f, BounceRandomRange);
-            InitMoveBalloon(1);
-        }
-        else
-        {
-            //풍선이 1개일때 최고 높이와 최소 높이 보정이 필요함.
-            EndUpPosY = 0.00f;
-            EndDownPosY = -0.02f;
-            StartVelocity[0] = MinBounceVelocity - Random.Range(0.0f, BounceRandomRange);
-            InitMoveBalloon(0);
-        }
-    }
-
     private void Update()
     {
         for (Int32 i = 0; i < BalloonTrans.Length; i++)

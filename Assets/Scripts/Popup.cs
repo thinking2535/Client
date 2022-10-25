@@ -12,6 +12,6 @@ public class Popup : MonoBehaviour
     public void Ok()
     {
         gameObject.SetActive(false);
-        CGlobal.SceneSetNext(new CSceneIntro());
+        CGlobal.clearAndPushIntroScene();
     }
 }

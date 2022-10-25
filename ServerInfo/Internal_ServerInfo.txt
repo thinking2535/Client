@@ -1,0 +1,10 @@
+[
+	{
+		"IsBusy" : false,
+		"EndDateTimeString" : "/Alarm7 KST(15:00~17:00)",
+		"GameServer" : "192.168.0.211",
+		"RankingServer" : "192.168.0.211",
+		"Main" : "39",
+		"Data" : "7203998429784996610"
+	}
+]

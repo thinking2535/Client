@@ -1,341 +1,214 @@
 ﻿using bb;
 using System;
-using System.Collections;
-using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UI;
 
 public class SingleModeUI : MonoBehaviour
 {
-    //Game Playing UI
-    [SerializeField] Text _GamePlayTime = null;
-    [SerializeField] Text _GamePlayGold = null;
-    [SerializeField] Image _JoyPadObject = null;
-    [SerializeField] Text _BestPlayTime = null;
-
-    //Result UI
-    [SerializeField] GameObject _GameResult = null;
-    [SerializeField] Text _GameResultTimeText = null;
-    [SerializeField] Text _GameResultGoldText = null;
-    [SerializeField] Text _GameResultBonusGoldText = null;
-    [SerializeField] Text _GameResultScoreText = null;
-    [SerializeField] GameObject _GameResultBtn = null;
-    [SerializeField] GameObject _GameResultRetryBtn = null;
-    [SerializeField] GameObject _GameResultGoldEffect = null;
-    [SerializeField] GameObject _GameResultADBtn = null;
-    [SerializeField] Text _GameResultADEffect = null;
-    [SerializeField] GameObject _GameResultADOffBtn = null;
-
-    [SerializeField] Text _GamePlayScore = null;
-    [SerializeField] Text _GameResultReplayText = null;
-
-    [SerializeField] GameObject _JoyPad = null;
-    [SerializeField] GameObject _GameStartView = null;
-    [SerializeField] GameObject _GameResultSkipBtn = null;
-
-    CSceneBattleSingle _CSceneBattleSingle = null;
-
-    Int32 _AddGold = 0;
-    Int32 _Gold = 0;
-    Int32 _Wave = 0;
-    Int32 _Time = 0;
-
-    bool IsAdview = false;
-
-    float _ResultStepDelta = 0.0f;
-    float _ResultStepTerm = 0.5f;
     enum EResultStep
     {
-        None,
-        ViewBg,
-        ViewTime,
-        ViewGold,
-        ViewScore,
-        ViewBonus,
-        ViewButton
+        none,
+        startAnimatingScore,
+        animatingScore,
+        startAnimatingGold,
+        animatingGold,
+        startAnimatingScoreToGold,
+        animatingScoreToGold,
     }
-    EResultStep _ResultStep = EResultStep.None;
 
-    public void Init(Int32 Wave_, Int32 Time_, Int32 Gold_, Int32 BestTime_, CSceneBattleSingle CSceneBattleSingle_)
+    [SerializeField] Button _exitButton;
+    [SerializeField] Text _title;
+    [SerializeField] Text _scoreText;
+    [SerializeField] Text _scoreValue;
+    [SerializeField] Image _goldIcon;
+    [SerializeField] Text _goldText;
+    [SerializeField] GameObject _resultPopup;
+    [SerializeField] Text _resultScoreText;
+    [SerializeField] Image _resultGoldIcon;
+    [SerializeField] Text _resultGoldText;
+    [SerializeField] Button _retryButton;
+    [SerializeField] Button _okButton;
+    [SerializeField] Text _retryButtonText;
+    [SerializeField] Text _okButtonText;
+    [SerializeField] GameObject _gameStartObject;
+    [SerializeField] Button _skipButton;
+
+    float _nextStepTime = 0.0f;
+    const float _stepDuration = 1.0f;
+
+    EResultStep _resultStep = EResultStep.none;
+    Action _fShowExitPopup;
+    Action _fReplayButtonClicked;
+    Action _fOkButtonClicked;
+    Func<string> _fGetRetryString;
+    Int32 _scorePerGold;
+    Int32 _score = 0;
+    Int32 _gold = 0;
+    float _scoreToGoldAnimationStartedTime = 0.0f;
+
+    void Awake()
     {
-        SetTimeCount(Time_);
-        SetGoldCount(Gold_);
-        SetBestTimeCount(BestTime_);
-        _GamePlayScore.text = "0";
-
-        _CSceneBattleSingle = CSceneBattleSingle_;
-        _GameResultSkipBtn.SetActive(false);
-
-        _GameResult.SetActive(false);
-        _AddGold = 0;
-        IsAdview = false;
-        _JoyPad.SetActive(CGlobal.GameOption.Data.IsPad);
+        _exitButton.onClick.AddListener(_showExitPopup);
+        _skipButton.onClick.AddListener(skipResult);
+        _retryButton.onClick.AddListener(_retry);
+        _okButton.onClick.AddListener(_oK);
+        _title.text = CGlobal.MetaData.getText(EText.ResultScene_Text_Result);
+        _scoreText.text = CGlobal.MetaData.getText(EText.SceenSingle_Score);
+        _goldIcon.sprite = CGlobal.GetResourceSprite(EResource.Gold);
+        _resultGoldIcon.sprite = CGlobal.GetResourceSprite(EResource.Gold);
     }
-    public void SetTimeCount(Int32 Time_)
+    void Update()
     {
-        _GamePlayTime.text = TimeString(Time_);
+        _updateResult(false);
     }
-    public void SetBestTimeCount(Int32 Time_)
+    void OnDestroy()
     {
-        _BestPlayTime.text = TimeString(Time_);
+        _okButton.onClick.RemoveAllListeners();
+        _retryButton.onClick.RemoveAllListeners();
+        _skipButton.onClick.RemoveAllListeners();
+        _exitButton.onClick.RemoveAllListeners();
     }
-    public void SetScoreCount(Int32 Wave_, Int32 Time_, Int32 AddGold_)
+    public void Init(
+        Action fShowExitPopup,
+        Action fReplayButtonClicked_,
+        Action fOkButtonClicked_,
+        Func<string> fGetRetryString,
+        Int32 scorePerGold,
+        Int32 score,
+        Int32 gold)
     {
-        var WaveScore = (Wave_ - 1) * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorWave;
-        if (WaveScore < 0) WaveScore = 0;
+        _fShowExitPopup = fShowExitPopup;
+        _fReplayButtonClicked = fReplayButtonClicked_;
+        _fOkButtonClicked = fOkButtonClicked_;
+        _fGetRetryString = fGetRetryString;
+        _scorePerGold = scorePerGold;
 
-        _GamePlayScore.text = (WaveScore +
-                                     Time_ * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorTime +
-                                     AddGold_ * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorGold).ToString();
+        setScore(score);
+        setGold(gold);
     }
-    public void SetGoldCount(Int32 Gold_)
+    public void setScore(Int32 score)
     {
-        _GamePlayGold.text = Gold_.ToString();
+        _score = score;
+        _scoreValue.text = score.ToString();
     }
-    public void ShowResult(Int32 Wave_, Int32 Time_, Int32 Gold_, Int32 AddGold_)
+    public void setGold(Int32 gold)
     {
-        _GameResult.SetActive(true);
-        _GameResultSkipBtn.SetActive(true);
-        _GameResultTimeText.gameObject.SetActive(false);
-        _GameResultGoldText.gameObject.SetActive(false);
-        _GameResultBonusGoldText.gameObject.SetActive(false);
-        _GameResultScoreText.gameObject.SetActive(false);
-        _GameResultGoldEffect.SetActive(false);
-        _GameResultBtn.SetActive(false);
-        _GameResultRetryBtn.SetActive(false);
-        _GameResultADEffect.gameObject.SetActive(false);
-        _GameResultADBtn.SetActive(false);
-        _GameResultADOffBtn.SetActive(false);
-        _AddGold = AddGold_;
-        _Gold = Gold_;
-        _Wave = Wave_;
-        _Time = Time_;
-        _ResultStep = EResultStep.ViewBg;
-        _ResultStepDelta = 0.0f;
+        _gold = gold;
+        _goldText.text = gold.ToString();
+    }
+    public void ShowResultPopup()
+    {
+        HideGameStart();
+        _resultPopup.SetActive(true);
+        _resultGoldText.gameObject.SetActive(false);
+        _resultScoreText.gameObject.SetActive(false);
+        _okButton.gameObject.SetActive(false);
+        _retryButton.gameObject.SetActive(false);
+        _resultGoldText.text = _gold.ToString();
+        _resultScoreText.text = _score.ToString();
 
-        var WaveScore = (Wave_ - 1) * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorWave;
-        if (WaveScore < 0) WaveScore = 0;
-        _GameResultTimeText.text = TimeString(Time_);
-        _GameResultGoldText.text = _AddGold.ToString();
-        _GameResultBonusGoldText.text = "+" + _Gold.ToString();
-        var Score = WaveScore + Time_ * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorTime + AddGold_ * CGlobal.MetaData.SingleBalanceMeta.ScoreFactorGold;
-        _GameResultScoreText.text = Score.ToString();
-
-        if(Score >= CGlobal.LoginNetSc.User.SinglePointBest)
-        {
-            CGlobal.LoginNetSc.User.SinglePointBest = Score;
-        }
-        if(Time_ >= CGlobal.LoginNetSc.User.SingleSecondBest)
-        {
-            CGlobal.LoginNetSc.User.SingleSecondBest = Time_;
-        }
-
-        _GameResultReplayText.text = string.Format("{2}\n{0}/{1}", CGlobal.GetSinglePlayCountLeftTime().Item1,CGlobal.MetaData.SingleBalanceMeta.PlayCountMax, CGlobal.MetaData.GetText(EText.SceenSingle_Replay));
+        _retryButtonText.text = _fGetRetryString();
+        _okButtonText.text = CGlobal.MetaData.getText(EText.Global_Button_Ok);
         AnalyticsManager.AddTutorialTracking();
         CGlobal.Sound.PlayOneShot((Int32)ESound.GameEnd);
-    }
-    public void SkipResult()
-    {
-        _ResultStep = EResultStep.None;
-        _ResultStepDelta = 0.0f;
-        _GameResultSkipBtn.SetActive(false);
-        _GameResultTimeText.gameObject.SetActive(true);
-        _GameResultGoldText.gameObject.SetActive(true);
-        _GameResultScoreText.gameObject.SetActive(true);
-        _GameResultBonusGoldText.gameObject.SetActive(false);
-        _GameResultGoldText.text = (_Gold + _AddGold).ToString();
-        _GameResultBtn.SetActive(true);
-        _GameResultRetryBtn.SetActive(true);
-        _GameResultADBtn.SetActive(true);
-        _GameResultADOffBtn.SetActive(true);
-        _CSceneBattleSingle.ResultViewEnd();
-    }
-    private string TimeString(Int32 Time_)
-    {
-        if (Time_ < 0) Time_ = 0;
-        string timeString = "";
-        var min = Time_ / 60;
-        var sec = Time_ % 60;
-        if (min >= 60)
-        {
-            var hour = min / 60;
-            min = min % 60;
-            timeString = hour.ToString() + ":" + string.Format("{0:D2}", min) + ":" + string.Format("{0:D2}", sec);
-        }
-        else
-        {
-            timeString = string.Format("{0:D2}", min) + ":" + string.Format("{0:D2}", sec);
-        }
-        return timeString;
-    }
-    private void Update()
-    {
-        if (_ResultStep != EResultStep.None)
-        {
-            _ResultStepDelta += Time.deltaTime;
-            switch (_ResultStep)
-            {
-                case EResultStep.ViewBg:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        _ResultStepDelta = 0.0f;
-                        _ResultStep = EResultStep.ViewTime;
-                        _GameResultTimeText.gameObject.SetActive(true);
-                    }
-                    break;
-                case EResultStep.ViewTime:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        _ResultStepDelta = 0.0f;
-                        _ResultStep = EResultStep.ViewGold;
-                        _GameResultGoldText.gameObject.SetActive(true);
-                    }
-                    break;
-                case EResultStep.ViewGold:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        _ResultStepDelta = 0.0f;
-                        if (_Gold > 0)
-                            _ResultStep = EResultStep.ViewScore;
-                        else
-                            _ResultStep = EResultStep.ViewButton;
-                        _GameResultScoreText.gameObject.SetActive(true);
-                    }
-                    break;
-                case EResultStep.ViewScore:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        _ResultStepDelta = 0.0f;
-                        _ResultStep = EResultStep.ViewBonus;
-                        _GameResultBonusGoldText.gameObject.SetActive(true);
-                    }
-                    break;
-                case EResultStep.ViewBonus:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        _ResultStepDelta = 0.0f;
-                        _ResultStep = EResultStep.ViewButton;
-                        _GameResultBonusGoldText.gameObject.SetActive(false);
-                        _GameResultGoldText.text = (_Gold + _AddGold).ToString();
-                        _GameResultGoldEffect.SetActive(true);
-                    }
-                    break;
-                case EResultStep.ViewButton:
-                    if (_ResultStepDelta >= _ResultStepTerm)
-                    {
-                        SkipResult();
-                    }
-                    break;
-            }
-        }
-    }
-    public void SetJoyPadVisible(bool IsView_)
-    {
-        _JoyPadObject.gameObject.SetActive(IsView_);
-    }
-    public void ResultOKClick()
-    {
-        var Gold = _AddGold + _Gold;
-        if (!IsAdview)
-            CGlobal.NetControl.Send(new SSingleEndNetCs(_Wave, _Time, _AddGold, Gold, 0));
-        else
-            Gold *= 2;
 
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.MusicStop();
-        CGlobal.SceneSetNext(new CSceneLobby(Gold, 0,0));
+        _resultStep = EResultStep.startAnimatingScore;
     }
-    public void ResultADClick()
+    public bool isPlayingResult()
     {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        CGlobal.ADManager.ShowAdDodgeReward(() =>
-        {
-            var Gold = (_AddGold + _Gold) * 2;
-            var SendPacket = new SSingleEndNetCs(_Wave, _Time, _AddGold, Gold, 0);
-            if (!CGlobal.NetControl.IsLinked(0))
-            {
-                CGlobal.ADManager.SaveDelayPacket(ADManager.EDelayRewardType.DodgeReward, SendPacket);
-            }
-            else
-            {
-                IsAdview = true;
-                _GameResultADEffect.gameObject.SetActive(true);
-                _GameResultADEffect.text = string.Format("+{0}", (_AddGold + _Gold));
-                _GameResultADBtn.SetActive(false);
-                CGlobal.NetControl.Send(SendPacket);
-            }
-        });
-        AnalyticsManager.TrackingEvent(ETrackingKey.ads_result_dodge);
+        return _resultStep != EResultStep.none;
     }
-    public void ResultReplayClick()
+    public void skipResult()
     {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        var SingleData = CGlobal.GetSinglePlayCountLeftTime();
+        _updateResult(true);
+    }
+    void _updateResult(bool skip)
+    {
+        if (!isPlayingResult())
+            return;
 
-        var Gold = _AddGold + _Gold;
-        if (IsAdview)
-            Gold *= 2;
-        CGlobal.LoginNetSc.User.Resources[(Int32)EResource.Gold] += Gold;
+        switch (_resultStep)
+        {
+            case EResultStep.startAnimatingScore:
+                _resultScoreText.gameObject.SetActive(true);
+                _nextStepTime = Time.time + _stepDuration;
+                _resultStep = EResultStep.animatingScore;
+                break;
 
-        if (SingleData.Item1 > 0)
-        {
-            GameRestart();
-        }
-        else
-        {
-            CGlobal.SystemPopup.ShowCostResourcePopup(EText.GlobalPopup_Text_SingleCharge, EResource.Gold, CGlobal.MetaData.SingleBalanceMeta.ChargeCostGold, (PopupSystem.PopupBtnType type_) =>
-            {
-                if (type_ == PopupSystem.PopupBtnType.Ok)
+            case EResultStep.animatingScore:
+                if (skip || _nextStepTime <= Time.time)
+                    _resultStep = EResultStep.startAnimatingGold;
+
+                break;
+
+            case EResultStep.startAnimatingGold:
+                _resultGoldText.gameObject.SetActive(true);
+                _nextStepTime += _stepDuration;
+                _resultStep = EResultStep.animatingGold;
+                break;
+
+            case EResultStep.animatingGold:
+                if (skip || _nextStepTime <= Time.time)
+                    _resultStep = EResultStep.startAnimatingScoreToGold;
+
+                break;
+
+            case EResultStep.startAnimatingScoreToGold:
+                _scoreToGoldAnimationStartedTime = Time.time;
+                _resultStep = EResultStep.animatingScoreToGold;
+                break;
+
+            case EResultStep.animatingScoreToGold:
                 {
-                    if (CGlobal.HaveCost(EResource.Gold, CGlobal.MetaData.SingleBalanceMeta.ChargeCostGold))
+                    Int32 scoreAnimated;
+
+                    if (skip)
                     {
-                        GameRestart();
-                        AnalyticsManager.TrackingEvent(ETrackingKey.spend_gold_singlecharge);
+                        scoreAnimated = _score;
                     }
                     else
                     {
-                        CGlobal.ShowResourceNotEnough(EResource.Gold);
-                        CGlobal.LoginNetSc.User.Resources[(Int32)EResource.Gold] -= Gold;
+                        var elapsedTime = Time.time - _scoreToGoldAnimationStartedTime;
+                        scoreAnimated = (Int32)(elapsedTime * 1000);
+
+                        if (scoreAnimated > _score)
+                            scoreAnimated = _score;
+                    }
+
+                    _resultScoreText.text = (_score - scoreAnimated).ToString();
+                    _resultGoldText.text = (_gold + scoreAnimated / _scorePerGold).ToString();
+
+                    if (skip || scoreAnimated == _score)
+                    {
+                        _okButton.gameObject.SetActive(true);
+                        _retryButton.gameObject.SetActive(true);
+                        _skipButton.gameObject.SetActive(false);
+                        _resultStep = EResultStep.none;
                     }
                 }
-                else
-                {
-                    CGlobal.LoginNetSc.User.Resources[(Int32)EResource.Gold] -= Gold;
-                }
-            });
+                break;
         }
     }
-    public void ExitClick()
+    public void _retry()
     {
-        CGlobal.Sound.PlayOneShot((Int32)ESound.Ok);
-        if (_GameResult.activeSelf == true)
-        {
-            ResultOKClick();
-        }
-        else
-            CGlobal.SystemPopup.ShowPopup(EText.SceenSingle_ExitPopup, PopupSystem.PopupType.CancelOk, (PopupSystem.PopupBtnType type_) => {
-                if (type_ == PopupSystem.PopupBtnType.Ok)
-                {
-                    CGlobal.MusicStop();
-                    CGlobal.SceneSetNext(new CSceneLobby());
-                }
-            });
+        _fReplayButtonClicked();
+    }
+    public void _oK()
+    {
+        _fOkButtonClicked();
     }
     public void ShowGameStart()
     {
         CGlobal.Sound.PlayOneShot((Int32)ESound.GameStart);
-        _GameStartView.SetActive(true);
+        _gameStartObject.SetActive(true);
     }
     public void HideGameStart()
     {
-        _GameStartView.SetActive(false);
+        _gameStartObject.SetActive(false);
     }
-    private void GameRestart()
+    public void _showExitPopup()
     {
-        if (!IsAdview)
-            CGlobal.NetControl.Send(new SSingleEndNetCs(_Wave, _Time, _AddGold, _Gold + _AddGold, 0));
-
-        CGlobal.NetControl.Send(new SSingleStartNetCs());
-        CGlobal.SceneSetNext(new CSceneBattleSingle());
+        _fShowExitPopup();
     }
 }

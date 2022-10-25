@@ -10,65 +10,164 @@ using UnityEngine;
 using TChars = System.Collections.Generic.HashSet<System.Int32>;
 using System.IO;
 
+
+public class SReward
+{
+    public static SReward create(string type, Int32 value)
+    {
+        var reward = new SReward();
+
+        switch (type)
+        {
+            case "Gold":
+                reward.Resources[(Int32)EResource.Gold] += value;
+                break;
+
+            default:
+                throw new Exception();
+        }
+
+        return reward;
+    }
+
+    public Int32[] Resources = CGlobal.getEmptyResources();
+    public HashSet<SCharacterMeta> Chars = new HashSet<SCharacterMeta>();
+
+    public Sprite GetSprite()
+    {
+        return GetFirstUnitReward()?.GetSprite();
+    }
+    public Sprite getBigSprite()
+    {
+        return GetFirstUnitReward()?.getBigSprite();
+    }
+    public string GetText()
+    {
+        var FirstUnitReward = GetFirstUnitReward();
+        return FirstUnitReward == null ? "" : FirstUnitReward.GetText();
+    }
+    public List<CUnitRewardResource> GetUnitRewardResources()
+    {
+        // rso todo moneyui  Resource 보상만 있는 것도 아닌데 Resource 타입의 보상만 보여주면 안된댜~.
+        // GetUnitRewards() 이 함수를 쓰고 자원, 캐릭 등 모든 타입의 보상을 보여주도록 하고 스크롤 가능하도록(큰 버전, 작은 버전의 프리팹 만들것)
+        return Resources.GetUnitRewardResources();
+    }
+    public List<CUnitReward> GetUnitRewards()
+    {
+        var UnitRewards = new List<CUnitReward>();
+
+        foreach (var i in Chars)
+            UnitRewards.Add(new CUnitRewardCharacter(CGlobal.MetaData.Characters[i.Code], CGlobal.LoginNetSc.doesHaveCharacter(i.Code)));
+
+        UnitRewards.AddRange(Resources.GetUnitRewardResources().Cast<CUnitReward>());
+
+        return UnitRewards;
+    }
+    public CUnitReward GetFirstUnitReward() // rso todo 제거할것 (여러 단위 보상이 모여있는데 하나만 보여주지 말것)
+    {
+        if (Chars.Count > 0)
+            return new CUnitRewardCharacter(CGlobal.MetaData.Characters[Chars.First().Code], CGlobal.LoginNetSc.doesHaveCharacter(Chars.First().Code));
+
+        return Resources.GetFirstUnitReward();
+    }
+};
+public class SRankReward
+{
+    public SRankRewardMeta Meta;
+    public SReward Reward;
+
+    public SRankReward(SRankRewardMeta meta)
+    {
+        Meta = meta;
+        Reward = SReward.create(meta.rewardType, meta.rewardValue);
+    }
+};
+public class Quest
+{
+    public QuestTypeValueMeta questTypeValueMeta;
+    public SQuestMeta questMeta;
+    public SReward reward;
+
+    public Quest(QuestTypeValueMeta questTypeValueMeta, SQuestMeta questMeta)
+    {
+        this.questTypeValueMeta = questTypeValueMeta;
+        this.questMeta = questMeta;
+        reward = SReward.create(questMeta.rewardType, questMeta.rewardValue);
+    }
+    public string iconName => questTypeValueMeta.iconName;
+    public string text => CGlobal.MetaData.getTextWithParameters(questTypeValueMeta.textName, questMeta.unitCompleteCount);
+    public Int32 completeCount => questMeta.completeCount;
+}
 public class CMetaData
 {
-    public class SQuestDailyComplete
+    public class QuestConfig
     {
-        public SQuestDailyCompleteMeta Meta = null;
-        public TimeSpan RefreshDuration;
+        public QuestConfigMeta Meta = null;
+        public SReward Reward;
 
-        public SQuestDailyComplete(SQuestDailyCompleteMeta Meta_)
+        public QuestConfig(QuestConfigMeta Meta_)
         {
             Meta = Meta_;
-            RefreshDuration = TimeSpan.FromMinutes(Meta_.RefreshMinutes);
+            Reward = SReward.create(Meta_.dailyRewardType, Meta_.dailyRewardValue);
         }
     }
 
     public ulong Checksum = 0;
     public SConfigMeta ConfigMeta = null;
+    public MultiBattleConfigMeta multiBattleConfigMeta;
+    public Int32[] MaxResources { get; private set; }
     public string[] ForbiddenWords = null;
-    public SSingleBalance SingleBalanceMeta = null;
-    public SSingleIslandBalance SingleIslandBalanceMeta = null;
-    public List<SingleIslandObject.EItemType> SingleIslandItemPattern = new List<SingleIslandObject.EItemType>();
-    public List<SinglePlayObject.EItemType> SingleArrowItemPattern = new List<SinglePlayObject.EItemType>();
 
-    public SMultiIslandBalance MultiIslandBalanceMeta = null;
-    public List<SingleIslandObject.EItemType> MultiIslandItemPattern = new List<SingleIslandObject.EItemType>();
-
-    public SMultiBalance MultiBalanceMeta = null;
-    public List<SinglePlayObject.EItemType> MultiArrowItemPattern = new List<SinglePlayObject.EItemType>();
-
-    public Dictionary<EMultiItemType, SMultiItemDodge> MultiItemDodgeMetas = new Dictionary<EMultiItemType, SMultiItemDodge>();
-    public Dictionary<EMultiItemType, SMultiItemIsland> MultiItemIslandMetas = new Dictionary<EMultiItemType, SMultiItemIsland>();
-
-    public List<SModeEventMeta> ModeEventMetas = new List<SModeEventMeta>();
-
-    public SQuestDailyComplete QuestDailyComplete = null;
-    public SShopConfigServerMeta ShopConfigMeta = null;
-    public ELanguage Lang { get; private set; } = ELanguage.English;
+    public QuestConfig questConfig = null;
     public Dictionary<EText, STextSet> TextSets = new Dictionary<EText, STextSet>();
+    string[] _languageTexts = new string[(Int32)ELanguage.Max];
     public Dictionary<EGameRet, STextSet> GameRetSets = new Dictionary<EGameRet, STextSet>();
-    public Dictionary<Int32, SCharacterClientMeta> Chars = new Dictionary<Int32, SCharacterClientMeta>();
-    public Dictionary<EGrade, SCharacterGradeClientMeta> CharGrades = new Dictionary<EGrade, SCharacterGradeClientMeta>();
-    public Dictionary<Int32, SShopInGameMeta> ShopInGameMetas = new Dictionary<Int32, SShopInGameMeta>();
-    public Dictionary<string, SShopIAPMeta> ShopIAPMetas = new Dictionary<string, SShopIAPMeta>();
-    public Dictionary<Int32, SShopPackageClientMeta> ShopPackageMetas = new Dictionary<Int32, SShopPackageClientMeta>();
-    public Dictionary<Int32, SQuestClientMeta> QuestMetas = new Dictionary<Int32, SQuestClientMeta>();
-    public Rank<Int32, SRankTierClientMeta> RankMetas = new Rank<Int32, SRankTierClientMeta>();
-    public List<SGachaClientMeta> GachaList = new List<SGachaClientMeta>();
-    public Dictionary<Int32, SRankRewardViewMeta> RankRewardViewList = new Dictionary<Int32, SRankRewardViewMeta>();
-    public List<SRankRewardMeta> RankRewardList = new List<SRankRewardMeta>();
-    public Dictionary<Int32, CRewardItem> RewardItems = new Dictionary<Int32, CRewardItem>();
-    public Dictionary<string, SCheatMeta> CheatList = new Dictionary<string, SCheatMeta>();
-    public Dictionary<Int32, Dictionary<Int32, SGachaRewardClientMeta>> GachaRewardList = new Dictionary<Int32, Dictionary<Int32, SGachaRewardClientMeta>>();
-    public Dictionary<EGrade, double> GachaGradeList = new Dictionary<EGrade, double>();
-    public Dictionary<EGrade, Dictionary<int, double>> GachaRewardMaxList = new Dictionary<EGrade, Dictionary<int, double>>();
-    public Dictionary<ETrackingKey, STrackingMeta> TrackingMetas = new Dictionary<ETrackingKey, STrackingMeta>();
-    public List<SRankingRewardMeta> RankingRewardMetas = new List<SRankingRewardMeta>();
-    public Dictionary<string, EText> ServerAlarmList = new Dictionary<string, EText>();
-    public Dictionary<EGameMode, Int32> GameModeMaxMember = new Dictionary<EGameMode, int>();
+    public Dictionary<Int32, SCharacterMeta> Characters { get; private set; } = new Dictionary<Int32, SCharacterMeta>();
+    public Sprite GetCharacterSprite(Int32 Code_)
+    {
+        return Characters[Code_].GetSprite();
+    }
+    public Texture GetCharacterTexture(Int32 Code_)
+    {
+        return Characters[Code_].GetTexture();
+    }
 
-    public SMapMeta Maps = new SMapMeta();
+    public float MinVelAir { get; private set; } = float.MaxValue;
+    public List<SCharacterMeta> shopCharacters{ get; private set; } = new List<SCharacterMeta>();
+    Dictionary<EResource, ExchangeValue> _exchangeValues = new Dictionary<EResource, ExchangeValue>();
+    public Dictionary<Int32, Quest> questDatas = new Dictionary<Int32, Quest>();
+    public CClosedRank<Int32, SRankTierClientMeta> RankTiers = new CClosedRank<Int32, SRankTierClientMeta>();
+    public List<SRankReward> RankRewards = new List<SRankReward>();
+    public SReward GetRankReward(Int32 PointBest_, Int32 RewardIndex_)
+    {
+        if (RewardIndex_ > RankRewards.Count - 1)
+            return null;
+
+        if (PointBest_ < RankRewards[RewardIndex_].Meta.point)
+            return null;
+
+        return RankRewards[RewardIndex_].Reward;
+    }
+    public Dictionary<ETrackingKey, STrackingMeta> TrackingMetas = new Dictionary<ETrackingKey, STrackingMeta>();
+    public CRank<Int32, SReward>[] RankingReward = new CRank<Int32, SReward>[(Int32)ERankingType.Max];
+    public Dictionary<string, EText> ServerAlarmList = new Dictionary<string, EText>();
+    public ArrowDodgeConfigMeta arrowDodgeConfigMeta;
+    public FlyAwayConfigMeta flyAwayConfigMeta;
+    public List<SArrowDodgeItemMeta> ArrowDodgeItemMetas = new List<SArrowDodgeItemMeta>();
+
+    CClosedRank<UInt32, EArrowDodgeItemType> _ArrowDodgeItemSelector = new CClosedRank<UInt32, EArrowDodgeItemType>();
+    public EArrowDodgeItemType GetRandomArrowDodgeItemType(UInt32 RandomNumber_)
+    {
+        return _ArrowDodgeItemSelector.Get(RandomNumber_ % _ArrowDodgeItemSelector.Last().Key).Value.Value;
+    }
+    public List<SFlyAwayItemMeta> FlyAwayItemMetas = new List<SFlyAwayItemMeta>();
+
+    CClosedRank<UInt32, EFlyAwayItemType> _FlyAwayStaminaItemSelector = new CClosedRank<UInt32, EFlyAwayItemType>();
+    public EFlyAwayItemType GetRandomFlyAwayStaminaItemType(UInt32 RandomNumber_)
+    {
+        return _FlyAwayStaminaItemSelector.Get(RandomNumber_ % _FlyAwayStaminaItemSelector.Last().Key).Value.Value;
+    }
+    public SMapMeta MapMeta = new SMapMeta();
     public CMetaData()
     {
         TextAsset t = Resources.Load<TextAsset>("MetaData/Checksum");
@@ -78,113 +177,13 @@ public class CMetaData
         t = Resources.Load<TextAsset>("MetaData/Config");
         new CStream(t.bytes).Pop(ref ConfigMetas);
         ConfigMeta = ConfigMetas[0];
-
-        List<SSingleBalance> SingleBalanceMetas = new List<SSingleBalance>();
-        t = Resources.Load<TextAsset>("MetaData/Single");
-        new CStream(t.bytes).Pop(ref SingleBalanceMetas);
-        SingleBalanceMeta = SingleBalanceMetas[0];
-        foreach (var i in SingleBalanceMeta.ItemPattern.Split(','))
-        {
-            switch (i)
-            {
-                case "coin":
-                    SingleArrowItemPattern.Add(SinglePlayObject.EItemType.Coin);
-                    break;
-                case "goldbar":
-                    SingleArrowItemPattern.Add(SinglePlayObject.EItemType.GoldBar);
-                    break;
-                case "item":
-                    SingleArrowItemPattern.Add(SinglePlayObject.EItemType.Item_Stamina);
-                    break;
-                case "shield":
-                    SingleArrowItemPattern.Add(SinglePlayObject.EItemType.Item_Shield);
-                    break;
-            }
-        }
-
-        List<SMultiBalance> MultiBalanceMetas = new List<SMultiBalance>();
-        t = Resources.Load<TextAsset>("MetaData/MultiSingle");
-        new CStream(t.bytes).Pop(ref MultiBalanceMetas);
-        MultiBalanceMeta = MultiBalanceMetas[0];
-        foreach (var i in MultiBalanceMeta.ItemPattern.Split(','))
-        {
-            switch (i)
-            {
-                case "item":
-                    MultiArrowItemPattern.Add(SinglePlayObject.EItemType.Item_Stamina);
-                    break;
-                case "shield":
-                    MultiArrowItemPattern.Add(SinglePlayObject.EItemType.Item_Shield);
-                    break;
-            }
-        }
-
-        List<SSingleIslandBalance> SingleIslandBalanceMetas = new List<SSingleIslandBalance>();
-        t = Resources.Load<TextAsset>("MetaData/Island");
-        new CStream(t.bytes).Pop(ref SingleIslandBalanceMetas);
-        SingleIslandBalanceMeta = SingleIslandBalanceMetas[0];
-        foreach (var i in SingleIslandBalanceMeta.ItemPattern.Split(','))
-        {
-            switch (i)
-            {
-                case "apple":
-                    SingleIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Apple);
-                    break;
-                case "meat":
-                    SingleIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Meat);
-                    break;
-                case "chicken":
-                    SingleIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Chicken);
-                    break;
-            }
-        }
-
-        List<SMultiIslandBalance> MultiIslandBalanceMetas = new List<SMultiIslandBalance>();
-        t = Resources.Load<TextAsset>("MetaData/MultiIsland");
-        new CStream(t.bytes).Pop(ref MultiIslandBalanceMetas);
-        MultiIslandBalanceMeta = MultiIslandBalanceMetas[0];
-        foreach (var i in MultiIslandBalanceMeta.ItemPattern.Split(','))
-        {
-            switch (i)
-            {
-                case "apple":
-                    MultiIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Apple);
-                    break;
-                case "meat":
-                    MultiIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Meat);
-                    break;
-                case "chicken":
-                    MultiIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Chicken);
-                    break;
-                case "random":
-                    MultiIslandItemPattern.Add(SingleIslandObject.EItemType.Item_Random);
-                    break;
-            }
-        }
-        var MultiItemMetas = new List<SMultiItemMeta>();
-        t = Resources.Load<TextAsset>("MetaData/MultiItem");
-        new CStream(t.bytes).Pop(ref MultiItemMetas);
-
-        int RandCountDodge = 0;
-        int RandCountIsland = 0;
-        foreach (var i in MultiItemMetas)
-        {
-            RandCountDodge += i.MultiDodgeRand;
-            RandCountIsland += i.MultiIslandRand;
-            MultiItemDodgeMetas.Add(i.ItemType, new SMultiItemDodge(new SMultiItem(i.ItemType, i.Description), i.MultiDodgeTime, i.MultiDodgeValue, RandCountDodge));
-            MultiItemIslandMetas.Add(i.ItemType, new SMultiItemIsland(new SMultiItem(i.ItemType, i.Description), i.MultiIslandTime, i.MultiIslandValue, RandCountIsland));
-        }
+        MaxResources = CGlobal.getFullResources();
+        MaxResources[(Int32)EResource.Ticket] = ConfigMeta.MaxTicket;
 
         var ForbiddenWordMetas = new List<string>();
         t = Resources.Load<TextAsset>("MetaData/ForbiddenWord");
         new CStream(t.bytes).Pop(ref ForbiddenWordMetas);
         ForbiddenWords = ForbiddenWordMetas.Select(s => s.ToLowerInvariant()).ToArray();
-
-        var CheatMetas = new List<SCheatMeta>();
-        t = Resources.Load<TextAsset>("MetaData/Cheat");
-        new CStream(t.bytes).Pop(ref CheatMetas);
-        foreach (var i in CheatMetas)
-            CheatList.Add(i.Cheat, i);
 
         var ServerAlarmMetas = new List<SServerAlarmMeta>();
         t = Resources.Load<TextAsset>("MetaData/ServerAlarm");
@@ -201,6 +200,18 @@ public class CMetaData
                 throw new Exception("EText " + ((EText)i).ToString() + " Not Found");
         }
 
+        {
+            var LanguageTextMetas = new List<SLanguageTextMeta>();
+            t = Resources.Load<TextAsset>("MetaData/LanguageText");
+            new CStream(t.bytes).Pop(ref LanguageTextMetas);
+
+            foreach (var i in LanguageTextMetas)
+                _languageTexts[(Int32)i.Language] = i.Text;
+
+            foreach (var i in _languageTexts)
+                Debug.Assert(i != null);
+        }
+
         t = Resources.Load<TextAsset>("MetaData/GameRet");
         new CStream(t.bytes).Pop(ref GameRetSets);
 
@@ -210,184 +221,216 @@ public class CMetaData
                 throw new Exception("EGameRet " + ((EGameRet)i).ToString() + " Not Found");
         }
 
-        var CharMetas = new List<SCharacterClientMeta>();
-        t = Resources.Load<TextAsset>("MetaData/Character");
-        new CStream(t.bytes).Pop(ref CharMetas);
-        foreach (var i in CharMetas)
-            Chars.Add(i.Code, i);
 
-        var CharGradeMetas = new List<SCharacterGradeClientMeta>();
-        t = Resources.Load<TextAsset>("MetaData/CharacterGrade");
-        new CStream(t.bytes).Pop(ref CharGradeMetas);
-        foreach (var i in CharGradeMetas)
-            CharGrades.Add(i.Grade, i);
-
-        t = Resources.Load<TextAsset>("MetaData/Map");
-        new CStream(t.bytes).Pop(ref Maps);
-
-        Debug.Log("Loaded MetaData/Map");
-
-        List<SShopConfigServerMeta> ShopConfigMetas = new List<SShopConfigServerMeta>();
-        t = Resources.Load<TextAsset>("MetaData/ShopConfig");
-        new CStream(t.bytes).Pop(ref ShopConfigMetas);
-        ShopConfigMeta = ShopConfigMetas[0];
-
-        var InGameMetas = new List<SShopInGameMeta>();
-        t = Resources.Load<TextAsset>("MetaData/Shop");
-        new CStream(t.bytes).Pop(ref InGameMetas);
-        foreach (var i in InGameMetas)
-            ShopInGameMetas.Add(i.Code, i);
-
-        var PackageMetas = new List<SShopPackageClientMeta>();
-        t = Resources.Load<TextAsset>("MetaData/ShopPackage");
-        new CStream(t.bytes).Pop(ref PackageMetas);
-        foreach (var i in PackageMetas)
-            ShopPackageMetas.Add(i.Code, i);
-
-        t = Resources.Load<TextAsset>("MetaData/EventTimeModeOpen");
-        new CStream(t.bytes).Pop(ref ModeEventMetas);
-
-        var IAPMetas = new List<SShopIAPMeta>();
-        t = Resources.Load<TextAsset>("MetaData/ShopCash");
-        new CStream(t.bytes).Pop(ref IAPMetas);
-        foreach (var i in IAPMetas)
-            ShopIAPMetas.Add(i.Pid, i);
-
-        var TempQuestMetas = new List<SQuestClientMeta>();
-        t = Resources.Load<TextAsset>("MetaData/Quest");
-        new CStream(t.bytes).Pop(ref TempQuestMetas);
-        foreach (var meta in TempQuestMetas)
-            QuestMetas.Add(meta.Code,meta);
-        List<SQuestDailyCompleteMeta> QuestDailyCompleteMetas = new List<SQuestDailyCompleteMeta>();
-        t = Resources.Load<TextAsset>("MetaData/QuestDailyComplete");
-        new CStream(t.bytes).Pop(ref QuestDailyCompleteMetas);
-        QuestDailyComplete = new CMetaData.SQuestDailyComplete(QuestDailyCompleteMetas[0]);
-
-        t = Resources.Load<TextAsset>("MetaData/Gacha");
-        new CStream(t.bytes).Pop(ref GachaList);
-        var GachaRewardMetas = new List<SGachaRewardClientMeta>();
-        t = Resources.Load<TextAsset>("MetaData/GachaReward");
-        new CStream(t.bytes).Pop(ref GachaRewardMetas);
-        GachaRewardMetas.Sort((x1, x2) => x2.Probability.CompareTo(x1.Probability));
-        foreach (var i in GachaRewardMetas)
         {
-            var Grade = Chars[i.CharCode].Grade;
-            if (GachaRewardMaxList.ContainsKey(Grade))
+            var characterTypeMetas = new Dictionary<string, CharacterTypeClientMeta>();
+            t = Resources.Load<TextAsset>("MetaData/CharacterType");
+            new CStream(t.bytes).Pop(ref characterTypeMetas);
+
+            foreach (var i in characterTypeMetas)
             {
-                if (GachaRewardMaxList[Grade].ContainsKey(i.Code))
-                    GachaRewardMaxList[Grade][i.Code] += i.Probability;
-                else
-                    GachaRewardMaxList[Grade].Add(i.Code, i.Probability);
-            }
-            else
-            {
-                GachaRewardMaxList.Add(Grade, new Dictionary<int, double>());
-                GachaRewardMaxList[Grade].Add(i.Code, i.Probability);
+                if (i.Value.MaxVelAir < MinVelAir)
+                    MinVelAir = i.Value.MaxVelAir;
+
+                var gradeInfo = CGlobal.getGradeInfo(i.Value.grade);
+                if (gradeInfo.subGradeCount <= i.Value.subGrade)
+                    gradeInfo.subGradeCount = i.Value.subGrade + 1;
             }
 
-            if (!GachaRewardList.ContainsKey(i.Code))
-                GachaRewardList.Add(i.Code, new Dictionary<int, SGachaRewardClientMeta>());
-            GachaRewardList[i.Code].Add(i.CharCode, i);
+
+            var characterMetas = new List<CharacterClientMeta>();
+            t = Resources.Load<TextAsset>("MetaData/Character");
+            new CStream(t.bytes).Pop(ref characterMetas);
+
+            foreach (var i in characterMetas)
+            {
+                var characterTypeMeta = characterTypeMetas[i.type];
+
+                Characters.Add(i.Code, new SCharacterMeta(i, characterTypeMeta));
+
+                var characterMeta = Characters[i.Code];
+
+                if (characterMeta.isShopCharacter())
+                    shopCharacters.Add(characterMeta);
+            }
         }
-        var GachaGradeMetas = new List<SGachaGradeMeta>();
-        t = Resources.Load<TextAsset>("MetaData/GachaGrade");
-        new CStream(t.bytes).Pop(ref GachaGradeMetas);
-        foreach (var i in GachaGradeMetas)
-            GachaGradeList.Add(i.Grade, i.Probability);
 
+
+        {
+            // MultiBattleConfig ////////////////////////
+            var multiBattleConfigMetas = new List<MultiBattleConfigMeta>();
+            t = Resources.Load<TextAsset>("MetaData/MultiBattleConfig");
+            new CStream(t.bytes).Pop(ref multiBattleConfigMetas);
+            multiBattleConfigMeta = multiBattleConfigMetas[0];
+
+
+            // ArrowDodge ///////////////////////
+            var arrowDodgeConfigMetas = new List<ArrowDodgeConfigMeta>();
+            t = Resources.Load<TextAsset>("MetaData/ArrowDodgeConfig");
+            new CStream(t.bytes).Pop(ref arrowDodgeConfigMetas);
+            Debug.Assert(arrowDodgeConfigMetas.Count > 0, "ArrowDodgeMetas.Length");
+            arrowDodgeConfigMeta = arrowDodgeConfigMetas.First();
+
+            // ArrowDodgeItem ////////////////////
+            t = Resources.Load<TextAsset>("MetaData/ArrowDodgeItem");
+            new CStream(t.bytes).Pop(ref ArrowDodgeItemMetas);
+            Debug.Assert(ArrowDodgeItemMetas.Count > 0, "ArrowDodgeItemMetas.Length");
+
+            ArrowDodgeItemMetas.Sort((a, b) => a.ItemType.CompareTo(b.ItemType));
+
+            UInt32 WeightSum = 0;
+            foreach (var i in ArrowDodgeItemMetas)
+            {
+                WeightSum += i.CreateWeight;
+                _ArrowDodgeItemSelector.Add(WeightSum, i.ItemType);
+            }
+        }
         
-        var RankMetaList = new List<SRankTierClientMeta>();
+        
+        {
+            // FlyAway ///////////////////////
+            var flyAwayConfigMetas = new List<FlyAwayConfigMeta>();
+            t = Resources.Load<TextAsset>("MetaData/FlyAwayConfig");
+            new CStream(t.bytes).Pop(ref flyAwayConfigMetas);
+            Debug.Assert(flyAwayConfigMetas.Count > 0, "FlyAwayMetas.Length");
+            flyAwayConfigMeta = flyAwayConfigMetas.First();
+
+
+            // FlyAwayItem ////////////////////
+            t = Resources.Load<TextAsset>("MetaData/FlyAwayItem");
+            new CStream(t.bytes).Pop(ref FlyAwayItemMetas);
+            Debug.Assert(FlyAwayItemMetas.Count > 0, "UnOrderedFlyAwayItemMetas.Length");
+
+            FlyAwayItemMetas.Sort((a, b) => a.ItemType.CompareTo(b.ItemType));
+
+            UInt32 WeightSum = 0;
+            foreach (var i in FlyAwayItemMetas)
+            {
+                if (i.StaminaCreateWeight <= 0)
+                    continue;
+
+                WeightSum += i.StaminaCreateWeight;
+                _FlyAwayStaminaItemSelector.Add(WeightSum, i.ItemType);
+            }
+        }
+
+        {
+            t = Resources.Load<TextAsset>("MetaData/Map");
+            new CStream(t.bytes).Pop(ref MapMeta);
+        }
+
+        {
+            var shopExchangeMetas = new List<ShopExchangeMeta>();
+            t = Resources.Load<TextAsset>("MetaData/ShopExchange");
+            new CStream(t.bytes).Pop(ref shopExchangeMetas);
+            foreach (var i in shopExchangeMetas)
+                _exchangeValues.Add(i.targetResourceType, i.exchangeValue);
+        }
+
+        {
+            var questTypeValueMetas = new Dictionary<EQuestType, QuestTypeValueMeta>();
+            t = Resources.Load<TextAsset>("MetaData/QuestType");
+            new CStream(t.bytes).Pop(ref questTypeValueMetas);
+
+            var questMetas = new List<SQuestMeta>();
+            t = Resources.Load<TextAsset>("MetaData/Quest");
+            new CStream(t.bytes).Pop(ref questMetas);
+
+            foreach (var questMeta in questMetas)
+                questDatas.Add(questMeta.Code, new Quest(questTypeValueMetas[questMeta.QuestType], questMeta));
+
+
+            var QuestConfigMetas = new List<QuestConfigMeta>();
+            t = Resources.Load<TextAsset>("MetaData/QuestConfig");
+            new CStream(t.bytes).Pop(ref QuestConfigMetas);
+            {
+                questConfig = new CMetaData.QuestConfig(QuestConfigMetas[0]);
+            }
+        }
+
+        var RankTierClientMetas = new List<SRankTierClientMeta>();
         t = Resources.Load<TextAsset>("MetaData/RankTier");
-        new CStream(t.bytes).Pop(ref RankMetaList);
+        new CStream(t.bytes).Pop(ref RankTierClientMetas);
         
-        foreach(var i in RankMetaList)
-            RankMetas.Add(i.MinPoint, i);
+        foreach(var i in RankTierClientMetas)
+            RankTiers.Add(i.MaxPoint, i);
 
-         t = Resources.Load<TextAsset>("MetaData/RankReward");
-        new CStream(t.bytes).Pop(ref RankRewardList);
+        Debug.Assert(RankTiers.Count > 0);
 
-        t = Resources.Load<TextAsset>("MetaData/RankRewardView");
-        new CStream(t.bytes).Pop(ref RankRewardViewList);
+        var RankRewardMetas = new List<SRankRewardMeta>();
+        t = Resources.Load<TextAsset>("MetaData/RankReward");
+        new CStream(t.bytes).Pop(ref RankRewardMetas);
+        Debug.Assert(RankRewardMetas.Count > 0);
 
-        var RewardMetas = new List<SKeyRewardMeta>();
-        t = Resources.Load<TextAsset>("MetaData/Reward");
-        new CStream(t.bytes).Pop(ref RewardMetas);
-
-        foreach(var meta in RewardMetas)
+        // Check that RewardCode Exist
+        foreach (var i in RankRewardMetas)
         {
-            if (RewardItems.ContainsKey(meta.Code) == false)
-                RewardItems.Add(meta.Code, new CRewardItem(new List<SRewardMeta>()));
-
-            RewardItems[meta.Code].Add(meta.Reward);
+            RankRewards.Add(new SRankReward(i));
         }
+
         var TrackingList = new List<STrackingMeta>();
         t = Resources.Load<TextAsset>("MetaData/Tracking");
         new CStream(t.bytes).Pop(ref TrackingList);
         foreach (var i in TrackingList)
             TrackingMetas.Add(i.ETrackingKey, i);
 
+        var RankingRewardMetas = new List<SRankingRewardMeta>();
         t = Resources.Load<TextAsset>("MetaData/RankingReward");
         new CStream(t.bytes).Pop(ref RankingRewardMetas);
 
-        GameModeMaxMember.Add(EGameMode.Solo, 2);
-        GameModeMaxMember.Add(EGameMode.DodgeSolo, 2);
-        GameModeMaxMember.Add(EGameMode.IslandSolo, 2);
-        GameModeMaxMember.Add(EGameMode.SurvivalSmall, 3);
-        GameModeMaxMember.Add(EGameMode.TeamSmall, 4);
-        GameModeMaxMember.Add(EGameMode.Team, 6);
-        GameModeMaxMember.Add(EGameMode.Survival, 6);
+        for (Int32 i = 0; i < RankingReward.Length; ++i)
+            RankingReward[i] = new CRank<Int32, SReward>();
+
+        foreach (var i in RankingRewardMetas)
+        {
+            ERankingType RankingType = ERankingType.Null;
+
+            if (i.Mode == "MULTI")
+                RankingType = ERankingType.Multi;
+
+            else if (i.Mode == "ARROW")
+                RankingType = ERankingType.Single;
+
+            else if (i.Mode == "ISLAND")
+                RankingType = ERankingType.Island;
+            else
+                throw new Exception(string.Format("Invalid Reward Mode[{0}]", i.Mode));
+
+            if (RankingReward[(Int32)RankingType].ContainsKey(i.End))
+                throw new Exception();
+
+            RankingReward[(Int32)RankingType].Add(i.End, SReward.create(i.rewardType, i.rewardValue));
+        }
     }
-    public void ChangeLanguage(ELanguage Language_)
+    public string getText(EText textName)
     {
-        Lang = Language_;
+        return TextSets[textName].Texts[(Int32)CGlobal.GameOption.Data.Language];
     }
-    public string GetText(EText Text_)
+    public string getText(EText textName, ELanguage language)
     {
-        string TextString = TextSets[Text_].Texts[(Int32)Lang];
-        return TextString.Length > 0 ? TextString : TextSets[Text_].Texts[(Int32)ELanguage.English];
+        return TextSets[textName].Texts[(Int32)language];
+    }
+    public string getTextWithParameters(EText textName, params object[] parameters)
+    {
+        object[] filteredParameters = new object[parameters.Length];
+        for (Int32 i = 0; i < parameters.Length; ++i)
+        {
+            if (parameters[i] is EText)
+                filteredParameters[i] = getText((EText)parameters[i]);
+            else
+                filteredParameters[i] = parameters[i];
+        }
+
+        return string.Format(getText(textName), parameters);
+    }
+    public string getCurrentLanguageText()
+    {
+        return _languageTexts[(Int32)CGlobal.GameOption.Data.Language];
     }
     public string GetGameRetText(EGameRet Ret_)
     {
-        string TextString = GameRetSets[Ret_].Texts[(Int32)Lang];
+        string TextString = GameRetSets[Ret_].Texts[(Int32)CGlobal.GameOption.Data.Language];
         return TextString.Length > 0 ? string.Format(TextString, (Int32)Ret_) : string.Format(GameRetSets[Ret_].Texts[(Int32)ELanguage.English],(Int32)Ret_);
-    }
-    public string GetCharacterName(Int32 CharCode_)
-    {
-        return GetText(Chars[CharCode_].ETextName);
-    }
-    public string GetCharacterIconName(Int32 CharCode_)
-    {
-        return Chars[CharCode_].IconName;
-    }
-    public string GetCharacterGrade(Int32 CharCode_)
-    {
-        var GradeInfo = CharGrades[Chars[CharCode_].Grade];
-        return GetText(GradeInfo.ETextGradeName);
-    }
-    public Color GetCharacterGradeColor(Int32 CharCode_)
-    {
-        var GradeInfo = CharGrades[Chars[CharCode_].Grade];
-        float R, G, B = 0.0f;
-        R = (float)GradeInfo.ColorR / 255.0f;
-        G = (float)GradeInfo.ColorG / 255.0f;
-        B = (float)GradeInfo.ColorB / 255.0f;
-        Color GradeColor = new Color(R, G, B);
-        return GradeColor;
-    }
-    public List<SRewardMeta> GetRewardList(Int32 RewardCode)
-    {
-        return RewardItems[RewardCode].GetList();
-    }
-    public SCheatMeta CheckCheat(string Text_)
-    {
-        foreach(var cheat in CheatList)
-        {
-            if(Text_.Contains(cheat.Key))
-            {
-                return cheat.Value;
-            }
-        }
-        return null;
     }
     public EText CheckAlarm(string Text_)
     {
@@ -400,62 +443,32 @@ public class CMetaData
         }
         return EText.Null;
     }
-    public double GetGachaPercent(Int32 Index_, Int32 Code_)
+    public SMultiMap GetMultiMap(SMultiBattleBeginNetSc Proto_)
     {
-        return (((GachaRewardList[GachaList[Index_].RewardCode][Code_].Probability / (GachaRewardMaxList[Chars[Code_].Grade][GachaList[Index_].RewardCode])) * 100.0f) * (double)GachaGradeList[Chars[Code_].Grade]);
+        return MapMeta.OneOnOneMaps[Proto_.MapIndex];
     }
-    public bool GetHaveAllChar(Int32 Index_, TChars CharsHave_)
+    public SArrowDodgeMap GetArrowDodgeMap()
     {
-        foreach (var i in GachaRewardList[GachaList[Index_].RewardCode])
-        {
-            if (!CharsHave_.Contains(i.Key))
-                return false;
-        }
-
-        return true;
+        return MapMeta.ArrowDodgeMapInfo.Maps[0];
     }
-    public SMapMulti GetMap(SBattleBeginNetSc Proto_)
+    public SFlyAwayMap GetFlyAwayMap()
     {
-        if ((Proto_.BattleType.MemberCount == 1 && (Proto_.BattleType.TeamCount == 2 || Proto_.BattleType.TeamCount == 3)) ||
-            (Proto_.BattleType.TeamCount == 2 && Proto_.BattleType.MemberCount == 2))
-            return Maps.MapOneOnOnes[Proto_.MapIndex];
-        else
-            return Maps.MapMulties[Proto_.MapIndex];
+        return MapMeta.FlyAwayMapInfo.Maps[0];
     }
-    public List<SPoint> GetSPlayerPoses(SBattleBeginNetSc Proto_)
+    public List<SPoint> GetSPlayerPoses(SMultiBattleBeginNetSc Proto_)
     {
-        return GetMap(Proto_).PlayerPoses[Proto_.BattleType.TeamCount].Poses;
+        return GetMultiMap(Proto_).Poses;
     }
-    public string GetMapPrefabName(SBattleBeginNetSc Proto_)
+    public string GetMapPrefabName(SMultiBattleBeginNetSc Proto_)
     {
-        return GetMap(Proto_).PrefabName;
+        return GetMultiMap(Proto_).PrefabName;
     }
     public STrackingMeta GetTrackingMeta(ETrackingKey TrackingKey_)
     {
         return TrackingMetas[TrackingKey_];
     }
-    public string GetPortImagePath()
+    public ExchangeValue getExchangeValue(EResource targetResource)
     {
-        return "GUI/Port/";
-    }
-    public List<SRankingRewardMeta> GetRankingRewardMetas(string Key_)
-    {
-        List<SRankingRewardMeta> ReturnObjs = new List<SRankingRewardMeta>();
-        foreach (var i in RankingRewardMetas)
-        {
-            if (i.Mode.Equals(Key_))
-                ReturnObjs.Add(i);
-        }
-        return ReturnObjs;
-    }
-    public SRankingRewardMeta GetRankingRewardMetaBefore(string Key_, Int32 End_)
-    {
-        SRankingRewardMeta ReturnObj = null;
-        foreach (var i in GetRankingRewardMetas(Key_))
-        {
-            if (i.Mode.Equals(Key_) && End_ > i.End)
-                ReturnObj = i;
-        }
-        return ReturnObj;
+        return _exchangeValues[targetResource];
     }
 }

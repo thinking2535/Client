@@ -27,18 +27,14 @@ using TExp = System.Int32;
 using TRank = System.Int32;
 using TTeamCnt = System.SByte;
 using TQuestSlotIndex = System.Byte;
+using TForbiddenWords = System.Collections.Generic.List<System.String>;
+using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
+using TRankings = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
 using TResource = System.Int32;
 using TDoneQuests = System.Collections.Generic.List<bb.SQuestSlotIndexCount>;
 using TChars = System.Collections.Generic.HashSet<System.Int32>;
 using TQuestDBs = System.Collections.Generic.Dictionary<System.Byte,bb.SQuestBase>;
-using TPackages = System.Collections.Generic.HashSet<System.Int32>;
-using TTeamBattleInfos = System.Collections.Generic.List<bb.STeamBattleInfo>;
-using TRankingUsers = System.Collections.Generic.List<bb.SRankingUser>;
-using TRankingUserSingles = System.Collections.Generic.List<bb.SRankingUserSingle>;
-using TRankingUserIslands = System.Collections.Generic.List<bb.SRankingUserIsland>;
 using TQuestSlotIndexCodes = System.Collections.Generic.List<bb.SQuestSlotIndexCode>;
-using TRankingRewards = System.Collections.Generic.Dictionary<System.Int64,System.Int32>;
-using SRooms = System.Collections.Generic.Dictionary<System.Int32,bb.SRoomInfo>;
 using System;
 using System.Collections.Generic;
 using rso.core;
@@ -59,34 +55,19 @@ namespace bb
 		ChangeLanguage,
 		Buy,
 		BuyChar,
-		BuyPackage,
-		Purchase,
-		DailyReward,
+		BuyResource,
 		SelectChar,
-		SingleStart,
-		SingleEnd,
-		IslandStart,
-		IslandEnd,
-		BattleJoin,
-		BattleOut,
 		BattleTouch,
 		BattlePush,
-		BattleIcon,
-		SingleBattleScore,
-		SingleBattleIcon,
-		SingleBattleItem,
-		RoomList,
-		RoomCreate,
-		RoomJoin,
-		RoomOut,
-		RoomReady,
-		RoomChat,
-		RoomNoti,
-		Gacha,
-		GachaX10,
+		MultiBattleJoin,
+		MultiBattleOut,
+		MultiBattleIcon,
+		ArrowDodgeBattleJoin,
+		ArrowDodgeBattleEnd,
+		FlyAwayBattleJoin,
+		FlyAwayBattleEnd,
 		RankReward,
 		QuestReward,
-		QuestNext,
 		QuestDailyCompleteReward,
 		ChangeNick,
 		CouponUse,
@@ -110,48 +91,35 @@ namespace bb
 		UnsetChar,
 		Buy,
 		BuyChar,
-		BuyPackage,
-		Purchase,
-		DailyReward,
-		DailyRewardFail,
-		SingleStart,
-		SingleEnd,
-		IslandStart,
-		IslandEnd,
-		BattleJoin,
-		BattleOut,
-		BattleBegin,
-		BattleMatching,
-		BattleStart,
-		BattleEnd,
+		BuyResource,
 		BattleSync,
-		BattleTouch,
-		BattlePush,
-		BattleIcon,
-		BattleLink,
-		BattleUnLink,
-		SingleBattleStart,
-		SingleBattleScore,
-		SingleBattleIcon,
-		SingleBattleItem,
-		SingleBattleEnd,
-		RoomList,
-		RoomChange,
-		RoomCreate,
-		RoomJoin,
-		RoomJoinFailed,
-		RoomOut,
-		RoomOutFailed,
-		RoomReady,
-		RoomChat,
-		RoomNoti,
-		Gacha,
-		GachaX10,
-		GachaFailed,
+		BattleDirect,
+		BattleFlap,
+		BattlePump,
+		MultiBattleJoin,
+		MultiBattleOut,
+		MultiBattleBegin,
+		MultiBattleStart,
+		MultiBattleEnd,
+		MultiBattleEndDraw,
+		MultiBattleEndInvalid,
+		MultiBattleIcon,
+		MultiBattleLink,
+		MultiBattleUnLink,
+		InvalidDisconnectInfo,
+		ArrowDodgeBattleJoin,
+		ArrowDodgeBattleBegin,
+		ArrowDodgeBattleStart,
+		ArrowDodgeBattleEnd,
+		FlyAwayBattleJoin,
+		FlyAwayBattleBegin,
+		FlyAwayBattleStart,
+		FlyAwayBattleEnd,
+		RankReward,
 		QuestGot,
+		QuestSet,
 		QuestDone,
 		QuestReward,
-		QuestNext,
 		QuestDailyCompleteReward,
 		ChangeNick,
 		ChangeNickFail,
@@ -227,26 +195,135 @@ namespace bb
 		Unique,
 		Max,
 	}
-	public enum EGameMode
+	public class SRankingUser : SProto
 	{
-		Single,
-		Solo,
-		Survival,
-		Team,
-		SurvivalSmall,
-		TeamSmall,
-		IslandSolo,
-		DodgeSolo,
-		Max,
-		Null,
+		public TUID UID = default(TUID);
+		public String Nick = string.Empty;
+		public Int32 CharCode = default(Int32);
+		public String CountryCode = string.Empty;
+		public Int32 Point = default(Int32);
+		public SRankingUser()
+		{
+		}
+		public SRankingUser(SRankingUser Obj_)
+		{
+			UID = Obj_.UID;
+			Nick = Obj_.Nick;
+			CharCode = Obj_.CharCode;
+			CountryCode = Obj_.CountryCode;
+			Point = Obj_.Point;
+		}
+		public SRankingUser(TUID UID_, String Nick_, Int32 CharCode_, String CountryCode_, Int32 Point_)
+		{
+			UID = UID_;
+			Nick = Nick_;
+			CharCode = CharCode_;
+			CountryCode = CountryCode_;
+			Point = Point_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref UID);
+			Stream_.Pop(ref Nick);
+			Stream_.Pop(ref CharCode);
+			Stream_.Pop(ref CountryCode);
+			Stream_.Pop(ref Point);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("UID", ref UID);
+			Value_.Pop("Nick", ref Nick);
+			Value_.Pop("CharCode", ref CharCode);
+			Value_.Pop("CountryCode", ref CountryCode);
+			Value_.Pop("Point", ref Point);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(UID);
+			Stream_.Push(Nick);
+			Stream_.Push(CharCode);
+			Stream_.Push(CountryCode);
+			Stream_.Push(Point);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("UID", UID);
+			Value_.Push("Nick", Nick);
+			Value_.Push("CharCode", CharCode);
+			Value_.Push("CountryCode", CountryCode);
+			Value_.Push("Point", Point);
+		}
+		public void Set(SRankingUser Obj_)
+		{
+			UID = Obj_.UID;
+			Nick = Obj_.Nick;
+			CharCode = Obj_.CharCode;
+			CountryCode = Obj_.CountryCode;
+			Point = Obj_.Point;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(UID) + "," + 
+				SEnumChecker.GetStdName(Nick) + "," + 
+				SEnumChecker.GetStdName(CharCode) + "," + 
+				SEnumChecker.GetStdName(CountryCode) + "," + 
+				SEnumChecker.GetStdName(Point);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(UID, "UID") + "," + 
+				SEnumChecker.GetMemberName(Nick, "Nick") + "," + 
+				SEnumChecker.GetMemberName(CharCode, "CharCode") + "," + 
+				SEnumChecker.GetMemberName(CountryCode, "CountryCode") + "," + 
+				SEnumChecker.GetMemberName(Point, "Point");
+		}
 	}
-	public enum ERoomState : Byte
+	public class SRankingUsers : SProto
 	{
-		RoomWait,
-		RoomAllReady,
-		RoomPlay,
-		RoomEndWait,
-		RoomEmpty,
+		public TRankingUsers RankingUsers = new TRankingUsers();
+		public SRankingUsers()
+		{
+		}
+		public SRankingUsers(SRankingUsers Obj_)
+		{
+			RankingUsers = Obj_.RankingUsers;
+		}
+		public SRankingUsers(TRankingUsers RankingUsers_)
+		{
+			RankingUsers = RankingUsers_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref RankingUsers);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("RankingUsers", ref RankingUsers);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(RankingUsers);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("RankingUsers", RankingUsers);
+		}
+		public void Set(SRankingUsers Obj_)
+		{
+			RankingUsers = Obj_.RankingUsers;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(RankingUsers);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(RankingUsers, "RankingUsers");
+		}
 	}
 	public enum ERankingType
 	{
@@ -360,52 +437,27 @@ namespace bb
 	{
 		Ticket,
 		Gold,
-		Dia,
-		CP,
-		DiaPaid,
+		Dia00,
+		Dia01,
+		Dia02,
+		Dia03,
 		Max,
 		Null,
 	}
-	public enum ERewardType : Byte
-	{
-		Resource_Ticket,
-		Resource_Gold,
-		Resource_Dia,
-		Resource_CP,
-		Character,
-		Max,
-	}
 	public enum EQuestType
 	{
-		TeamPlay,
-		TeamVictory,
-		SurvivalPlay,
-		SurvivalVictory,
-		IngameConsecutiveKill,
 		IngameBalloonPopping,
 		IngameKill,
-		IngameBestPlayer,
-		GachaRuby,
 		BlowBalloon,
 		PlayNormal,
 		PlayRare,
 		PlayEpic,
 		PlaySingle,
-		SingleTime,
-		SinglePlayGoldGet,
 		SinglePlayScoreGet,
 		PlayIsland,
-		IslandCount,
-		IslandGoldGet,
 		IslandScoreGet,
-		SurvivalPlayRanking,
-		RankPointGet,
 		SoloPlay,
 		SoloVictory,
-		Survival3PPlay,
-		Survival3PVictory,
-		MultiSinglePlay,
-		MultiIslandPlay,
 		Max,
 		Null=-1,
 	}
@@ -611,7 +663,7 @@ namespace bb
 	}
 	public class SUserCore : SProto
 	{
-		public TResource[] Resources = new TResource[5];
+		public TResource[] Resources = new TResource[6];
 		public SByte Debug = default(SByte);
 		public Int32 SelectedCharCode = default(Int32);
 		public Int32 SinglePlayCount = default(Int32);
@@ -620,8 +672,6 @@ namespace bb
 		public TimePoint IslandRefreshTime = default(TimePoint);
 		public TimePoint QuestDailyCompleteRefreshTime = default(TimePoint);
 		public Int32 ChangeNickFreeCount = default(Int32);
-		public TimePoint DailyRewardExpiredTime = default(TimePoint);
-		public Int32 DailyRewardCountLeft = default(Int32);
 		public SUserCore()
 		{
 			for (int iResources = 0; iResources < Resources.Length; ++iResources)
@@ -638,10 +688,8 @@ namespace bb
 			IslandRefreshTime = Obj_.IslandRefreshTime;
 			QuestDailyCompleteRefreshTime = Obj_.QuestDailyCompleteRefreshTime;
 			ChangeNickFreeCount = Obj_.ChangeNickFreeCount;
-			DailyRewardExpiredTime = Obj_.DailyRewardExpiredTime;
-			DailyRewardCountLeft = Obj_.DailyRewardCountLeft;
 		}
-		public SUserCore(TResource[] Resources_, SByte Debug_, Int32 SelectedCharCode_, Int32 SinglePlayCount_, TimePoint SingleRefreshTime_, Int32 IslandPlayCount_, TimePoint IslandRefreshTime_, TimePoint QuestDailyCompleteRefreshTime_, Int32 ChangeNickFreeCount_, TimePoint DailyRewardExpiredTime_, Int32 DailyRewardCountLeft_)
+		public SUserCore(TResource[] Resources_, SByte Debug_, Int32 SelectedCharCode_, Int32 SinglePlayCount_, TimePoint SingleRefreshTime_, Int32 IslandPlayCount_, TimePoint IslandRefreshTime_, TimePoint QuestDailyCompleteRefreshTime_, Int32 ChangeNickFreeCount_)
 		{
 			Resources = Resources_;
 			Debug = Debug_;
@@ -652,8 +700,6 @@ namespace bb
 			IslandRefreshTime = IslandRefreshTime_;
 			QuestDailyCompleteRefreshTime = QuestDailyCompleteRefreshTime_;
 			ChangeNickFreeCount = ChangeNickFreeCount_;
-			DailyRewardExpiredTime = DailyRewardExpiredTime_;
-			DailyRewardCountLeft = DailyRewardCountLeft_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -666,8 +712,6 @@ namespace bb
 			Stream_.Pop(ref IslandRefreshTime);
 			Stream_.Pop(ref QuestDailyCompleteRefreshTime);
 			Stream_.Pop(ref ChangeNickFreeCount);
-			Stream_.Pop(ref DailyRewardExpiredTime);
-			Stream_.Pop(ref DailyRewardCountLeft);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -680,8 +724,6 @@ namespace bb
 			Value_.Pop("IslandRefreshTime", ref IslandRefreshTime);
 			Value_.Pop("QuestDailyCompleteRefreshTime", ref QuestDailyCompleteRefreshTime);
 			Value_.Pop("ChangeNickFreeCount", ref ChangeNickFreeCount);
-			Value_.Pop("DailyRewardExpiredTime", ref DailyRewardExpiredTime);
-			Value_.Pop("DailyRewardCountLeft", ref DailyRewardCountLeft);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -694,8 +736,6 @@ namespace bb
 			Stream_.Push(IslandRefreshTime);
 			Stream_.Push(QuestDailyCompleteRefreshTime);
 			Stream_.Push(ChangeNickFreeCount);
-			Stream_.Push(DailyRewardExpiredTime);
-			Stream_.Push(DailyRewardCountLeft);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -708,8 +748,6 @@ namespace bb
 			Value_.Push("IslandRefreshTime", IslandRefreshTime);
 			Value_.Push("QuestDailyCompleteRefreshTime", QuestDailyCompleteRefreshTime);
 			Value_.Push("ChangeNickFreeCount", ChangeNickFreeCount);
-			Value_.Push("DailyRewardExpiredTime", DailyRewardExpiredTime);
-			Value_.Push("DailyRewardCountLeft", DailyRewardCountLeft);
 		}
 		public void Set(SUserCore Obj_)
 		{
@@ -722,8 +760,6 @@ namespace bb
 			IslandRefreshTime = Obj_.IslandRefreshTime;
 			QuestDailyCompleteRefreshTime = Obj_.QuestDailyCompleteRefreshTime;
 			ChangeNickFreeCount = Obj_.ChangeNickFreeCount;
-			DailyRewardExpiredTime = Obj_.DailyRewardExpiredTime;
-			DailyRewardCountLeft = Obj_.DailyRewardCountLeft;
 		}
 		public override string StdName()
 		{
@@ -736,9 +772,7 @@ namespace bb
 				SEnumChecker.GetStdName(IslandPlayCount) + "," + 
 				SEnumChecker.GetStdName(IslandRefreshTime) + "," + 
 				SEnumChecker.GetStdName(QuestDailyCompleteRefreshTime) + "," + 
-				SEnumChecker.GetStdName(ChangeNickFreeCount) + "," + 
-				SEnumChecker.GetStdName(DailyRewardExpiredTime) + "," + 
-				SEnumChecker.GetStdName(DailyRewardCountLeft);
+				SEnumChecker.GetStdName(ChangeNickFreeCount);
 		}
 		public override string MemberName()
 		{
@@ -751,38 +785,98 @@ namespace bb
 				SEnumChecker.GetMemberName(IslandPlayCount, "IslandPlayCount") + "," + 
 				SEnumChecker.GetMemberName(IslandRefreshTime, "IslandRefreshTime") + "," + 
 				SEnumChecker.GetMemberName(QuestDailyCompleteRefreshTime, "QuestDailyCompleteRefreshTime") + "," + 
-				SEnumChecker.GetMemberName(ChangeNickFreeCount, "ChangeNickFreeCount") + "," + 
-				SEnumChecker.GetMemberName(DailyRewardExpiredTime, "DailyRewardExpiredTime") + "," + 
-				SEnumChecker.GetMemberName(DailyRewardCountLeft, "DailyRewardCountLeft");
+				SEnumChecker.GetMemberName(ChangeNickFreeCount, "ChangeNickFreeCount");
+		}
+	}
+	public class SInvalidDisconnectInfo : SProto
+	{
+		public TimePoint EndTime = default(TimePoint);
+		public TimePoint MatchBlockEndTime = default(TimePoint);
+		public Int32 Count = default(Int32);
+		public SInvalidDisconnectInfo()
+		{
+		}
+		public SInvalidDisconnectInfo(SInvalidDisconnectInfo Obj_)
+		{
+			EndTime = Obj_.EndTime;
+			MatchBlockEndTime = Obj_.MatchBlockEndTime;
+			Count = Obj_.Count;
+		}
+		public SInvalidDisconnectInfo(TimePoint EndTime_, TimePoint MatchBlockEndTime_, Int32 Count_)
+		{
+			EndTime = EndTime_;
+			MatchBlockEndTime = MatchBlockEndTime_;
+			Count = Count_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref EndTime);
+			Stream_.Pop(ref MatchBlockEndTime);
+			Stream_.Pop(ref Count);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("EndTime", ref EndTime);
+			Value_.Pop("MatchBlockEndTime", ref MatchBlockEndTime);
+			Value_.Pop("Count", ref Count);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(EndTime);
+			Stream_.Push(MatchBlockEndTime);
+			Stream_.Push(Count);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("EndTime", EndTime);
+			Value_.Push("MatchBlockEndTime", MatchBlockEndTime);
+			Value_.Push("Count", Count);
+		}
+		public void Set(SInvalidDisconnectInfo Obj_)
+		{
+			EndTime = Obj_.EndTime;
+			MatchBlockEndTime = Obj_.MatchBlockEndTime;
+			Count = Obj_.Count;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(EndTime) + "," + 
+				SEnumChecker.GetStdName(MatchBlockEndTime) + "," + 
+				SEnumChecker.GetStdName(Count);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(EndTime, "EndTime") + "," + 
+				SEnumChecker.GetMemberName(MatchBlockEndTime, "MatchBlockEndTime") + "," + 
+				SEnumChecker.GetMemberName(Count, "Count");
 		}
 	}
 	public class SUserBase : SUserCore
 	{
 		public TExp Exp = default(TExp);
 		public Boolean CanPushAtNight = default(Boolean);
+		public Double eloPoint = default(Double);
 		public Int32 Point = default(Int32);
 		public Int32 PointBest = default(Int32);
-		public Int32 LastGotRewardRankIndex = default(Int32);
+		public Int32 NextRewardRankIndex = default(Int32);
 		public Int32 WinCountSolo = default(Int32);
 		public Int32 LoseCountSolo = default(Int32);
-		public Int32 WinCountSurvival = default(Int32);
-		public Int32 LoseCountSurvival = default(Int32);
 		public Int32 WinCountMulti = default(Int32);
 		public Int32 LoseCountMulti = default(Int32);
 		public Int32 BattlePointBest = default(Int32);
 		public Int32 SinglePointBest = default(Int32);
 		public Int32 IslandPointBest = default(Int32);
-		public Int32 SingleSecondBest = default(Int32);
-		public Int32 IslandPassedCountBest = default(Int32);
+		public Int32 IslandComboBest = default(Int32);
 		public Int32 KillTotal = default(Int32);
 		public Int32 ChainKillTotal = default(Int32);
 		public Int32 BlowBalloonTotal = default(Int32);
 		public Int32 QuestDailyCompleteCount = default(Int32);
 		public Boolean TutorialReward = default(Boolean);
-		public Boolean SingleStarted = default(Boolean);
-		public Boolean IslandStarted = default(Boolean);
 		public Int64 RankingRewardedCounter = default(Int64);
 		public TNick NewNick = string.Empty;
+		public SInvalidDisconnectInfo InvalidDisconnectInfo = new SInvalidDisconnectInfo();
 		public SUserBase()
 		{
 		}
@@ -790,202 +884,181 @@ namespace bb
 		{
 			Exp = Obj_.Exp;
 			CanPushAtNight = Obj_.CanPushAtNight;
+			eloPoint = Obj_.eloPoint;
 			Point = Obj_.Point;
 			PointBest = Obj_.PointBest;
-			LastGotRewardRankIndex = Obj_.LastGotRewardRankIndex;
+			NextRewardRankIndex = Obj_.NextRewardRankIndex;
 			WinCountSolo = Obj_.WinCountSolo;
 			LoseCountSolo = Obj_.LoseCountSolo;
-			WinCountSurvival = Obj_.WinCountSurvival;
-			LoseCountSurvival = Obj_.LoseCountSurvival;
 			WinCountMulti = Obj_.WinCountMulti;
 			LoseCountMulti = Obj_.LoseCountMulti;
 			BattlePointBest = Obj_.BattlePointBest;
 			SinglePointBest = Obj_.SinglePointBest;
 			IslandPointBest = Obj_.IslandPointBest;
-			SingleSecondBest = Obj_.SingleSecondBest;
-			IslandPassedCountBest = Obj_.IslandPassedCountBest;
+			IslandComboBest = Obj_.IslandComboBest;
 			KillTotal = Obj_.KillTotal;
 			ChainKillTotal = Obj_.ChainKillTotal;
 			BlowBalloonTotal = Obj_.BlowBalloonTotal;
 			QuestDailyCompleteCount = Obj_.QuestDailyCompleteCount;
 			TutorialReward = Obj_.TutorialReward;
-			SingleStarted = Obj_.SingleStarted;
-			IslandStarted = Obj_.IslandStarted;
 			RankingRewardedCounter = Obj_.RankingRewardedCounter;
 			NewNick = Obj_.NewNick;
+			InvalidDisconnectInfo = Obj_.InvalidDisconnectInfo;
 		}
-		public SUserBase(SUserCore Super_, TExp Exp_, Boolean CanPushAtNight_, Int32 Point_, Int32 PointBest_, Int32 LastGotRewardRankIndex_, Int32 WinCountSolo_, Int32 LoseCountSolo_, Int32 WinCountSurvival_, Int32 LoseCountSurvival_, Int32 WinCountMulti_, Int32 LoseCountMulti_, Int32 BattlePointBest_, Int32 SinglePointBest_, Int32 IslandPointBest_, Int32 SingleSecondBest_, Int32 IslandPassedCountBest_, Int32 KillTotal_, Int32 ChainKillTotal_, Int32 BlowBalloonTotal_, Int32 QuestDailyCompleteCount_, Boolean TutorialReward_, Boolean SingleStarted_, Boolean IslandStarted_, Int64 RankingRewardedCounter_, TNick NewNick_) : base(Super_)
+		public SUserBase(SUserCore Super_, TExp Exp_, Boolean CanPushAtNight_, Double eloPoint_, Int32 Point_, Int32 PointBest_, Int32 NextRewardRankIndex_, Int32 WinCountSolo_, Int32 LoseCountSolo_, Int32 WinCountMulti_, Int32 LoseCountMulti_, Int32 BattlePointBest_, Int32 SinglePointBest_, Int32 IslandPointBest_, Int32 IslandComboBest_, Int32 KillTotal_, Int32 ChainKillTotal_, Int32 BlowBalloonTotal_, Int32 QuestDailyCompleteCount_, Boolean TutorialReward_, Int64 RankingRewardedCounter_, TNick NewNick_, SInvalidDisconnectInfo InvalidDisconnectInfo_) : base(Super_)
 		{
 			Exp = Exp_;
 			CanPushAtNight = CanPushAtNight_;
+			eloPoint = eloPoint_;
 			Point = Point_;
 			PointBest = PointBest_;
-			LastGotRewardRankIndex = LastGotRewardRankIndex_;
+			NextRewardRankIndex = NextRewardRankIndex_;
 			WinCountSolo = WinCountSolo_;
 			LoseCountSolo = LoseCountSolo_;
-			WinCountSurvival = WinCountSurvival_;
-			LoseCountSurvival = LoseCountSurvival_;
 			WinCountMulti = WinCountMulti_;
 			LoseCountMulti = LoseCountMulti_;
 			BattlePointBest = BattlePointBest_;
 			SinglePointBest = SinglePointBest_;
 			IslandPointBest = IslandPointBest_;
-			SingleSecondBest = SingleSecondBest_;
-			IslandPassedCountBest = IslandPassedCountBest_;
+			IslandComboBest = IslandComboBest_;
 			KillTotal = KillTotal_;
 			ChainKillTotal = ChainKillTotal_;
 			BlowBalloonTotal = BlowBalloonTotal_;
 			QuestDailyCompleteCount = QuestDailyCompleteCount_;
 			TutorialReward = TutorialReward_;
-			SingleStarted = SingleStarted_;
-			IslandStarted = IslandStarted_;
 			RankingRewardedCounter = RankingRewardedCounter_;
 			NewNick = NewNick_;
+			InvalidDisconnectInfo = InvalidDisconnectInfo_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
 			Stream_.Pop(ref Exp);
 			Stream_.Pop(ref CanPushAtNight);
+			Stream_.Pop(ref eloPoint);
 			Stream_.Pop(ref Point);
 			Stream_.Pop(ref PointBest);
-			Stream_.Pop(ref LastGotRewardRankIndex);
+			Stream_.Pop(ref NextRewardRankIndex);
 			Stream_.Pop(ref WinCountSolo);
 			Stream_.Pop(ref LoseCountSolo);
-			Stream_.Pop(ref WinCountSurvival);
-			Stream_.Pop(ref LoseCountSurvival);
 			Stream_.Pop(ref WinCountMulti);
 			Stream_.Pop(ref LoseCountMulti);
 			Stream_.Pop(ref BattlePointBest);
 			Stream_.Pop(ref SinglePointBest);
 			Stream_.Pop(ref IslandPointBest);
-			Stream_.Pop(ref SingleSecondBest);
-			Stream_.Pop(ref IslandPassedCountBest);
+			Stream_.Pop(ref IslandComboBest);
 			Stream_.Pop(ref KillTotal);
 			Stream_.Pop(ref ChainKillTotal);
 			Stream_.Pop(ref BlowBalloonTotal);
 			Stream_.Pop(ref QuestDailyCompleteCount);
 			Stream_.Pop(ref TutorialReward);
-			Stream_.Pop(ref SingleStarted);
-			Stream_.Pop(ref IslandStarted);
 			Stream_.Pop(ref RankingRewardedCounter);
 			Stream_.Pop(ref NewNick);
+			Stream_.Pop(ref InvalidDisconnectInfo);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
 			Value_.Pop("Exp", ref Exp);
 			Value_.Pop("CanPushAtNight", ref CanPushAtNight);
+			Value_.Pop("eloPoint", ref eloPoint);
 			Value_.Pop("Point", ref Point);
 			Value_.Pop("PointBest", ref PointBest);
-			Value_.Pop("LastGotRewardRankIndex", ref LastGotRewardRankIndex);
+			Value_.Pop("NextRewardRankIndex", ref NextRewardRankIndex);
 			Value_.Pop("WinCountSolo", ref WinCountSolo);
 			Value_.Pop("LoseCountSolo", ref LoseCountSolo);
-			Value_.Pop("WinCountSurvival", ref WinCountSurvival);
-			Value_.Pop("LoseCountSurvival", ref LoseCountSurvival);
 			Value_.Pop("WinCountMulti", ref WinCountMulti);
 			Value_.Pop("LoseCountMulti", ref LoseCountMulti);
 			Value_.Pop("BattlePointBest", ref BattlePointBest);
 			Value_.Pop("SinglePointBest", ref SinglePointBest);
 			Value_.Pop("IslandPointBest", ref IslandPointBest);
-			Value_.Pop("SingleSecondBest", ref SingleSecondBest);
-			Value_.Pop("IslandPassedCountBest", ref IslandPassedCountBest);
+			Value_.Pop("IslandComboBest", ref IslandComboBest);
 			Value_.Pop("KillTotal", ref KillTotal);
 			Value_.Pop("ChainKillTotal", ref ChainKillTotal);
 			Value_.Pop("BlowBalloonTotal", ref BlowBalloonTotal);
 			Value_.Pop("QuestDailyCompleteCount", ref QuestDailyCompleteCount);
 			Value_.Pop("TutorialReward", ref TutorialReward);
-			Value_.Pop("SingleStarted", ref SingleStarted);
-			Value_.Pop("IslandStarted", ref IslandStarted);
 			Value_.Pop("RankingRewardedCounter", ref RankingRewardedCounter);
 			Value_.Pop("NewNick", ref NewNick);
+			Value_.Pop("InvalidDisconnectInfo", ref InvalidDisconnectInfo);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
 			Stream_.Push(Exp);
 			Stream_.Push(CanPushAtNight);
+			Stream_.Push(eloPoint);
 			Stream_.Push(Point);
 			Stream_.Push(PointBest);
-			Stream_.Push(LastGotRewardRankIndex);
+			Stream_.Push(NextRewardRankIndex);
 			Stream_.Push(WinCountSolo);
 			Stream_.Push(LoseCountSolo);
-			Stream_.Push(WinCountSurvival);
-			Stream_.Push(LoseCountSurvival);
 			Stream_.Push(WinCountMulti);
 			Stream_.Push(LoseCountMulti);
 			Stream_.Push(BattlePointBest);
 			Stream_.Push(SinglePointBest);
 			Stream_.Push(IslandPointBest);
-			Stream_.Push(SingleSecondBest);
-			Stream_.Push(IslandPassedCountBest);
+			Stream_.Push(IslandComboBest);
 			Stream_.Push(KillTotal);
 			Stream_.Push(ChainKillTotal);
 			Stream_.Push(BlowBalloonTotal);
 			Stream_.Push(QuestDailyCompleteCount);
 			Stream_.Push(TutorialReward);
-			Stream_.Push(SingleStarted);
-			Stream_.Push(IslandStarted);
 			Stream_.Push(RankingRewardedCounter);
 			Stream_.Push(NewNick);
+			Stream_.Push(InvalidDisconnectInfo);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
 			Value_.Push("Exp", Exp);
 			Value_.Push("CanPushAtNight", CanPushAtNight);
+			Value_.Push("eloPoint", eloPoint);
 			Value_.Push("Point", Point);
 			Value_.Push("PointBest", PointBest);
-			Value_.Push("LastGotRewardRankIndex", LastGotRewardRankIndex);
+			Value_.Push("NextRewardRankIndex", NextRewardRankIndex);
 			Value_.Push("WinCountSolo", WinCountSolo);
 			Value_.Push("LoseCountSolo", LoseCountSolo);
-			Value_.Push("WinCountSurvival", WinCountSurvival);
-			Value_.Push("LoseCountSurvival", LoseCountSurvival);
 			Value_.Push("WinCountMulti", WinCountMulti);
 			Value_.Push("LoseCountMulti", LoseCountMulti);
 			Value_.Push("BattlePointBest", BattlePointBest);
 			Value_.Push("SinglePointBest", SinglePointBest);
 			Value_.Push("IslandPointBest", IslandPointBest);
-			Value_.Push("SingleSecondBest", SingleSecondBest);
-			Value_.Push("IslandPassedCountBest", IslandPassedCountBest);
+			Value_.Push("IslandComboBest", IslandComboBest);
 			Value_.Push("KillTotal", KillTotal);
 			Value_.Push("ChainKillTotal", ChainKillTotal);
 			Value_.Push("BlowBalloonTotal", BlowBalloonTotal);
 			Value_.Push("QuestDailyCompleteCount", QuestDailyCompleteCount);
 			Value_.Push("TutorialReward", TutorialReward);
-			Value_.Push("SingleStarted", SingleStarted);
-			Value_.Push("IslandStarted", IslandStarted);
 			Value_.Push("RankingRewardedCounter", RankingRewardedCounter);
 			Value_.Push("NewNick", NewNick);
+			Value_.Push("InvalidDisconnectInfo", InvalidDisconnectInfo);
 		}
 		public void Set(SUserBase Obj_)
 		{
 			base.Set(Obj_);
 			Exp = Obj_.Exp;
 			CanPushAtNight = Obj_.CanPushAtNight;
+			eloPoint = Obj_.eloPoint;
 			Point = Obj_.Point;
 			PointBest = Obj_.PointBest;
-			LastGotRewardRankIndex = Obj_.LastGotRewardRankIndex;
+			NextRewardRankIndex = Obj_.NextRewardRankIndex;
 			WinCountSolo = Obj_.WinCountSolo;
 			LoseCountSolo = Obj_.LoseCountSolo;
-			WinCountSurvival = Obj_.WinCountSurvival;
-			LoseCountSurvival = Obj_.LoseCountSurvival;
 			WinCountMulti = Obj_.WinCountMulti;
 			LoseCountMulti = Obj_.LoseCountMulti;
 			BattlePointBest = Obj_.BattlePointBest;
 			SinglePointBest = Obj_.SinglePointBest;
 			IslandPointBest = Obj_.IslandPointBest;
-			SingleSecondBest = Obj_.SingleSecondBest;
-			IslandPassedCountBest = Obj_.IslandPassedCountBest;
+			IslandComboBest = Obj_.IslandComboBest;
 			KillTotal = Obj_.KillTotal;
 			ChainKillTotal = Obj_.ChainKillTotal;
 			BlowBalloonTotal = Obj_.BlowBalloonTotal;
 			QuestDailyCompleteCount = Obj_.QuestDailyCompleteCount;
 			TutorialReward = Obj_.TutorialReward;
-			SingleStarted = Obj_.SingleStarted;
-			IslandStarted = Obj_.IslandStarted;
 			RankingRewardedCounter = Obj_.RankingRewardedCounter;
 			NewNick = Obj_.NewNick;
+			InvalidDisconnectInfo.Set(Obj_.InvalidDisconnectInfo);
 		}
 		public override string StdName()
 		{
@@ -993,29 +1066,26 @@ namespace bb
 				base.StdName() + "," + 
 				SEnumChecker.GetStdName(Exp) + "," + 
 				SEnumChecker.GetStdName(CanPushAtNight) + "," + 
+				SEnumChecker.GetStdName(eloPoint) + "," + 
 				SEnumChecker.GetStdName(Point) + "," + 
 				SEnumChecker.GetStdName(PointBest) + "," + 
-				SEnumChecker.GetStdName(LastGotRewardRankIndex) + "," + 
+				SEnumChecker.GetStdName(NextRewardRankIndex) + "," + 
 				SEnumChecker.GetStdName(WinCountSolo) + "," + 
 				SEnumChecker.GetStdName(LoseCountSolo) + "," + 
-				SEnumChecker.GetStdName(WinCountSurvival) + "," + 
-				SEnumChecker.GetStdName(LoseCountSurvival) + "," + 
 				SEnumChecker.GetStdName(WinCountMulti) + "," + 
 				SEnumChecker.GetStdName(LoseCountMulti) + "," + 
 				SEnumChecker.GetStdName(BattlePointBest) + "," + 
 				SEnumChecker.GetStdName(SinglePointBest) + "," + 
 				SEnumChecker.GetStdName(IslandPointBest) + "," + 
-				SEnumChecker.GetStdName(SingleSecondBest) + "," + 
-				SEnumChecker.GetStdName(IslandPassedCountBest) + "," + 
+				SEnumChecker.GetStdName(IslandComboBest) + "," + 
 				SEnumChecker.GetStdName(KillTotal) + "," + 
 				SEnumChecker.GetStdName(ChainKillTotal) + "," + 
 				SEnumChecker.GetStdName(BlowBalloonTotal) + "," + 
 				SEnumChecker.GetStdName(QuestDailyCompleteCount) + "," + 
 				SEnumChecker.GetStdName(TutorialReward) + "," + 
-				SEnumChecker.GetStdName(SingleStarted) + "," + 
-				SEnumChecker.GetStdName(IslandStarted) + "," + 
 				SEnumChecker.GetStdName(RankingRewardedCounter) + "," + 
-				SEnumChecker.GetStdName(NewNick);
+				SEnumChecker.GetStdName(NewNick) + "," + 
+				SEnumChecker.GetStdName(InvalidDisconnectInfo);
 		}
 		public override string MemberName()
 		{
@@ -1023,29 +1093,26 @@ namespace bb
 				base.MemberName() + "," + 
 				SEnumChecker.GetMemberName(Exp, "Exp") + "," + 
 				SEnumChecker.GetMemberName(CanPushAtNight, "CanPushAtNight") + "," + 
+				SEnumChecker.GetMemberName(eloPoint, "eloPoint") + "," + 
 				SEnumChecker.GetMemberName(Point, "Point") + "," + 
 				SEnumChecker.GetMemberName(PointBest, "PointBest") + "," + 
-				SEnumChecker.GetMemberName(LastGotRewardRankIndex, "LastGotRewardRankIndex") + "," + 
+				SEnumChecker.GetMemberName(NextRewardRankIndex, "NextRewardRankIndex") + "," + 
 				SEnumChecker.GetMemberName(WinCountSolo, "WinCountSolo") + "," + 
 				SEnumChecker.GetMemberName(LoseCountSolo, "LoseCountSolo") + "," + 
-				SEnumChecker.GetMemberName(WinCountSurvival, "WinCountSurvival") + "," + 
-				SEnumChecker.GetMemberName(LoseCountSurvival, "LoseCountSurvival") + "," + 
 				SEnumChecker.GetMemberName(WinCountMulti, "WinCountMulti") + "," + 
 				SEnumChecker.GetMemberName(LoseCountMulti, "LoseCountMulti") + "," + 
 				SEnumChecker.GetMemberName(BattlePointBest, "BattlePointBest") + "," + 
 				SEnumChecker.GetMemberName(SinglePointBest, "SinglePointBest") + "," + 
 				SEnumChecker.GetMemberName(IslandPointBest, "IslandPointBest") + "," + 
-				SEnumChecker.GetMemberName(SingleSecondBest, "SingleSecondBest") + "," + 
-				SEnumChecker.GetMemberName(IslandPassedCountBest, "IslandPassedCountBest") + "," + 
+				SEnumChecker.GetMemberName(IslandComboBest, "IslandComboBest") + "," + 
 				SEnumChecker.GetMemberName(KillTotal, "KillTotal") + "," + 
 				SEnumChecker.GetMemberName(ChainKillTotal, "ChainKillTotal") + "," + 
 				SEnumChecker.GetMemberName(BlowBalloonTotal, "BlowBalloonTotal") + "," + 
 				SEnumChecker.GetMemberName(QuestDailyCompleteCount, "QuestDailyCompleteCount") + "," + 
 				SEnumChecker.GetMemberName(TutorialReward, "TutorialReward") + "," + 
-				SEnumChecker.GetMemberName(SingleStarted, "SingleStarted") + "," + 
-				SEnumChecker.GetMemberName(IslandStarted, "IslandStarted") + "," + 
 				SEnumChecker.GetMemberName(RankingRewardedCounter, "RankingRewardedCounter") + "," + 
-				SEnumChecker.GetMemberName(NewNick, "NewNick");
+				SEnumChecker.GetMemberName(NewNick, "NewNick") + "," + 
+				SEnumChecker.GetMemberName(InvalidDisconnectInfo, "InvalidDisconnectInfo");
 		}
 	}
 	public class SUserNet : SUserBase
@@ -1171,8 +1238,6 @@ namespace bb
 		public TChars Chars = new TChars();
 		public TimePoint ServerTime = default(TimePoint);
 		public TQuestDBs Quests = new TQuestDBs();
-		public TPackages Packages = new TPackages();
-		public Int32 RoomIdx = default(Int32);
 		public SLoginNetSc()
 		{
 		}
@@ -1182,17 +1247,13 @@ namespace bb
 			Chars = Obj_.Chars;
 			ServerTime = Obj_.ServerTime;
 			Quests = Obj_.Quests;
-			Packages = Obj_.Packages;
-			RoomIdx = Obj_.RoomIdx;
 		}
-		public SLoginNetSc(SUserNet User_, TChars Chars_, TimePoint ServerTime_, TQuestDBs Quests_, TPackages Packages_, Int32 RoomIdx_)
+		public SLoginNetSc(SUserNet User_, TChars Chars_, TimePoint ServerTime_, TQuestDBs Quests_)
 		{
 			User = User_;
 			Chars = Chars_;
 			ServerTime = ServerTime_;
 			Quests = Quests_;
-			Packages = Packages_;
-			RoomIdx = RoomIdx_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -1200,8 +1261,6 @@ namespace bb
 			Stream_.Pop(ref Chars);
 			Stream_.Pop(ref ServerTime);
 			Stream_.Pop(ref Quests);
-			Stream_.Pop(ref Packages);
-			Stream_.Pop(ref RoomIdx);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -1209,8 +1268,6 @@ namespace bb
 			Value_.Pop("Chars", ref Chars);
 			Value_.Pop("ServerTime", ref ServerTime);
 			Value_.Pop("Quests", ref Quests);
-			Value_.Pop("Packages", ref Packages);
-			Value_.Pop("RoomIdx", ref RoomIdx);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -1218,8 +1275,6 @@ namespace bb
 			Stream_.Push(Chars);
 			Stream_.Push(ServerTime);
 			Stream_.Push(Quests);
-			Stream_.Push(Packages);
-			Stream_.Push(RoomIdx);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -1227,8 +1282,6 @@ namespace bb
 			Value_.Push("Chars", Chars);
 			Value_.Push("ServerTime", ServerTime);
 			Value_.Push("Quests", Quests);
-			Value_.Push("Packages", Packages);
-			Value_.Push("RoomIdx", RoomIdx);
 		}
 		public void Set(SLoginNetSc Obj_)
 		{
@@ -1236,8 +1289,6 @@ namespace bb
 			Chars = Obj_.Chars;
 			ServerTime = Obj_.ServerTime;
 			Quests = Obj_.Quests;
-			Packages = Obj_.Packages;
-			RoomIdx = Obj_.RoomIdx;
 		}
 		public override string StdName()
 		{
@@ -1245,9 +1296,7 @@ namespace bb
 				SEnumChecker.GetStdName(User) + "," + 
 				SEnumChecker.GetStdName(Chars) + "," + 
 				SEnumChecker.GetStdName(ServerTime) + "," + 
-				SEnumChecker.GetStdName(Quests) + "," + 
-				SEnumChecker.GetStdName(Packages) + "," + 
-				SEnumChecker.GetStdName(RoomIdx);
+				SEnumChecker.GetStdName(Quests);
 		}
 		public override string MemberName()
 		{
@@ -1255,9 +1304,7 @@ namespace bb
 				SEnumChecker.GetMemberName(User, "User") + "," + 
 				SEnumChecker.GetMemberName(Chars, "Chars") + "," + 
 				SEnumChecker.GetMemberName(ServerTime, "ServerTime") + "," + 
-				SEnumChecker.GetMemberName(Quests, "Quests") + "," + 
-				SEnumChecker.GetMemberName(Packages, "Packages") + "," + 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx");
+				SEnumChecker.GetMemberName(Quests, "Quests");
 		}
 	}
 	public class SLobbyNetSc : SProto
@@ -1330,7 +1377,7 @@ namespace bb
 	}
 	public class SResourcesNetSc : SProto
 	{
-		public TResource[] Resources = new TResource[5];
+		public TResource[] Resources = new TResource[6];
 		public SResourcesNetSc()
 		{
 			for (int iResources = 0; iResources < Resources.Length; ++iResources)
@@ -1803,49 +1850,128 @@ namespace bb
 				SEnumChecker.GetMemberName(Code, "Code");
 		}
 	}
-	public class SBuyNetSc : SProto
+	public class SRewardInfo : SProto
 	{
-		public Int32 Code = default(Int32);
-		public SBuyNetSc()
+		public TUID UID = default(TUID);
+		public TResource[] ResourcesLeft = new TResource[6];
+		public List<Int32> Chars = new List<Int32>();
+		public SRewardInfo()
 		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
 		}
-		public SBuyNetSc(SBuyNetSc Obj_)
+		public SRewardInfo(SRewardInfo Obj_)
 		{
-			Code = Obj_.Code;
+			UID = Obj_.UID;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			Chars = Obj_.Chars;
 		}
-		public SBuyNetSc(Int32 Code_)
+		public SRewardInfo(TUID UID_, TResource[] ResourcesLeft_, List<Int32> Chars_)
 		{
-			Code = Code_;
+			UID = UID_;
+			ResourcesLeft = ResourcesLeft_;
+			Chars = Chars_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Code);
+			Stream_.Pop(ref UID);
+			Stream_.Pop(ref ResourcesLeft);
+			Stream_.Pop(ref Chars);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Code", ref Code);
+			Value_.Pop("UID", ref UID);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
+			Value_.Pop("Chars", ref Chars);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Code);
+			Stream_.Push(UID);
+			Stream_.Push(ResourcesLeft);
+			Stream_.Push(Chars);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Code", Code);
+			Value_.Push("UID", UID);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
+			Value_.Push("Chars", Chars);
 		}
-		public void Set(SBuyNetSc Obj_)
+		public void Set(SRewardInfo Obj_)
 		{
-			Code = Obj_.Code;
+			UID = Obj_.UID;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			Chars = Obj_.Chars;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Code);
+				SEnumChecker.GetStdName(UID) + "," + 
+				SEnumChecker.GetStdName(ResourcesLeft) + "," + 
+				SEnumChecker.GetStdName(Chars);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Code, "Code");
+				SEnumChecker.GetMemberName(UID, "UID") + "," + 
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft") + "," + 
+				SEnumChecker.GetMemberName(Chars, "Chars");
+		}
+	}
+	public class SBuyNetSc : SProto
+	{
+		public TUID UID = default(TUID);
+		public TResource[] ResourcesLeft = new TResource[6];
+		public SBuyNetSc()
+		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
+		}
+		public SBuyNetSc(SBuyNetSc Obj_)
+		{
+			UID = Obj_.UID;
+			ResourcesLeft = Obj_.ResourcesLeft;
+		}
+		public SBuyNetSc(TUID UID_, TResource[] ResourcesLeft_)
+		{
+			UID = UID_;
+			ResourcesLeft = ResourcesLeft_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref UID);
+			Stream_.Pop(ref ResourcesLeft);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("UID", ref UID);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(UID);
+			Stream_.Push(ResourcesLeft);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("UID", UID);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
+		}
+		public void Set(SBuyNetSc Obj_)
+		{
+			UID = Obj_.UID;
+			ResourcesLeft = Obj_.ResourcesLeft;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(UID) + "," + 
+				SEnumChecker.GetStdName(ResourcesLeft);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(UID, "UID") + "," + 
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft");
 		}
 	}
 	public class SBuyCharNetCs : SProto
@@ -1938,337 +2064,96 @@ namespace bb
 				SEnumChecker.GetMemberName(Code, "Code");
 		}
 	}
-	public class SBuyPackageNetCs : SProto
+	public class SBuyResourceNetCs : SProto
 	{
-		public Int32 Code = default(Int32);
-		public SBuyPackageNetCs()
+		public SResourceTypeData resourceTypeData = new SResourceTypeData();
+		public SBuyResourceNetCs()
 		{
 		}
-		public SBuyPackageNetCs(SBuyPackageNetCs Obj_)
+		public SBuyResourceNetCs(SBuyResourceNetCs Obj_)
 		{
-			Code = Obj_.Code;
+			resourceTypeData = Obj_.resourceTypeData;
 		}
-		public SBuyPackageNetCs(Int32 Code_)
+		public SBuyResourceNetCs(SResourceTypeData resourceTypeData_)
 		{
-			Code = Code_;
+			resourceTypeData = resourceTypeData_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Code);
+			Stream_.Pop(ref resourceTypeData);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Code", ref Code);
+			Value_.Pop("resourceTypeData", ref resourceTypeData);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Code);
+			Stream_.Push(resourceTypeData);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Code", Code);
+			Value_.Push("resourceTypeData", resourceTypeData);
 		}
-		public void Set(SBuyPackageNetCs Obj_)
+		public void Set(SBuyResourceNetCs Obj_)
 		{
-			Code = Obj_.Code;
+			resourceTypeData.Set(Obj_.resourceTypeData);
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Code);
+				SEnumChecker.GetStdName(resourceTypeData);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Code, "Code");
+				SEnumChecker.GetMemberName(resourceTypeData, "resourceTypeData");
 		}
 	}
-	public class SBuyPackageNetSc : SProto
+	public class SBuyResourceNetSc : SProto
 	{
-		public Int32 Code = default(Int32);
-		public SBuyPackageNetSc()
+		public TResource[] ResourcesLeft = new TResource[6];
+		public SBuyResourceNetSc()
 		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
 		}
-		public SBuyPackageNetSc(SBuyPackageNetSc Obj_)
+		public SBuyResourceNetSc(SBuyResourceNetSc Obj_)
 		{
-			Code = Obj_.Code;
+			ResourcesLeft = Obj_.ResourcesLeft;
 		}
-		public SBuyPackageNetSc(Int32 Code_)
+		public SBuyResourceNetSc(TResource[] ResourcesLeft_)
 		{
-			Code = Code_;
+			ResourcesLeft = ResourcesLeft_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Code);
+			Stream_.Pop(ref ResourcesLeft);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Code", ref Code);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Code);
+			Stream_.Push(ResourcesLeft);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Code", Code);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
 		}
-		public void Set(SBuyPackageNetSc Obj_)
+		public void Set(SBuyResourceNetSc Obj_)
 		{
-			Code = Obj_.Code;
+			ResourcesLeft = Obj_.ResourcesLeft;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Code);
+				SEnumChecker.GetStdName(ResourcesLeft);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Code, "Code");
-		}
-	}
-	public class SPurchaseNetCs : SProto
-	{
-		public String ProductID = string.Empty;
-		public String PurchaseToken = string.Empty;
-		public SPurchaseNetCs()
-		{
-		}
-		public SPurchaseNetCs(SPurchaseNetCs Obj_)
-		{
-			ProductID = Obj_.ProductID;
-			PurchaseToken = Obj_.PurchaseToken;
-		}
-		public SPurchaseNetCs(String ProductID_, String PurchaseToken_)
-		{
-			ProductID = ProductID_;
-			PurchaseToken = PurchaseToken_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref ProductID);
-			Stream_.Pop(ref PurchaseToken);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("ProductID", ref ProductID);
-			Value_.Pop("PurchaseToken", ref PurchaseToken);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(ProductID);
-			Stream_.Push(PurchaseToken);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("ProductID", ProductID);
-			Value_.Push("PurchaseToken", PurchaseToken);
-		}
-		public void Set(SPurchaseNetCs Obj_)
-		{
-			ProductID = Obj_.ProductID;
-			PurchaseToken = Obj_.PurchaseToken;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(ProductID) + "," + 
-				SEnumChecker.GetStdName(PurchaseToken);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(ProductID, "ProductID") + "," + 
-				SEnumChecker.GetMemberName(PurchaseToken, "PurchaseToken");
-		}
-	}
-	public class SPurchaseNetSc : SProto
-	{
-		public String ProductID = string.Empty;
-		public TResource DiaPaidAdded = default(TResource);
-		public SPurchaseNetSc()
-		{
-		}
-		public SPurchaseNetSc(SPurchaseNetSc Obj_)
-		{
-			ProductID = Obj_.ProductID;
-			DiaPaidAdded = Obj_.DiaPaidAdded;
-		}
-		public SPurchaseNetSc(String ProductID_, TResource DiaPaidAdded_)
-		{
-			ProductID = ProductID_;
-			DiaPaidAdded = DiaPaidAdded_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref ProductID);
-			Stream_.Pop(ref DiaPaidAdded);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("ProductID", ref ProductID);
-			Value_.Pop("DiaPaidAdded", ref DiaPaidAdded);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(ProductID);
-			Stream_.Push(DiaPaidAdded);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("ProductID", ProductID);
-			Value_.Push("DiaPaidAdded", DiaPaidAdded);
-		}
-		public void Set(SPurchaseNetSc Obj_)
-		{
-			ProductID = Obj_.ProductID;
-			DiaPaidAdded = Obj_.DiaPaidAdded;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(ProductID) + "," + 
-				SEnumChecker.GetStdName(DiaPaidAdded);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(ProductID, "ProductID") + "," + 
-				SEnumChecker.GetMemberName(DiaPaidAdded, "DiaPaidAdded");
-		}
-	}
-	public class SDailyRewardNetCs : SProto
-	{
-		public Boolean IsWatchedAd = default(Boolean);
-		public SDailyRewardNetCs()
-		{
-		}
-		public SDailyRewardNetCs(SDailyRewardNetCs Obj_)
-		{
-			IsWatchedAd = Obj_.IsWatchedAd;
-		}
-		public SDailyRewardNetCs(Boolean IsWatchedAd_)
-		{
-			IsWatchedAd = IsWatchedAd_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref IsWatchedAd);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("IsWatchedAd", ref IsWatchedAd);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(IsWatchedAd);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("IsWatchedAd", IsWatchedAd);
-		}
-		public void Set(SDailyRewardNetCs Obj_)
-		{
-			IsWatchedAd = Obj_.IsWatchedAd;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(IsWatchedAd);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(IsWatchedAd, "IsWatchedAd");
-		}
-	}
-	public class SDailyRewardNetSc : SProto
-	{
-		public SResourceTypeData Reward = new SResourceTypeData();
-		public TimePoint ExpiredTime = default(TimePoint);
-		public Int32 CountLeft = default(Int32);
-		public SDailyRewardNetSc()
-		{
-		}
-		public SDailyRewardNetSc(SDailyRewardNetSc Obj_)
-		{
-			Reward = Obj_.Reward;
-			ExpiredTime = Obj_.ExpiredTime;
-			CountLeft = Obj_.CountLeft;
-		}
-		public SDailyRewardNetSc(SResourceTypeData Reward_, TimePoint ExpiredTime_, Int32 CountLeft_)
-		{
-			Reward = Reward_;
-			ExpiredTime = ExpiredTime_;
-			CountLeft = CountLeft_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Reward);
-			Stream_.Pop(ref ExpiredTime);
-			Stream_.Pop(ref CountLeft);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Reward", ref Reward);
-			Value_.Pop("ExpiredTime", ref ExpiredTime);
-			Value_.Pop("CountLeft", ref CountLeft);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Reward);
-			Stream_.Push(ExpiredTime);
-			Stream_.Push(CountLeft);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Reward", Reward);
-			Value_.Push("ExpiredTime", ExpiredTime);
-			Value_.Push("CountLeft", CountLeft);
-		}
-		public void Set(SDailyRewardNetSc Obj_)
-		{
-			Reward.Set(Obj_.Reward);
-			ExpiredTime = Obj_.ExpiredTime;
-			CountLeft = Obj_.CountLeft;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Reward) + "," + 
-				SEnumChecker.GetStdName(ExpiredTime) + "," + 
-				SEnumChecker.GetStdName(CountLeft);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Reward, "Reward") + "," + 
-				SEnumChecker.GetMemberName(ExpiredTime, "ExpiredTime") + "," + 
-				SEnumChecker.GetMemberName(CountLeft, "CountLeft");
-		}
-	}
-	public class SDailyRewardFailNetSc : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft");
 		}
 	}
 	public class SSelectCharNetCs : SProto
@@ -2316,583 +2201,360 @@ namespace bb
 				SEnumChecker.GetMemberName(Code, "Code");
 		}
 	}
-	public class SSingleStartNetCs : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SSingleStartNetSc : SProto
-	{
-		public TResource GoldCost = default(TResource);
-		public Int32 PlayCount = default(Int32);
-		public TimePoint RefreshTime = default(TimePoint);
-		public TDoneQuests DoneQuests = new TDoneQuests();
-		public SSingleStartNetSc()
-		{
-		}
-		public SSingleStartNetSc(SSingleStartNetSc Obj_)
-		{
-			GoldCost = Obj_.GoldCost;
-			PlayCount = Obj_.PlayCount;
-			RefreshTime = Obj_.RefreshTime;
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public SSingleStartNetSc(TResource GoldCost_, Int32 PlayCount_, TimePoint RefreshTime_, TDoneQuests DoneQuests_)
-		{
-			GoldCost = GoldCost_;
-			PlayCount = PlayCount_;
-			RefreshTime = RefreshTime_;
-			DoneQuests = DoneQuests_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref GoldCost);
-			Stream_.Pop(ref PlayCount);
-			Stream_.Pop(ref RefreshTime);
-			Stream_.Pop(ref DoneQuests);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("GoldCost", ref GoldCost);
-			Value_.Pop("PlayCount", ref PlayCount);
-			Value_.Pop("RefreshTime", ref RefreshTime);
-			Value_.Pop("DoneQuests", ref DoneQuests);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(GoldCost);
-			Stream_.Push(PlayCount);
-			Stream_.Push(RefreshTime);
-			Stream_.Push(DoneQuests);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("GoldCost", GoldCost);
-			Value_.Push("PlayCount", PlayCount);
-			Value_.Push("RefreshTime", RefreshTime);
-			Value_.Push("DoneQuests", DoneQuests);
-		}
-		public void Set(SSingleStartNetSc Obj_)
-		{
-			GoldCost = Obj_.GoldCost;
-			PlayCount = Obj_.PlayCount;
-			RefreshTime = Obj_.RefreshTime;
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(GoldCost) + "," + 
-				SEnumChecker.GetStdName(PlayCount) + "," + 
-				SEnumChecker.GetStdName(RefreshTime) + "," + 
-				SEnumChecker.GetStdName(DoneQuests);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(GoldCost, "GoldCost") + "," + 
-				SEnumChecker.GetMemberName(PlayCount, "PlayCount") + "," + 
-				SEnumChecker.GetMemberName(RefreshTime, "RefreshTime") + "," + 
-				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
-		}
-	}
-	public class SSingleEndNetCs : SProto
-	{
-		public Int32 Wave = default(Int32);
-		public Int32 Second = default(Int32);
-		public TResource Gold = default(TResource);
-		public TResource GoldAdded = default(TResource);
-		public TResource DiaAdded = default(TResource);
-		public SSingleEndNetCs()
-		{
-		}
-		public SSingleEndNetCs(SSingleEndNetCs Obj_)
-		{
-			Wave = Obj_.Wave;
-			Second = Obj_.Second;
-			Gold = Obj_.Gold;
-			GoldAdded = Obj_.GoldAdded;
-			DiaAdded = Obj_.DiaAdded;
-		}
-		public SSingleEndNetCs(Int32 Wave_, Int32 Second_, TResource Gold_, TResource GoldAdded_, TResource DiaAdded_)
-		{
-			Wave = Wave_;
-			Second = Second_;
-			Gold = Gold_;
-			GoldAdded = GoldAdded_;
-			DiaAdded = DiaAdded_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Wave);
-			Stream_.Pop(ref Second);
-			Stream_.Pop(ref Gold);
-			Stream_.Pop(ref GoldAdded);
-			Stream_.Pop(ref DiaAdded);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Wave", ref Wave);
-			Value_.Pop("Second", ref Second);
-			Value_.Pop("Gold", ref Gold);
-			Value_.Pop("GoldAdded", ref GoldAdded);
-			Value_.Pop("DiaAdded", ref DiaAdded);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Wave);
-			Stream_.Push(Second);
-			Stream_.Push(Gold);
-			Stream_.Push(GoldAdded);
-			Stream_.Push(DiaAdded);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Wave", Wave);
-			Value_.Push("Second", Second);
-			Value_.Push("Gold", Gold);
-			Value_.Push("GoldAdded", GoldAdded);
-			Value_.Push("DiaAdded", DiaAdded);
-		}
-		public void Set(SSingleEndNetCs Obj_)
-		{
-			Wave = Obj_.Wave;
-			Second = Obj_.Second;
-			Gold = Obj_.Gold;
-			GoldAdded = Obj_.GoldAdded;
-			DiaAdded = Obj_.DiaAdded;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Wave) + "," + 
-				SEnumChecker.GetStdName(Second) + "," + 
-				SEnumChecker.GetStdName(Gold) + "," + 
-				SEnumChecker.GetStdName(GoldAdded) + "," + 
-				SEnumChecker.GetStdName(DiaAdded);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Wave, "Wave") + "," + 
-				SEnumChecker.GetMemberName(Second, "Second") + "," + 
-				SEnumChecker.GetMemberName(Gold, "Gold") + "," + 
-				SEnumChecker.GetMemberName(GoldAdded, "GoldAdded") + "," + 
-				SEnumChecker.GetMemberName(DiaAdded, "DiaAdded");
-		}
-	}
-	public class SSingleEndNetSc : SProto
-	{
-		public TDoneQuests DoneQuests = new TDoneQuests();
-		public SSingleEndNetSc()
-		{
-		}
-		public SSingleEndNetSc(SSingleEndNetSc Obj_)
-		{
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public SSingleEndNetSc(TDoneQuests DoneQuests_)
-		{
-			DoneQuests = DoneQuests_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref DoneQuests);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("DoneQuests", ref DoneQuests);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(DoneQuests);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("DoneQuests", DoneQuests);
-		}
-		public void Set(SSingleEndNetSc Obj_)
-		{
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(DoneQuests);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
-		}
-	}
-	public class SIslandStartNetCs : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SIslandStartNetSc : SProto
-	{
-		public TResource GoldCost = default(TResource);
-		public Int32 PlayCount = default(Int32);
-		public TimePoint RefreshTime = default(TimePoint);
-		public TDoneQuests DoneQuests = new TDoneQuests();
-		public SIslandStartNetSc()
-		{
-		}
-		public SIslandStartNetSc(SIslandStartNetSc Obj_)
-		{
-			GoldCost = Obj_.GoldCost;
-			PlayCount = Obj_.PlayCount;
-			RefreshTime = Obj_.RefreshTime;
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public SIslandStartNetSc(TResource GoldCost_, Int32 PlayCount_, TimePoint RefreshTime_, TDoneQuests DoneQuests_)
-		{
-			GoldCost = GoldCost_;
-			PlayCount = PlayCount_;
-			RefreshTime = RefreshTime_;
-			DoneQuests = DoneQuests_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref GoldCost);
-			Stream_.Pop(ref PlayCount);
-			Stream_.Pop(ref RefreshTime);
-			Stream_.Pop(ref DoneQuests);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("GoldCost", ref GoldCost);
-			Value_.Pop("PlayCount", ref PlayCount);
-			Value_.Pop("RefreshTime", ref RefreshTime);
-			Value_.Pop("DoneQuests", ref DoneQuests);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(GoldCost);
-			Stream_.Push(PlayCount);
-			Stream_.Push(RefreshTime);
-			Stream_.Push(DoneQuests);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("GoldCost", GoldCost);
-			Value_.Push("PlayCount", PlayCount);
-			Value_.Push("RefreshTime", RefreshTime);
-			Value_.Push("DoneQuests", DoneQuests);
-		}
-		public void Set(SIslandStartNetSc Obj_)
-		{
-			GoldCost = Obj_.GoldCost;
-			PlayCount = Obj_.PlayCount;
-			RefreshTime = Obj_.RefreshTime;
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(GoldCost) + "," + 
-				SEnumChecker.GetStdName(PlayCount) + "," + 
-				SEnumChecker.GetStdName(RefreshTime) + "," + 
-				SEnumChecker.GetStdName(DoneQuests);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(GoldCost, "GoldCost") + "," + 
-				SEnumChecker.GetMemberName(PlayCount, "PlayCount") + "," + 
-				SEnumChecker.GetMemberName(RefreshTime, "RefreshTime") + "," + 
-				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
-		}
-	}
-	public class SIslandEndNetCs : SProto
-	{
-		public Int32 PassedIslandCount = default(Int32);
-		public TResource Gold = default(TResource);
-		public TResource GoldAdded = default(TResource);
-		public TResource DiaAdded = default(TResource);
-		public SIslandEndNetCs()
-		{
-		}
-		public SIslandEndNetCs(SIslandEndNetCs Obj_)
-		{
-			PassedIslandCount = Obj_.PassedIslandCount;
-			Gold = Obj_.Gold;
-			GoldAdded = Obj_.GoldAdded;
-			DiaAdded = Obj_.DiaAdded;
-		}
-		public SIslandEndNetCs(Int32 PassedIslandCount_, TResource Gold_, TResource GoldAdded_, TResource DiaAdded_)
-		{
-			PassedIslandCount = PassedIslandCount_;
-			Gold = Gold_;
-			GoldAdded = GoldAdded_;
-			DiaAdded = DiaAdded_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref PassedIslandCount);
-			Stream_.Pop(ref Gold);
-			Stream_.Pop(ref GoldAdded);
-			Stream_.Pop(ref DiaAdded);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("PassedIslandCount", ref PassedIslandCount);
-			Value_.Pop("Gold", ref Gold);
-			Value_.Pop("GoldAdded", ref GoldAdded);
-			Value_.Pop("DiaAdded", ref DiaAdded);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(PassedIslandCount);
-			Stream_.Push(Gold);
-			Stream_.Push(GoldAdded);
-			Stream_.Push(DiaAdded);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("PassedIslandCount", PassedIslandCount);
-			Value_.Push("Gold", Gold);
-			Value_.Push("GoldAdded", GoldAdded);
-			Value_.Push("DiaAdded", DiaAdded);
-		}
-		public void Set(SIslandEndNetCs Obj_)
-		{
-			PassedIslandCount = Obj_.PassedIslandCount;
-			Gold = Obj_.Gold;
-			GoldAdded = Obj_.GoldAdded;
-			DiaAdded = Obj_.DiaAdded;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(PassedIslandCount) + "," + 
-				SEnumChecker.GetStdName(Gold) + "," + 
-				SEnumChecker.GetStdName(GoldAdded) + "," + 
-				SEnumChecker.GetStdName(DiaAdded);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(PassedIslandCount, "PassedIslandCount") + "," + 
-				SEnumChecker.GetMemberName(Gold, "Gold") + "," + 
-				SEnumChecker.GetMemberName(GoldAdded, "GoldAdded") + "," + 
-				SEnumChecker.GetMemberName(DiaAdded, "DiaAdded");
-		}
-	}
-	public class SIslandEndNetSc : SProto
-	{
-		public TDoneQuests DoneQuests = new TDoneQuests();
-		public SIslandEndNetSc()
-		{
-		}
-		public SIslandEndNetSc(SIslandEndNetSc Obj_)
-		{
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public SIslandEndNetSc(TDoneQuests DoneQuests_)
-		{
-			DoneQuests = DoneQuests_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref DoneQuests);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("DoneQuests", ref DoneQuests);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(DoneQuests);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("DoneQuests", DoneQuests);
-		}
-		public void Set(SIslandEndNetSc Obj_)
-		{
-			DoneQuests = Obj_.DoneQuests;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(DoneQuests);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
-		}
-	}
 	public class SBattleType : SProto
 	{
-		public EGameMode GameMode = default(EGameMode);
-		public SByte MemberCount = default(SByte);
 		public TTeamCnt TeamCount = default(TTeamCnt);
+		public SByte TeamMemberCount = default(SByte);
 		public SBattleType()
 		{
 		}
 		public SBattleType(SBattleType Obj_)
 		{
-			GameMode = Obj_.GameMode;
-			MemberCount = Obj_.MemberCount;
 			TeamCount = Obj_.TeamCount;
+			TeamMemberCount = Obj_.TeamMemberCount;
 		}
-		public SBattleType(EGameMode GameMode_, SByte MemberCount_, TTeamCnt TeamCount_)
+		public SBattleType(TTeamCnt TeamCount_, SByte TeamMemberCount_)
 		{
-			GameMode = GameMode_;
-			MemberCount = MemberCount_;
 			TeamCount = TeamCount_;
+			TeamMemberCount = TeamMemberCount_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref GameMode);
-			Stream_.Pop(ref MemberCount);
 			Stream_.Pop(ref TeamCount);
+			Stream_.Pop(ref TeamMemberCount);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("GameMode", ref GameMode);
-			Value_.Pop("MemberCount", ref MemberCount);
 			Value_.Pop("TeamCount", ref TeamCount);
+			Value_.Pop("TeamMemberCount", ref TeamMemberCount);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(GameMode);
-			Stream_.Push(MemberCount);
 			Stream_.Push(TeamCount);
+			Stream_.Push(TeamMemberCount);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("GameMode", GameMode);
-			Value_.Push("MemberCount", MemberCount);
 			Value_.Push("TeamCount", TeamCount);
+			Value_.Push("TeamMemberCount", TeamMemberCount);
 		}
 		public void Set(SBattleType Obj_)
 		{
-			GameMode = Obj_.GameMode;
-			MemberCount = Obj_.MemberCount;
 			TeamCount = Obj_.TeamCount;
+			TeamMemberCount = Obj_.TeamMemberCount;
 		}
 		public override string StdName()
 		{
 			return 
-				"bb.EGameMode" + "," + 
-				SEnumChecker.GetStdName(MemberCount) + "," + 
-				SEnumChecker.GetStdName(TeamCount);
+				SEnumChecker.GetStdName(TeamCount) + "," + 
+				SEnumChecker.GetStdName(TeamMemberCount);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(GameMode, "GameMode") + "," + 
-				SEnumChecker.GetMemberName(MemberCount, "MemberCount") + "," + 
-				SEnumChecker.GetMemberName(TeamCount, "TeamCount");
+				SEnumChecker.GetMemberName(TeamCount, "TeamCount") + "," + 
+				SEnumChecker.GetMemberName(TeamMemberCount, "TeamMemberCount");
 		}
 	}
-	public class SBattleRecord : SProto
+	public class SBattleSyncNetSc : SProto
 	{
-		public Int32 TotalKillCount = default(Int32);
-		public Int32 TotalBalloonHitCount = default(Int32);
-		public SBattleRecord()
+		public Int64 Tick = default(Int64);
+		public SBattleSyncNetSc()
 		{
 		}
-		public SBattleRecord(SBattleRecord Obj_)
+		public SBattleSyncNetSc(SBattleSyncNetSc Obj_)
 		{
-			TotalKillCount = Obj_.TotalKillCount;
-			TotalBalloonHitCount = Obj_.TotalBalloonHitCount;
+			Tick = Obj_.Tick;
 		}
-		public SBattleRecord(Int32 TotalKillCount_, Int32 TotalBalloonHitCount_)
+		public SBattleSyncNetSc(Int64 Tick_)
 		{
-			TotalKillCount = TotalKillCount_;
-			TotalBalloonHitCount = TotalBalloonHitCount_;
+			Tick = Tick_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref TotalKillCount);
-			Stream_.Pop(ref TotalBalloonHitCount);
+			Stream_.Pop(ref Tick);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("TotalKillCount", ref TotalKillCount);
-			Value_.Pop("TotalBalloonHitCount", ref TotalBalloonHitCount);
+			Value_.Pop("Tick", ref Tick);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(TotalKillCount);
-			Stream_.Push(TotalBalloonHitCount);
+			Stream_.Push(Tick);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("TotalKillCount", TotalKillCount);
-			Value_.Push("TotalBalloonHitCount", TotalBalloonHitCount);
+			Value_.Push("Tick", Tick);
 		}
-		public void Set(SBattleRecord Obj_)
+		public void Set(SBattleSyncNetSc Obj_)
 		{
-			TotalKillCount = Obj_.TotalKillCount;
-			TotalBalloonHitCount = Obj_.TotalBalloonHitCount;
+			Tick = Obj_.Tick;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(TotalKillCount) + "," + 
-				SEnumChecker.GetStdName(TotalBalloonHitCount);
+				SEnumChecker.GetStdName(Tick);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(TotalKillCount, "TotalKillCount") + "," + 
-				SEnumChecker.GetMemberName(TotalBalloonHitCount, "TotalBalloonHitCount");
+				SEnumChecker.GetMemberName(Tick, "Tick");
 		}
 	}
-	public class SBattleJoinNetCs : SProto
+	public class SBattleTouchNetCs : SProto
 	{
-		public SBattleType BattleType = new SBattleType();
-		public SBattleJoinNetCs()
+		public SByte Dir = default(SByte);
+		public SBattleTouchNetCs()
 		{
 		}
-		public SBattleJoinNetCs(SBattleJoinNetCs Obj_)
+		public SBattleTouchNetCs(SBattleTouchNetCs Obj_)
+		{
+			Dir = Obj_.Dir;
+		}
+		public SBattleTouchNetCs(SByte Dir_)
+		{
+			Dir = Dir_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Dir);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Dir", ref Dir);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Dir);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Dir", Dir);
+		}
+		public void Set(SBattleTouchNetCs Obj_)
+		{
+			Dir = Obj_.Dir;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Dir);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Dir, "Dir");
+		}
+	}
+	public class SBattleDirectNetSc : SProto
+	{
+		public Int64 Tick = default(Int64);
+		public Int32 PlayerIndex = default(Int32);
+		public SByte Dir = default(SByte);
+		public SBattleDirectNetSc()
+		{
+		}
+		public SBattleDirectNetSc(SBattleDirectNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+			Dir = Obj_.Dir;
+		}
+		public SBattleDirectNetSc(Int64 Tick_, Int32 PlayerIndex_, SByte Dir_)
+		{
+			Tick = Tick_;
+			PlayerIndex = PlayerIndex_;
+			Dir = Dir_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref PlayerIndex);
+			Stream_.Pop(ref Dir);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("PlayerIndex", ref PlayerIndex);
+			Value_.Pop("Dir", ref Dir);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Tick);
+			Stream_.Push(PlayerIndex);
+			Stream_.Push(Dir);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Tick", Tick);
+			Value_.Push("PlayerIndex", PlayerIndex);
+			Value_.Push("Dir", Dir);
+		}
+		public void Set(SBattleDirectNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+			Dir = Obj_.Dir;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(PlayerIndex) + "," + 
+				SEnumChecker.GetStdName(Dir);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex") + "," + 
+				SEnumChecker.GetMemberName(Dir, "Dir");
+		}
+	}
+	public class SBattlePushNetCs : SProto
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SBattleFlapNetSc : SProto
+	{
+		public Int64 Tick = default(Int64);
+		public Int32 PlayerIndex = default(Int32);
+		public SBattleFlapNetSc()
+		{
+		}
+		public SBattleFlapNetSc(SBattleFlapNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+		}
+		public SBattleFlapNetSc(Int64 Tick_, Int32 PlayerIndex_)
+		{
+			Tick = Tick_;
+			PlayerIndex = PlayerIndex_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref PlayerIndex);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("PlayerIndex", ref PlayerIndex);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Tick);
+			Stream_.Push(PlayerIndex);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Tick", Tick);
+			Value_.Push("PlayerIndex", PlayerIndex);
+		}
+		public void Set(SBattleFlapNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(PlayerIndex);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
+		}
+	}
+	public class SBattlePumpNetSc : SProto
+	{
+		public Int64 Tick = default(Int64);
+		public Int32 PlayerIndex = default(Int32);
+		public SBattlePumpNetSc()
+		{
+		}
+		public SBattlePumpNetSc(SBattlePumpNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+		}
+		public SBattlePumpNetSc(Int64 Tick_, Int32 PlayerIndex_)
+		{
+			Tick = Tick_;
+			PlayerIndex = PlayerIndex_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref PlayerIndex);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("PlayerIndex", ref PlayerIndex);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Tick);
+			Stream_.Push(PlayerIndex);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Tick", Tick);
+			Value_.Push("PlayerIndex", PlayerIndex);
+		}
+		public void Set(SBattlePumpNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(PlayerIndex);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
+		}
+	}
+	public class SMultiBattleJoinNetCs : SProto
+	{
+		public SBattleType BattleType = new SBattleType();
+		public SMultiBattleJoinNetCs()
+		{
+		}
+		public SMultiBattleJoinNetCs(SMultiBattleJoinNetCs Obj_)
 		{
 			BattleType = Obj_.BattleType;
 		}
-		public SBattleJoinNetCs(SBattleType BattleType_)
+		public SMultiBattleJoinNetCs(SBattleType BattleType_)
 		{
 			BattleType = BattleType_;
 		}
@@ -2912,7 +2574,7 @@ namespace bb
 		{
 			Value_.Push("BattleType", BattleType);
 		}
-		public void Set(SBattleJoinNetCs Obj_)
+		public void Set(SMultiBattleJoinNetCs Obj_)
 		{
 			BattleType.Set(Obj_.BattleType);
 		}
@@ -2927,7 +2589,7 @@ namespace bb
 				SEnumChecker.GetMemberName(BattleType, "BattleType");
 		}
 	}
-	public class SBattleJoinNetSc : SProto
+	public class SMultiBattleJoinNetSc : SProto
 	{
 		public override void Push(CStream Stream_)
 		{
@@ -2950,7 +2612,7 @@ namespace bb
 			return "";
 		}
 	}
-	public class SBattleOutNetCs : SProto
+	public class SMultiBattleOutNetCs : SProto
 	{
 		public override void Push(CStream Stream_)
 		{
@@ -2973,7 +2635,7 @@ namespace bb
 			return "";
 		}
 	}
-	public class SBattleOutNetSc : SProto
+	public class SMultiBattleOutNetSc : SProto
 	{
 		public override void Push(CStream Stream_)
 		{
@@ -3178,7 +2840,6 @@ namespace bb
 		public String CountryCode = string.Empty;
 		public TTeamCnt TeamIndex = default(TTeamCnt);
 		public Int32 CharCode = default(Int32);
-		public Int32 Point = default(Int32);
 		public SBattlePlayer()
 		{
 		}
@@ -3189,16 +2850,14 @@ namespace bb
 			CountryCode = Obj_.CountryCode;
 			TeamIndex = Obj_.TeamIndex;
 			CharCode = Obj_.CharCode;
-			Point = Obj_.Point;
 		}
-		public SBattlePlayer(TUID UID_, String Nick_, String CountryCode_, TTeamCnt TeamIndex_, Int32 CharCode_, Int32 Point_)
+		public SBattlePlayer(TUID UID_, String Nick_, String CountryCode_, TTeamCnt TeamIndex_, Int32 CharCode_)
 		{
 			UID = UID_;
 			Nick = Nick_;
 			CountryCode = CountryCode_;
 			TeamIndex = TeamIndex_;
 			CharCode = CharCode_;
-			Point = Point_;
 		}
 		public override void Push(CStream Stream_)
 		{
@@ -3207,7 +2866,6 @@ namespace bb
 			Stream_.Pop(ref CountryCode);
 			Stream_.Pop(ref TeamIndex);
 			Stream_.Pop(ref CharCode);
-			Stream_.Pop(ref Point);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
@@ -3216,7 +2874,6 @@ namespace bb
 			Value_.Pop("CountryCode", ref CountryCode);
 			Value_.Pop("TeamIndex", ref TeamIndex);
 			Value_.Pop("CharCode", ref CharCode);
-			Value_.Pop("Point", ref Point);
 		}
 		public override void Pop(CStream Stream_)
 		{
@@ -3225,7 +2882,6 @@ namespace bb
 			Stream_.Push(CountryCode);
 			Stream_.Push(TeamIndex);
 			Stream_.Push(CharCode);
-			Stream_.Push(Point);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
@@ -3234,7 +2890,6 @@ namespace bb
 			Value_.Push("CountryCode", CountryCode);
 			Value_.Push("TeamIndex", TeamIndex);
 			Value_.Push("CharCode", CharCode);
-			Value_.Push("Point", Point);
 		}
 		public void Set(SBattlePlayer Obj_)
 		{
@@ -3243,7 +2898,6 @@ namespace bb
 			CountryCode = Obj_.CountryCode;
 			TeamIndex = Obj_.TeamIndex;
 			CharCode = Obj_.CharCode;
-			Point = Obj_.Point;
 		}
 		public override string StdName()
 		{
@@ -3252,8 +2906,7 @@ namespace bb
 				SEnumChecker.GetStdName(Nick) + "," + 
 				SEnumChecker.GetStdName(CountryCode) + "," + 
 				SEnumChecker.GetStdName(TeamIndex) + "," + 
-				SEnumChecker.GetStdName(CharCode) + "," + 
-				SEnumChecker.GetStdName(Point);
+				SEnumChecker.GetStdName(CharCode);
 		}
 		public override string MemberName()
 		{
@@ -3262,8 +2915,7 @@ namespace bb
 				SEnumChecker.GetMemberName(Nick, "Nick") + "," + 
 				SEnumChecker.GetMemberName(CountryCode, "CountryCode") + "," + 
 				SEnumChecker.GetMemberName(TeamIndex, "TeamIndex") + "," + 
-				SEnumChecker.GetMemberName(CharCode, "CharCode") + "," + 
-				SEnumChecker.GetMemberName(Point, "Point");
+				SEnumChecker.GetMemberName(CharCode, "CharCode");
 		}
 	}
 	public class SCharacter : SProto
@@ -3275,7 +2927,6 @@ namespace bb
 		public SParachuteInfo ParachuteInfo = new SParachuteInfo();
 		public SStaminaInfo StaminaInfo = new SStaminaInfo();
 		public SByte Face = default(SByte);
-		public SPoint Acc = new SPoint();
 		public Int64 InvulnerableEndTick = default(Int64);
 		public Int32 ChainKillCount = default(Int32);
 		public Int64 LastKillTick = default(Int64);
@@ -3292,13 +2943,12 @@ namespace bb
 			ParachuteInfo = Obj_.ParachuteInfo;
 			StaminaInfo = Obj_.StaminaInfo;
 			Face = Obj_.Face;
-			Acc = Obj_.Acc;
 			InvulnerableEndTick = Obj_.InvulnerableEndTick;
 			ChainKillCount = Obj_.ChainKillCount;
 			LastKillTick = Obj_.LastKillTick;
 			RegenTick = Obj_.RegenTick;
 		}
-		public SCharacter(Boolean IsGround_, SByte Dir_, SByte BalloonCount_, SPumpInfo PumpInfo_, SParachuteInfo ParachuteInfo_, SStaminaInfo StaminaInfo_, SByte Face_, SPoint Acc_, Int64 InvulnerableEndTick_, Int32 ChainKillCount_, Int64 LastKillTick_, Int64 RegenTick_)
+		public SCharacter(Boolean IsGround_, SByte Dir_, SByte BalloonCount_, SPumpInfo PumpInfo_, SParachuteInfo ParachuteInfo_, SStaminaInfo StaminaInfo_, SByte Face_, Int64 InvulnerableEndTick_, Int32 ChainKillCount_, Int64 LastKillTick_, Int64 RegenTick_)
 		{
 			IsGround = IsGround_;
 			Dir = Dir_;
@@ -3307,7 +2957,6 @@ namespace bb
 			ParachuteInfo = ParachuteInfo_;
 			StaminaInfo = StaminaInfo_;
 			Face = Face_;
-			Acc = Acc_;
 			InvulnerableEndTick = InvulnerableEndTick_;
 			ChainKillCount = ChainKillCount_;
 			LastKillTick = LastKillTick_;
@@ -3322,7 +2971,6 @@ namespace bb
 			Stream_.Pop(ref ParachuteInfo);
 			Stream_.Pop(ref StaminaInfo);
 			Stream_.Pop(ref Face);
-			Stream_.Pop(ref Acc);
 			Stream_.Pop(ref InvulnerableEndTick);
 			Stream_.Pop(ref ChainKillCount);
 			Stream_.Pop(ref LastKillTick);
@@ -3337,7 +2985,6 @@ namespace bb
 			Value_.Pop("ParachuteInfo", ref ParachuteInfo);
 			Value_.Pop("StaminaInfo", ref StaminaInfo);
 			Value_.Pop("Face", ref Face);
-			Value_.Pop("Acc", ref Acc);
 			Value_.Pop("InvulnerableEndTick", ref InvulnerableEndTick);
 			Value_.Pop("ChainKillCount", ref ChainKillCount);
 			Value_.Pop("LastKillTick", ref LastKillTick);
@@ -3352,7 +2999,6 @@ namespace bb
 			Stream_.Push(ParachuteInfo);
 			Stream_.Push(StaminaInfo);
 			Stream_.Push(Face);
-			Stream_.Push(Acc);
 			Stream_.Push(InvulnerableEndTick);
 			Stream_.Push(ChainKillCount);
 			Stream_.Push(LastKillTick);
@@ -3367,7 +3013,6 @@ namespace bb
 			Value_.Push("ParachuteInfo", ParachuteInfo);
 			Value_.Push("StaminaInfo", StaminaInfo);
 			Value_.Push("Face", Face);
-			Value_.Push("Acc", Acc);
 			Value_.Push("InvulnerableEndTick", InvulnerableEndTick);
 			Value_.Push("ChainKillCount", ChainKillCount);
 			Value_.Push("LastKillTick", LastKillTick);
@@ -3382,7 +3027,6 @@ namespace bb
 			ParachuteInfo.Set(Obj_.ParachuteInfo);
 			StaminaInfo.Set(Obj_.StaminaInfo);
 			Face = Obj_.Face;
-			Acc.Set(Obj_.Acc);
 			InvulnerableEndTick = Obj_.InvulnerableEndTick;
 			ChainKillCount = Obj_.ChainKillCount;
 			LastKillTick = Obj_.LastKillTick;
@@ -3398,7 +3042,6 @@ namespace bb
 				SEnumChecker.GetStdName(ParachuteInfo) + "," + 
 				SEnumChecker.GetStdName(StaminaInfo) + "," + 
 				SEnumChecker.GetStdName(Face) + "," + 
-				SEnumChecker.GetStdName(Acc) + "," + 
 				SEnumChecker.GetStdName(InvulnerableEndTick) + "," + 
 				SEnumChecker.GetStdName(ChainKillCount) + "," + 
 				SEnumChecker.GetStdName(LastKillTick) + "," + 
@@ -3414,7 +3057,6 @@ namespace bb
 				SEnumChecker.GetMemberName(ParachuteInfo, "ParachuteInfo") + "," + 
 				SEnumChecker.GetMemberName(StaminaInfo, "StaminaInfo") + "," + 
 				SEnumChecker.GetMemberName(Face, "Face") + "," + 
-				SEnumChecker.GetMemberName(Acc, "Acc") + "," + 
 				SEnumChecker.GetMemberName(InvulnerableEndTick, "InvulnerableEndTick") + "," + 
 				SEnumChecker.GetMemberName(ChainKillCount, "ChainKillCount") + "," + 
 				SEnumChecker.GetMemberName(LastKillTick, "LastKillTick") + "," + 
@@ -3483,29 +3125,6 @@ namespace bb
 				SEnumChecker.GetMemberName(Vel, "Vel");
 		}
 	}
-	public class STeamBattleInfo : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
 	public class SBattle : SProto
 	{
 		public SBattleType BattleType = new SBattleType();
@@ -3561,32 +3180,180 @@ namespace bb
 				SEnumChecker.GetMemberName(MapIndex, "MapIndex");
 		}
 	}
-	public class SBattleBeginNetSc : SBattle
+	public class SBattleRecord : SProto
 	{
-		public List<SBattlePlayer> Players = new List<SBattlePlayer>();
-		public SBattleRecord Record = new SBattleRecord();
-		public List<SCharacterNet> Characters = new List<SCharacterNet>();
-		public TimePoint EndTime = default(TimePoint);
-		public Int64 Tick = default(Int64);
-		public List<SStructMovePosition> StructMovePositions = new List<SStructMovePosition>();
-		public SBattleBeginNetSc()
+		public Int32 TotalKillCount = default(Int32);
+		public Int32 TotalBalloonHitCount = default(Int32);
+		public SBattleRecord()
 		{
 		}
-		public SBattleBeginNetSc(SBattleBeginNetSc Obj_) : base(Obj_)
+		public SBattleRecord(SBattleRecord Obj_)
+		{
+			TotalKillCount = Obj_.TotalKillCount;
+			TotalBalloonHitCount = Obj_.TotalBalloonHitCount;
+		}
+		public SBattleRecord(Int32 TotalKillCount_, Int32 TotalBalloonHitCount_)
+		{
+			TotalKillCount = TotalKillCount_;
+			TotalBalloonHitCount = TotalBalloonHitCount_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref TotalKillCount);
+			Stream_.Pop(ref TotalBalloonHitCount);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("TotalKillCount", ref TotalKillCount);
+			Value_.Pop("TotalBalloonHitCount", ref TotalBalloonHitCount);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(TotalKillCount);
+			Stream_.Push(TotalBalloonHitCount);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("TotalKillCount", TotalKillCount);
+			Value_.Push("TotalBalloonHitCount", TotalBalloonHitCount);
+		}
+		public void Set(SBattleRecord Obj_)
+		{
+			TotalKillCount = Obj_.TotalKillCount;
+			TotalBalloonHitCount = Obj_.TotalBalloonHitCount;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(TotalKillCount) + "," + 
+				SEnumChecker.GetStdName(TotalBalloonHitCount);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(TotalKillCount, "TotalKillCount") + "," + 
+				SEnumChecker.GetMemberName(TotalBalloonHitCount, "TotalBalloonHitCount");
+		}
+	}
+	public class BattleInfo : SProto
+	{
+		public Int32 Point = default(Int32);
+		public BattleInfo()
+		{
+		}
+		public BattleInfo(BattleInfo Obj_)
+		{
+			Point = Obj_.Point;
+		}
+		public BattleInfo(Int32 Point_)
+		{
+			Point = Point_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Point);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Point", ref Point);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Point);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Point", Point);
+		}
+		public void Set(BattleInfo Obj_)
+		{
+			Point = Obj_.Point;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Point);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Point, "Point");
+		}
+	}
+	public class SMultiBattleInfo : BattleInfo
+	{
+		public SMultiBattleInfo()
+		{
+		}
+		public SMultiBattleInfo(SMultiBattleInfo Obj_) : base(Obj_)
+		{
+		}
+		public SMultiBattleInfo(BattleInfo Super_) : base(Super_)
+		{
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+		}
+		public void Set(SMultiBattleInfo Obj_)
+		{
+			base.Set(Obj_);
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName();
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName();
+		}
+	}
+	public class SMultiBattleBeginNetSc : SBattle
+	{
+		public List<SBattlePlayer> Players = new List<SBattlePlayer>();
+		public Dictionary<Int32,TimePoint> DisconnectEndTimes = new Dictionary<Int32,TimePoint>();
+		public List<SMultiBattleInfo> BattleInfos = new List<SMultiBattleInfo>();
+		public SBattleRecord Record = new SBattleRecord();
+		public List<SCharacterNet> Characters = new List<SCharacterNet>();
+		public Int64 EndTick = default(Int64);
+		public Int64 Tick = default(Int64);
+		public List<SStructMovePosition> StructMovePositions = new List<SStructMovePosition>();
+		public SMultiBattleBeginNetSc()
+		{
+		}
+		public SMultiBattleBeginNetSc(SMultiBattleBeginNetSc Obj_) : base(Obj_)
 		{
 			Players = Obj_.Players;
+			DisconnectEndTimes = Obj_.DisconnectEndTimes;
+			BattleInfos = Obj_.BattleInfos;
 			Record = Obj_.Record;
 			Characters = Obj_.Characters;
-			EndTime = Obj_.EndTime;
+			EndTick = Obj_.EndTick;
 			Tick = Obj_.Tick;
 			StructMovePositions = Obj_.StructMovePositions;
 		}
-		public SBattleBeginNetSc(SBattle Super_, List<SBattlePlayer> Players_, SBattleRecord Record_, List<SCharacterNet> Characters_, TimePoint EndTime_, Int64 Tick_, List<SStructMovePosition> StructMovePositions_) : base(Super_)
+		public SMultiBattleBeginNetSc(SBattle Super_, List<SBattlePlayer> Players_, Dictionary<Int32,TimePoint> DisconnectEndTimes_, List<SMultiBattleInfo> BattleInfos_, SBattleRecord Record_, List<SCharacterNet> Characters_, Int64 EndTick_, Int64 Tick_, List<SStructMovePosition> StructMovePositions_) : base(Super_)
 		{
 			Players = Players_;
+			DisconnectEndTimes = DisconnectEndTimes_;
+			BattleInfos = BattleInfos_;
 			Record = Record_;
 			Characters = Characters_;
-			EndTime = EndTime_;
+			EndTick = EndTick_;
 			Tick = Tick_;
 			StructMovePositions = StructMovePositions_;
 		}
@@ -3594,9 +3361,11 @@ namespace bb
 		{
 			base.Push(Stream_);
 			Stream_.Pop(ref Players);
+			Stream_.Pop(ref DisconnectEndTimes);
+			Stream_.Pop(ref BattleInfos);
 			Stream_.Pop(ref Record);
 			Stream_.Pop(ref Characters);
-			Stream_.Pop(ref EndTime);
+			Stream_.Pop(ref EndTick);
 			Stream_.Pop(ref Tick);
 			Stream_.Pop(ref StructMovePositions);
 		}
@@ -3604,9 +3373,11 @@ namespace bb
 		{
 			base.Push(Value_);
 			Value_.Pop("Players", ref Players);
+			Value_.Pop("DisconnectEndTimes", ref DisconnectEndTimes);
+			Value_.Pop("BattleInfos", ref BattleInfos);
 			Value_.Pop("Record", ref Record);
 			Value_.Pop("Characters", ref Characters);
-			Value_.Pop("EndTime", ref EndTime);
+			Value_.Pop("EndTick", ref EndTick);
 			Value_.Pop("Tick", ref Tick);
 			Value_.Pop("StructMovePositions", ref StructMovePositions);
 		}
@@ -3614,9 +3385,11 @@ namespace bb
 		{
 			base.Pop(Stream_);
 			Stream_.Push(Players);
+			Stream_.Push(DisconnectEndTimes);
+			Stream_.Push(BattleInfos);
 			Stream_.Push(Record);
 			Stream_.Push(Characters);
-			Stream_.Push(EndTime);
+			Stream_.Push(EndTick);
 			Stream_.Push(Tick);
 			Stream_.Push(StructMovePositions);
 		}
@@ -3624,19 +3397,23 @@ namespace bb
 		{
 			base.Pop(Value_);
 			Value_.Push("Players", Players);
+			Value_.Push("DisconnectEndTimes", DisconnectEndTimes);
+			Value_.Push("BattleInfos", BattleInfos);
 			Value_.Push("Record", Record);
 			Value_.Push("Characters", Characters);
-			Value_.Push("EndTime", EndTime);
+			Value_.Push("EndTick", EndTick);
 			Value_.Push("Tick", Tick);
 			Value_.Push("StructMovePositions", StructMovePositions);
 		}
-		public void Set(SBattleBeginNetSc Obj_)
+		public void Set(SMultiBattleBeginNetSc Obj_)
 		{
 			base.Set(Obj_);
 			Players = Obj_.Players;
+			DisconnectEndTimes = Obj_.DisconnectEndTimes;
+			BattleInfos = Obj_.BattleInfos;
 			Record.Set(Obj_.Record);
 			Characters = Obj_.Characters;
-			EndTime = Obj_.EndTime;
+			EndTick = Obj_.EndTick;
 			Tick = Obj_.Tick;
 			StructMovePositions = Obj_.StructMovePositions;
 		}
@@ -3645,9 +3422,11 @@ namespace bb
 			return 
 				base.StdName() + "," + 
 				SEnumChecker.GetStdName(Players) + "," + 
+				SEnumChecker.GetStdName(DisconnectEndTimes) + "," + 
+				SEnumChecker.GetStdName(BattleInfos) + "," + 
 				SEnumChecker.GetStdName(Record) + "," + 
 				SEnumChecker.GetStdName(Characters) + "," + 
-				SEnumChecker.GetStdName(EndTime) + "," + 
+				SEnumChecker.GetStdName(EndTick) + "," + 
 				SEnumChecker.GetStdName(Tick) + "," + 
 				SEnumChecker.GetStdName(StructMovePositions);
 		}
@@ -3656,774 +3435,458 @@ namespace bb
 			return 
 				base.MemberName() + "," + 
 				SEnumChecker.GetMemberName(Players, "Players") + "," + 
+				SEnumChecker.GetMemberName(DisconnectEndTimes, "DisconnectEndTimes") + "," + 
+				SEnumChecker.GetMemberName(BattleInfos, "BattleInfos") + "," + 
 				SEnumChecker.GetMemberName(Record, "Record") + "," + 
 				SEnumChecker.GetMemberName(Characters, "Characters") + "," + 
-				SEnumChecker.GetMemberName(EndTime, "EndTime") + "," + 
+				SEnumChecker.GetMemberName(EndTick, "EndTick") + "," + 
 				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
 				SEnumChecker.GetMemberName(StructMovePositions, "StructMovePositions");
 		}
 	}
-	public class SBattleMatchingNetSc : SProto
+	public class SMultiBattleStartNetSc : SProto
 	{
-		public Int32 UserCount = default(Int32);
-		public SBattleMatchingNetSc()
+		public Int64 EndTick = default(Int64);
+		public SMultiBattleStartNetSc()
 		{
 		}
-		public SBattleMatchingNetSc(SBattleMatchingNetSc Obj_)
+		public SMultiBattleStartNetSc(SMultiBattleStartNetSc Obj_)
 		{
-			UserCount = Obj_.UserCount;
+			EndTick = Obj_.EndTick;
 		}
-		public SBattleMatchingNetSc(Int32 UserCount_)
+		public SMultiBattleStartNetSc(Int64 EndTick_)
 		{
-			UserCount = UserCount_;
+			EndTick = EndTick_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref UserCount);
+			Stream_.Pop(ref EndTick);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("UserCount", ref UserCount);
+			Value_.Pop("EndTick", ref EndTick);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(UserCount);
+			Stream_.Push(EndTick);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("UserCount", UserCount);
+			Value_.Push("EndTick", EndTick);
 		}
-		public void Set(SBattleMatchingNetSc Obj_)
+		public void Set(SMultiBattleStartNetSc Obj_)
 		{
-			UserCount = Obj_.UserCount;
+			EndTick = Obj_.EndTick;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(UserCount);
+				SEnumChecker.GetStdName(EndTick);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(UserCount, "UserCount");
+				SEnumChecker.GetMemberName(EndTick, "EndTick");
 		}
 	}
-	public class SBattleStartNetSc : SProto
+	public class BattleEndInfo : SProto
 	{
-		public TimePoint EndTime = default(TimePoint);
-		public SBattleStartNetSc()
+		public Double addedEloPoint = default(Double);
+		public Int32 battlePoint = default(Int32);
+		public TResource[] addedResources = new TResource[6];
+		public BattleEndInfo()
 		{
+			for (int iaddedResources = 0; iaddedResources < addedResources.Length; ++iaddedResources)
+				addedResources[iaddedResources] = default(TResource);
 		}
-		public SBattleStartNetSc(SBattleStartNetSc Obj_)
+		public BattleEndInfo(BattleEndInfo Obj_)
 		{
-			EndTime = Obj_.EndTime;
+			addedEloPoint = Obj_.addedEloPoint;
+			battlePoint = Obj_.battlePoint;
+			addedResources = Obj_.addedResources;
 		}
-		public SBattleStartNetSc(TimePoint EndTime_)
+		public BattleEndInfo(Double addedEloPoint_, Int32 battlePoint_, TResource[] addedResources_)
 		{
-			EndTime = EndTime_;
+			addedEloPoint = addedEloPoint_;
+			battlePoint = battlePoint_;
+			addedResources = addedResources_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref EndTime);
+			Stream_.Pop(ref addedEloPoint);
+			Stream_.Pop(ref battlePoint);
+			Stream_.Pop(ref addedResources);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("EndTime", ref EndTime);
+			Value_.Pop("addedEloPoint", ref addedEloPoint);
+			Value_.Pop("battlePoint", ref battlePoint);
+			Value_.Pop("addedResources", ref addedResources);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(EndTime);
+			Stream_.Push(addedEloPoint);
+			Stream_.Push(battlePoint);
+			Stream_.Push(addedResources);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("EndTime", EndTime);
+			Value_.Push("addedEloPoint", addedEloPoint);
+			Value_.Push("battlePoint", battlePoint);
+			Value_.Push("addedResources", addedResources);
 		}
-		public void Set(SBattleStartNetSc Obj_)
+		public void Set(BattleEndInfo Obj_)
 		{
-			EndTime = Obj_.EndTime;
+			addedEloPoint = Obj_.addedEloPoint;
+			battlePoint = Obj_.battlePoint;
+			addedResources = Obj_.addedResources;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(EndTime);
+				SEnumChecker.GetStdName(addedEloPoint) + "," + 
+				SEnumChecker.GetStdName(battlePoint) + "," + 
+				SEnumChecker.GetStdName(addedResources);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(EndTime, "EndTime");
+				SEnumChecker.GetMemberName(addedEloPoint, "addedEloPoint") + "," + 
+				SEnumChecker.GetMemberName(battlePoint, "battlePoint") + "," + 
+				SEnumChecker.GetMemberName(addedResources, "addedResources");
 		}
 	}
-	public class SSingleBattleStartNetSc : SProto
+	public class STeamBattleInfo : SProto
 	{
-		public TimePoint EndTime = default(TimePoint);
-		public SSingleBattleStartNetSc()
+		public Int32 Ranking = default(Int32);
+		public Int32 Point = default(Int32);
+		public List<Int32> playerIndices = new List<Int32>();
+		public STeamBattleInfo()
 		{
 		}
-		public SSingleBattleStartNetSc(SSingleBattleStartNetSc Obj_)
+		public STeamBattleInfo(STeamBattleInfo Obj_)
 		{
-			EndTime = Obj_.EndTime;
+			Ranking = Obj_.Ranking;
+			Point = Obj_.Point;
+			playerIndices = Obj_.playerIndices;
 		}
-		public SSingleBattleStartNetSc(TimePoint EndTime_)
+		public STeamBattleInfo(Int32 Ranking_, Int32 Point_, List<Int32> playerIndices_)
 		{
-			EndTime = EndTime_;
+			Ranking = Ranking_;
+			Point = Point_;
+			playerIndices = playerIndices_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref EndTime);
+			Stream_.Pop(ref Ranking);
+			Stream_.Pop(ref Point);
+			Stream_.Pop(ref playerIndices);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("EndTime", ref EndTime);
+			Value_.Pop("Ranking", ref Ranking);
+			Value_.Pop("Point", ref Point);
+			Value_.Pop("playerIndices", ref playerIndices);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(EndTime);
+			Stream_.Push(Ranking);
+			Stream_.Push(Point);
+			Stream_.Push(playerIndices);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("EndTime", EndTime);
+			Value_.Push("Ranking", Ranking);
+			Value_.Push("Point", Point);
+			Value_.Push("playerIndices", playerIndices);
 		}
-		public void Set(SSingleBattleStartNetSc Obj_)
+		public void Set(STeamBattleInfo Obj_)
 		{
-			EndTime = Obj_.EndTime;
+			Ranking = Obj_.Ranking;
+			Point = Obj_.Point;
+			playerIndices = Obj_.playerIndices;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(EndTime);
+				SEnumChecker.GetStdName(Ranking) + "," + 
+				SEnumChecker.GetStdName(Point) + "," + 
+				SEnumChecker.GetStdName(playerIndices);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(EndTime, "EndTime");
+				SEnumChecker.GetMemberName(Ranking, "Ranking") + "," + 
+				SEnumChecker.GetMemberName(Point, "Point") + "," + 
+				SEnumChecker.GetMemberName(playerIndices, "playerIndices");
 		}
 	}
-	public class SSingleBattleIconNetCs : SProto
+	public class SMultiBattleEndNet : SProto
 	{
-		public Int32 Code = default(Int32);
-		public SSingleBattleIconNetCs()
+		public SInvalidDisconnectInfo InvalidDisconnectInfo = new SInvalidDisconnectInfo();
+		public SMultiBattleEndNet()
 		{
 		}
-		public SSingleBattleIconNetCs(SSingleBattleIconNetCs Obj_)
+		public SMultiBattleEndNet(SMultiBattleEndNet Obj_)
 		{
-			Code = Obj_.Code;
+			InvalidDisconnectInfo = Obj_.InvalidDisconnectInfo;
 		}
-		public SSingleBattleIconNetCs(Int32 Code_)
+		public SMultiBattleEndNet(SInvalidDisconnectInfo InvalidDisconnectInfo_)
 		{
-			Code = Code_;
+			InvalidDisconnectInfo = InvalidDisconnectInfo_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Code);
+			Stream_.Pop(ref InvalidDisconnectInfo);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Code", ref Code);
+			Value_.Pop("InvalidDisconnectInfo", ref InvalidDisconnectInfo);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Code);
+			Stream_.Push(InvalidDisconnectInfo);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Code", Code);
+			Value_.Push("InvalidDisconnectInfo", InvalidDisconnectInfo);
 		}
-		public void Set(SSingleBattleIconNetCs Obj_)
+		public void Set(SMultiBattleEndNet Obj_)
 		{
-			Code = Obj_.Code;
+			InvalidDisconnectInfo.Set(Obj_.InvalidDisconnectInfo);
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Code);
+				SEnumChecker.GetStdName(InvalidDisconnectInfo);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Code, "Code");
+				SEnumChecker.GetMemberName(InvalidDisconnectInfo, "InvalidDisconnectInfo");
 		}
 	}
-	public class SSingleBattleIconNetSc : SProto
+	public class SMultiBattleEndNetSc : SMultiBattleEndNet
 	{
-		public Int32 PlayerIndex = default(Int32);
-		public Int32 Code = default(Int32);
-		public SSingleBattleIconNetSc()
-		{
-		}
-		public SSingleBattleIconNetSc(SSingleBattleIconNetSc Obj_)
-		{
-			PlayerIndex = Obj_.PlayerIndex;
-			Code = Obj_.Code;
-		}
-		public SSingleBattleIconNetSc(Int32 PlayerIndex_, Int32 Code_)
-		{
-			PlayerIndex = PlayerIndex_;
-			Code = Code_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref PlayerIndex);
-			Stream_.Pop(ref Code);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-			Value_.Pop("Code", ref Code);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(PlayerIndex);
-			Stream_.Push(Code);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("PlayerIndex", PlayerIndex);
-			Value_.Push("Code", Code);
-		}
-		public void Set(SSingleBattleIconNetSc Obj_)
-		{
-			PlayerIndex = Obj_.PlayerIndex;
-			Code = Obj_.Code;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(PlayerIndex) + "," + 
-				SEnumChecker.GetStdName(Code);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex") + "," + 
-				SEnumChecker.GetMemberName(Code, "Code");
-		}
-	}
-	public class SSingleBattleItemNetCs : SProto
-	{
-		public Int32 Code = default(Int32);
-		public SSingleBattleItemNetCs()
-		{
-		}
-		public SSingleBattleItemNetCs(SSingleBattleItemNetCs Obj_)
-		{
-			Code = Obj_.Code;
-		}
-		public SSingleBattleItemNetCs(Int32 Code_)
-		{
-			Code = Code_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Code);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Code", ref Code);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Code);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Code", Code);
-		}
-		public void Set(SSingleBattleItemNetCs Obj_)
-		{
-			Code = Obj_.Code;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Code);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Code, "Code");
-		}
-	}
-	public class SSingleBattleItemNetSc : SProto
-	{
-		public Int32 PlayerIndex = default(Int32);
-		public Int32 Code = default(Int32);
-		public SSingleBattleItemNetSc()
-		{
-		}
-		public SSingleBattleItemNetSc(SSingleBattleItemNetSc Obj_)
-		{
-			PlayerIndex = Obj_.PlayerIndex;
-			Code = Obj_.Code;
-		}
-		public SSingleBattleItemNetSc(Int32 PlayerIndex_, Int32 Code_)
-		{
-			PlayerIndex = PlayerIndex_;
-			Code = Code_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref PlayerIndex);
-			Stream_.Pop(ref Code);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-			Value_.Pop("Code", ref Code);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(PlayerIndex);
-			Stream_.Push(Code);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("PlayerIndex", PlayerIndex);
-			Value_.Push("Code", Code);
-		}
-		public void Set(SSingleBattleItemNetSc Obj_)
-		{
-			PlayerIndex = Obj_.PlayerIndex;
-			Code = Obj_.Code;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(PlayerIndex) + "," + 
-				SEnumChecker.GetStdName(Code);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex") + "," + 
-				SEnumChecker.GetMemberName(Code, "Code");
-		}
-	}
-	public class SBattleEndPlayer : SProto
-	{
-		public Int32 AddedPoint = default(Int32);
-		public Int32 AddedGold = default(Int32);
-		public Int32 BattlePoint = default(Int32);
-		public SBattleEndPlayer()
-		{
-		}
-		public SBattleEndPlayer(SBattleEndPlayer Obj_)
-		{
-			AddedPoint = Obj_.AddedPoint;
-			AddedGold = Obj_.AddedGold;
-			BattlePoint = Obj_.BattlePoint;
-		}
-		public SBattleEndPlayer(Int32 AddedPoint_, Int32 AddedGold_, Int32 BattlePoint_)
-		{
-			AddedPoint = AddedPoint_;
-			AddedGold = AddedGold_;
-			BattlePoint = BattlePoint_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref AddedPoint);
-			Stream_.Pop(ref AddedGold);
-			Stream_.Pop(ref BattlePoint);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("AddedPoint", ref AddedPoint);
-			Value_.Pop("AddedGold", ref AddedGold);
-			Value_.Pop("BattlePoint", ref BattlePoint);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(AddedPoint);
-			Stream_.Push(AddedGold);
-			Stream_.Push(BattlePoint);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("AddedPoint", AddedPoint);
-			Value_.Push("AddedGold", AddedGold);
-			Value_.Push("BattlePoint", BattlePoint);
-		}
-		public void Set(SBattleEndPlayer Obj_)
-		{
-			AddedPoint = Obj_.AddedPoint;
-			AddedGold = Obj_.AddedGold;
-			BattlePoint = Obj_.BattlePoint;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(AddedPoint) + "," + 
-				SEnumChecker.GetStdName(AddedGold) + "," + 
-				SEnumChecker.GetStdName(BattlePoint);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(AddedPoint, "AddedPoint") + "," + 
-				SEnumChecker.GetMemberName(AddedGold, "AddedGold") + "," + 
-				SEnumChecker.GetMemberName(BattlePoint, "BattlePoint");
-		}
-	}
-	public class SBattleEndNetSc : SProto
-	{
-		public List<SBattleEndPlayer> BattleEndPlayers = new List<SBattleEndPlayer>();
-		public TTeamBattleInfos TeamBattleInfos = new TTeamBattleInfos();
+		public Int32 myTeamRanking = default(Int32);
+		public TResource[] ResourcesLeft = new TResource[6];
+		public Double eloPoint = default(Double);
+		public Int32 point = default(Int32);
+		public Int32 battlePoint = default(Int32);
 		public TDoneQuests DoneQuests = new TDoneQuests();
-		public SBattleEndNetSc()
+		public SMultiBattleEndNetSc()
 		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
 		}
-		public SBattleEndNetSc(SBattleEndNetSc Obj_)
+		public SMultiBattleEndNetSc(SMultiBattleEndNetSc Obj_) : base(Obj_)
 		{
-			BattleEndPlayers = Obj_.BattleEndPlayers;
-			TeamBattleInfos = Obj_.TeamBattleInfos;
+			myTeamRanking = Obj_.myTeamRanking;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			eloPoint = Obj_.eloPoint;
+			point = Obj_.point;
+			battlePoint = Obj_.battlePoint;
 			DoneQuests = Obj_.DoneQuests;
 		}
-		public SBattleEndNetSc(List<SBattleEndPlayer> BattleEndPlayers_, TTeamBattleInfos TeamBattleInfos_, TDoneQuests DoneQuests_)
+		public SMultiBattleEndNetSc(SMultiBattleEndNet Super_, Int32 myTeamRanking_, TResource[] ResourcesLeft_, Double eloPoint_, Int32 point_, Int32 battlePoint_, TDoneQuests DoneQuests_) : base(Super_)
 		{
-			BattleEndPlayers = BattleEndPlayers_;
-			TeamBattleInfos = TeamBattleInfos_;
+			myTeamRanking = myTeamRanking_;
+			ResourcesLeft = ResourcesLeft_;
+			eloPoint = eloPoint_;
+			point = point_;
+			battlePoint = battlePoint_;
 			DoneQuests = DoneQuests_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref BattleEndPlayers);
-			Stream_.Pop(ref TeamBattleInfos);
+			base.Push(Stream_);
+			Stream_.Pop(ref myTeamRanking);
+			Stream_.Pop(ref ResourcesLeft);
+			Stream_.Pop(ref eloPoint);
+			Stream_.Pop(ref point);
+			Stream_.Pop(ref battlePoint);
 			Stream_.Pop(ref DoneQuests);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("BattleEndPlayers", ref BattleEndPlayers);
-			Value_.Pop("TeamBattleInfos", ref TeamBattleInfos);
+			base.Push(Value_);
+			Value_.Pop("myTeamRanking", ref myTeamRanking);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
+			Value_.Pop("eloPoint", ref eloPoint);
+			Value_.Pop("point", ref point);
+			Value_.Pop("battlePoint", ref battlePoint);
 			Value_.Pop("DoneQuests", ref DoneQuests);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(BattleEndPlayers);
-			Stream_.Push(TeamBattleInfos);
+			base.Pop(Stream_);
+			Stream_.Push(myTeamRanking);
+			Stream_.Push(ResourcesLeft);
+			Stream_.Push(eloPoint);
+			Stream_.Push(point);
+			Stream_.Push(battlePoint);
 			Stream_.Push(DoneQuests);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("BattleEndPlayers", BattleEndPlayers);
-			Value_.Push("TeamBattleInfos", TeamBattleInfos);
+			base.Pop(Value_);
+			Value_.Push("myTeamRanking", myTeamRanking);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
+			Value_.Push("eloPoint", eloPoint);
+			Value_.Push("point", point);
+			Value_.Push("battlePoint", battlePoint);
 			Value_.Push("DoneQuests", DoneQuests);
 		}
-		public void Set(SBattleEndNetSc Obj_)
+		public void Set(SMultiBattleEndNetSc Obj_)
 		{
-			BattleEndPlayers = Obj_.BattleEndPlayers;
-			TeamBattleInfos = Obj_.TeamBattleInfos;
+			base.Set(Obj_);
+			myTeamRanking = Obj_.myTeamRanking;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			eloPoint = Obj_.eloPoint;
+			point = Obj_.point;
+			battlePoint = Obj_.battlePoint;
 			DoneQuests = Obj_.DoneQuests;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(BattleEndPlayers) + "," + 
-				SEnumChecker.GetStdName(TeamBattleInfos) + "," + 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(myTeamRanking) + "," + 
+				SEnumChecker.GetStdName(ResourcesLeft) + "," + 
+				SEnumChecker.GetStdName(eloPoint) + "," + 
+				SEnumChecker.GetStdName(point) + "," + 
+				SEnumChecker.GetStdName(battlePoint) + "," + 
 				SEnumChecker.GetStdName(DoneQuests);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(BattleEndPlayers, "BattleEndPlayers") + "," + 
-				SEnumChecker.GetMemberName(TeamBattleInfos, "TeamBattleInfos") + "," + 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(myTeamRanking, "myTeamRanking") + "," + 
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft") + "," + 
+				SEnumChecker.GetMemberName(eloPoint, "eloPoint") + "," + 
+				SEnumChecker.GetMemberName(point, "point") + "," + 
+				SEnumChecker.GetMemberName(battlePoint, "battlePoint") + "," + 
 				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
 		}
 	}
-	public class SSingleBattleEndNetSc : SBattleEndNetSc
+	public class SMultiBattleEndDrawNetSc : SMultiBattleEndNet
 	{
-		public EGameMode GameMode = default(EGameMode);
-		public SSingleBattleEndNetSc()
+		public TResource[] ResourcesLeft = new TResource[6];
+		public TDoneQuests DoneQuests = new TDoneQuests();
+		public SMultiBattleEndDrawNetSc()
 		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
 		}
-		public SSingleBattleEndNetSc(SSingleBattleEndNetSc Obj_) : base(Obj_)
+		public SMultiBattleEndDrawNetSc(SMultiBattleEndDrawNetSc Obj_) : base(Obj_)
 		{
-			GameMode = Obj_.GameMode;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			DoneQuests = Obj_.DoneQuests;
 		}
-		public SSingleBattleEndNetSc(SBattleEndNetSc Super_, EGameMode GameMode_) : base(Super_)
+		public SMultiBattleEndDrawNetSc(SMultiBattleEndNet Super_, TResource[] ResourcesLeft_, TDoneQuests DoneQuests_) : base(Super_)
 		{
-			GameMode = GameMode_;
+			ResourcesLeft = ResourcesLeft_;
+			DoneQuests = DoneQuests_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref GameMode);
+			Stream_.Pop(ref ResourcesLeft);
+			Stream_.Pop(ref DoneQuests);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("GameMode", ref GameMode);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
+			Value_.Pop("DoneQuests", ref DoneQuests);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(GameMode);
+			Stream_.Push(ResourcesLeft);
+			Stream_.Push(DoneQuests);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("GameMode", GameMode);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
+			Value_.Push("DoneQuests", DoneQuests);
 		}
-		public void Set(SSingleBattleEndNetSc Obj_)
+		public void Set(SMultiBattleEndDrawNetSc Obj_)
 		{
 			base.Set(Obj_);
-			GameMode = Obj_.GameMode;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			DoneQuests = Obj_.DoneQuests;
 		}
 		public override string StdName()
 		{
 			return 
 				base.StdName() + "," + 
-				"bb.EGameMode";
+				SEnumChecker.GetStdName(ResourcesLeft) + "," + 
+				SEnumChecker.GetStdName(DoneQuests);
 		}
 		public override string MemberName()
 		{
 			return 
 				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(GameMode, "GameMode");
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft") + "," + 
+				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
 		}
 	}
-	public class SBattleSyncNetSc : SProto
+	public class SMultiBattleEndInvalidNetSc : SMultiBattleEndNet
 	{
-		public Int64 Tick = default(Int64);
-		public SBattleSyncNetSc()
+		public SMultiBattleEndInvalidNetSc()
 		{
 		}
-		public SBattleSyncNetSc(SBattleSyncNetSc Obj_)
+		public SMultiBattleEndInvalidNetSc(SMultiBattleEndInvalidNetSc Obj_) : base(Obj_)
 		{
-			Tick = Obj_.Tick;
 		}
-		public SBattleSyncNetSc(Int64 Tick_)
+		public SMultiBattleEndInvalidNetSc(SMultiBattleEndNet Super_) : base(Super_)
 		{
-			Tick = Tick_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Tick);
+			base.Push(Stream_);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Tick", ref Tick);
+			base.Push(Value_);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Tick);
+			base.Pop(Stream_);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Tick", Tick);
+			base.Pop(Value_);
 		}
-		public void Set(SBattleSyncNetSc Obj_)
+		public void Set(SMultiBattleEndInvalidNetSc Obj_)
 		{
-			Tick = Obj_.Tick;
+			base.Set(Obj_);
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Tick);
+				base.StdName();
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Tick, "Tick");
+				base.MemberName();
 		}
 	}
-	public class SBattleTouchNetCs : SProto
-	{
-		public SByte Dir = default(SByte);
-		public SBattleTouchNetCs()
-		{
-		}
-		public SBattleTouchNetCs(SBattleTouchNetCs Obj_)
-		{
-			Dir = Obj_.Dir;
-		}
-		public SBattleTouchNetCs(SByte Dir_)
-		{
-			Dir = Dir_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Dir);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Dir", ref Dir);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Dir);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Dir", Dir);
-		}
-		public void Set(SBattleTouchNetCs Obj_)
-		{
-			Dir = Obj_.Dir;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Dir);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Dir, "Dir");
-		}
-	}
-	public class SBattleTouchNetSc : SProto
-	{
-		public Int64 Tick = default(Int64);
-		public Int32 PlayerIndex = default(Int32);
-		public SByte Dir = default(SByte);
-		public SBattleTouchNetSc()
-		{
-		}
-		public SBattleTouchNetSc(SBattleTouchNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-			Dir = Obj_.Dir;
-		}
-		public SBattleTouchNetSc(Int64 Tick_, Int32 PlayerIndex_, SByte Dir_)
-		{
-			Tick = Tick_;
-			PlayerIndex = PlayerIndex_;
-			Dir = Dir_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Tick);
-			Stream_.Pop(ref PlayerIndex);
-			Stream_.Pop(ref Dir);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Tick", ref Tick);
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-			Value_.Pop("Dir", ref Dir);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Tick);
-			Stream_.Push(PlayerIndex);
-			Stream_.Push(Dir);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Tick", Tick);
-			Value_.Push("PlayerIndex", PlayerIndex);
-			Value_.Push("Dir", Dir);
-		}
-		public void Set(SBattleTouchNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-			Dir = Obj_.Dir;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Tick) + "," + 
-				SEnumChecker.GetStdName(PlayerIndex) + "," + 
-				SEnumChecker.GetStdName(Dir);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex") + "," + 
-				SEnumChecker.GetMemberName(Dir, "Dir");
-		}
-	}
-	public class SBattlePushNetCs : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SBattlePushNetSc : SProto
-	{
-		public Int64 Tick = default(Int64);
-		public Int32 PlayerIndex = default(Int32);
-		public SBattlePushNetSc()
-		{
-		}
-		public SBattlePushNetSc(SBattlePushNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public SBattlePushNetSc(Int64 Tick_, Int32 PlayerIndex_)
-		{
-			Tick = Tick_;
-			PlayerIndex = PlayerIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Tick);
-			Stream_.Pop(ref PlayerIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Tick", ref Tick);
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Tick);
-			Stream_.Push(PlayerIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Tick", Tick);
-			Value_.Push("PlayerIndex", PlayerIndex);
-		}
-		public void Set(SBattlePushNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Tick) + "," + 
-				SEnumChecker.GetStdName(PlayerIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
-		}
-	}
-	public class SBattleIconNetCs : SProto
+	public class SMultiBattleIconNetCs : SProto
 	{
 		public Int32 Code = default(Int32);
-		public SBattleIconNetCs()
+		public SMultiBattleIconNetCs()
 		{
 		}
-		public SBattleIconNetCs(SBattleIconNetCs Obj_)
+		public SMultiBattleIconNetCs(SMultiBattleIconNetCs Obj_)
 		{
 			Code = Obj_.Code;
 		}
-		public SBattleIconNetCs(Int32 Code_)
+		public SMultiBattleIconNetCs(Int32 Code_)
 		{
 			Code = Code_;
 		}
@@ -4443,7 +3906,7 @@ namespace bb
 		{
 			Value_.Push("Code", Code);
 		}
-		public void Set(SBattleIconNetCs Obj_)
+		public void Set(SMultiBattleIconNetCs Obj_)
 		{
 			Code = Obj_.Code;
 		}
@@ -4458,19 +3921,19 @@ namespace bb
 				SEnumChecker.GetMemberName(Code, "Code");
 		}
 	}
-	public class SBattleIconNetSc : SProto
+	public class SMultiBattleIconNetSc : SProto
 	{
 		public Int32 PlayerIndex = default(Int32);
 		public Int32 Code = default(Int32);
-		public SBattleIconNetSc()
+		public SMultiBattleIconNetSc()
 		{
 		}
-		public SBattleIconNetSc(SBattleIconNetSc Obj_)
+		public SMultiBattleIconNetSc(SMultiBattleIconNetSc Obj_)
 		{
 			PlayerIndex = Obj_.PlayerIndex;
 			Code = Obj_.Code;
 		}
-		public SBattleIconNetSc(Int32 PlayerIndex_, Int32 Code_)
+		public SMultiBattleIconNetSc(Int32 PlayerIndex_, Int32 Code_)
 		{
 			PlayerIndex = PlayerIndex_;
 			Code = Code_;
@@ -4495,7 +3958,7 @@ namespace bb
 			Value_.Push("PlayerIndex", PlayerIndex);
 			Value_.Push("Code", Code);
 		}
-		public void Set(SBattleIconNetSc Obj_)
+		public void Set(SMultiBattleIconNetSc Obj_)
 		{
 			PlayerIndex = Obj_.PlayerIndex;
 			Code = Obj_.Code;
@@ -4513,729 +3976,1600 @@ namespace bb
 				SEnumChecker.GetMemberName(Code, "Code");
 		}
 	}
-	public class SSingleBattleScoreNetCs : SProto
+	public class SMultiBattleLinkNetSc : SProto
 	{
-		public Int32 Score = default(Int32);
-		public SSingleBattleScoreNetCs()
+		public Int64 Tick = default(Int64);
+		public Int32 PlayerIndex = default(Int32);
+		public SMultiBattleLinkNetSc()
 		{
 		}
-		public SSingleBattleScoreNetCs(SSingleBattleScoreNetCs Obj_)
+		public SMultiBattleLinkNetSc(SMultiBattleLinkNetSc Obj_)
 		{
-			Score = Obj_.Score;
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
 		}
-		public SSingleBattleScoreNetCs(Int32 Score_)
+		public SMultiBattleLinkNetSc(Int64 Tick_, Int32 PlayerIndex_)
 		{
-			Score = Score_;
+			Tick = Tick_;
+			PlayerIndex = PlayerIndex_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref Score);
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref PlayerIndex);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("Score", ref Score);
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("PlayerIndex", ref PlayerIndex);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(Score);
+			Stream_.Push(Tick);
+			Stream_.Push(PlayerIndex);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("Score", Score);
+			Value_.Push("Tick", Tick);
+			Value_.Push("PlayerIndex", PlayerIndex);
 		}
-		public void Set(SSingleBattleScoreNetCs Obj_)
+		public void Set(SMultiBattleLinkNetSc Obj_)
 		{
-			Score = Obj_.Score;
+			Tick = Obj_.Tick;
+			PlayerIndex = Obj_.PlayerIndex;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(Score);
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(PlayerIndex);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(Score, "Score");
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
 		}
 	}
-	public class SSingleBattleScoreNetSc : SProto
+	public class SMultiBattleUnLinkNetSc : SProto
 	{
+		public Int64 Tick = default(Int64);
 		public Int32 PlayerIndex = default(Int32);
-		public Int32 Score = default(Int32);
-		public SSingleBattleScoreNetSc()
+		public TimePoint DisconnectEndTime = default(TimePoint);
+		public SMultiBattleUnLinkNetSc()
 		{
 		}
-		public SSingleBattleScoreNetSc(SSingleBattleScoreNetSc Obj_)
+		public SMultiBattleUnLinkNetSc(SMultiBattleUnLinkNetSc Obj_)
 		{
+			Tick = Obj_.Tick;
 			PlayerIndex = Obj_.PlayerIndex;
-			Score = Obj_.Score;
+			DisconnectEndTime = Obj_.DisconnectEndTime;
 		}
-		public SSingleBattleScoreNetSc(Int32 PlayerIndex_, Int32 Score_)
+		public SMultiBattleUnLinkNetSc(Int64 Tick_, Int32 PlayerIndex_, TimePoint DisconnectEndTime_)
 		{
+			Tick = Tick_;
 			PlayerIndex = PlayerIndex_;
-			Score = Score_;
+			DisconnectEndTime = DisconnectEndTime_;
 		}
 		public override void Push(CStream Stream_)
 		{
+			Stream_.Pop(ref Tick);
 			Stream_.Pop(ref PlayerIndex);
-			Stream_.Pop(ref Score);
+			Stream_.Pop(ref DisconnectEndTime);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
+			Value_.Pop("Tick", ref Tick);
 			Value_.Pop("PlayerIndex", ref PlayerIndex);
-			Value_.Pop("Score", ref Score);
+			Value_.Pop("DisconnectEndTime", ref DisconnectEndTime);
 		}
 		public override void Pop(CStream Stream_)
 		{
+			Stream_.Push(Tick);
 			Stream_.Push(PlayerIndex);
-			Stream_.Push(Score);
+			Stream_.Push(DisconnectEndTime);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
+			Value_.Push("Tick", Tick);
 			Value_.Push("PlayerIndex", PlayerIndex);
-			Value_.Push("Score", Score);
+			Value_.Push("DisconnectEndTime", DisconnectEndTime);
 		}
-		public void Set(SSingleBattleScoreNetSc Obj_)
+		public void Set(SMultiBattleUnLinkNetSc Obj_)
 		{
+			Tick = Obj_.Tick;
 			PlayerIndex = Obj_.PlayerIndex;
-			Score = Obj_.Score;
+			DisconnectEndTime = Obj_.DisconnectEndTime;
 		}
 		public override string StdName()
 		{
 			return 
+				SEnumChecker.GetStdName(Tick) + "," + 
 				SEnumChecker.GetStdName(PlayerIndex) + "," + 
-				SEnumChecker.GetStdName(Score);
+				SEnumChecker.GetStdName(DisconnectEndTime);
 		}
 		public override string MemberName()
 		{
 			return 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
 				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex") + "," + 
-				SEnumChecker.GetMemberName(Score, "Score");
+				SEnumChecker.GetMemberName(DisconnectEndTime, "DisconnectEndTime");
 		}
 	}
-	public class SBattleLinkNetSc : SProto
+	public class SInvalidDisconnectInfoNetSc : SInvalidDisconnectInfo
 	{
-		public Int64 Tick = default(Int64);
-		public Int32 PlayerIndex = default(Int32);
-		public SBattleLinkNetSc()
+		public SInvalidDisconnectInfoNetSc()
 		{
 		}
-		public SBattleLinkNetSc(SBattleLinkNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public SBattleLinkNetSc(Int64 Tick_, Int32 PlayerIndex_)
-		{
-			Tick = Tick_;
-			PlayerIndex = PlayerIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Tick);
-			Stream_.Pop(ref PlayerIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Tick", ref Tick);
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Tick);
-			Stream_.Push(PlayerIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Tick", Tick);
-			Value_.Push("PlayerIndex", PlayerIndex);
-		}
-		public void Set(SBattleLinkNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Tick) + "," + 
-				SEnumChecker.GetStdName(PlayerIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
-		}
-	}
-	public class SBattleUnLinkNetSc : SProto
-	{
-		public Int64 Tick = default(Int64);
-		public Int32 PlayerIndex = default(Int32);
-		public SBattleUnLinkNetSc()
+		public SInvalidDisconnectInfoNetSc(SInvalidDisconnectInfoNetSc Obj_) : base(Obj_)
 		{
 		}
-		public SBattleUnLinkNetSc(SBattleUnLinkNetSc Obj_)
+		public SInvalidDisconnectInfoNetSc(SInvalidDisconnectInfo Super_) : base(Super_)
 		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public SBattleUnLinkNetSc(Int64 Tick_, Int32 PlayerIndex_)
-		{
-			Tick = Tick_;
-			PlayerIndex = PlayerIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Tick);
-			Stream_.Pop(ref PlayerIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Tick", ref Tick);
-			Value_.Pop("PlayerIndex", ref PlayerIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Tick);
-			Stream_.Push(PlayerIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Tick", Tick);
-			Value_.Push("PlayerIndex", PlayerIndex);
-		}
-		public void Set(SBattleUnLinkNetSc Obj_)
-		{
-			Tick = Obj_.Tick;
-			PlayerIndex = Obj_.PlayerIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Tick) + "," + 
-				SEnumChecker.GetStdName(PlayerIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
-				SEnumChecker.GetMemberName(PlayerIndex, "PlayerIndex");
-		}
-	}
-	public class SRankingUserCore : SProto
-	{
-		public String Nick = string.Empty;
-		public Int32 CharCode = default(Int32);
-		public String CountryCode = string.Empty;
-		public SRankingUserCore()
-		{
-		}
-		public SRankingUserCore(SRankingUserCore Obj_)
-		{
-			Nick = Obj_.Nick;
-			CharCode = Obj_.CharCode;
-			CountryCode = Obj_.CountryCode;
-		}
-		public SRankingUserCore(String Nick_, Int32 CharCode_, String CountryCode_)
-		{
-			Nick = Nick_;
-			CharCode = CharCode_;
-			CountryCode = CountryCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Nick);
-			Stream_.Pop(ref CharCode);
-			Stream_.Pop(ref CountryCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Nick", ref Nick);
-			Value_.Pop("CharCode", ref CharCode);
-			Value_.Pop("CountryCode", ref CountryCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Nick);
-			Stream_.Push(CharCode);
-			Stream_.Push(CountryCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Nick", Nick);
-			Value_.Push("CharCode", CharCode);
-			Value_.Push("CountryCode", CountryCode);
-		}
-		public void Set(SRankingUserCore Obj_)
-		{
-			Nick = Obj_.Nick;
-			CharCode = Obj_.CharCode;
-			CountryCode = Obj_.CountryCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Nick) + "," + 
-				SEnumChecker.GetStdName(CharCode) + "," + 
-				SEnumChecker.GetStdName(CountryCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Nick, "Nick") + "," + 
-				SEnumChecker.GetMemberName(CharCode, "CharCode") + "," + 
-				SEnumChecker.GetMemberName(CountryCode, "CountryCode");
-		}
-	}
-	public class SRankingUser : SRankingUserCore
-	{
-		public TUID UID = default(TUID);
-		public Int32 Point = default(Int32);
-		public SRankingUser()
-		{
-		}
-		public SRankingUser(SRankingUser Obj_) : base(Obj_)
-		{
-			UID = Obj_.UID;
-			Point = Obj_.Point;
-		}
-		public SRankingUser(SRankingUserCore Super_, TUID UID_, Int32 Point_) : base(Super_)
-		{
-			UID = UID_;
-			Point = Point_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref UID);
-			Stream_.Pop(ref Point);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("UID", ref UID);
-			Value_.Pop("Point", ref Point);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(UID);
-			Stream_.Push(Point);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("UID", UID);
-			Value_.Push("Point", Point);
 		}
-		public void Set(SRankingUser Obj_)
+		public void Set(SInvalidDisconnectInfoNetSc Obj_)
 		{
 			base.Set(Obj_);
-			UID = Obj_.UID;
-			Point = Obj_.Point;
 		}
 		public override string StdName()
 		{
 			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(UID) + "," + 
-				SEnumChecker.GetStdName(Point);
+				base.StdName();
 		}
 		public override string MemberName()
 		{
 			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(UID, "UID") + "," + 
-				SEnumChecker.GetMemberName(Point, "Point");
+				base.MemberName();
 		}
 	}
-	public class SRankingUserSingleCore : SRankingUserCore
+	public class SingleBattleStartNetSc : SProto
 	{
-		public Int32 Wave = default(Int32);
-		public Int32 Second = default(Int32);
-		public Int32 Gold = default(Int32);
-		public SRankingUserSingleCore()
+		public override void Push(CStream Stream_)
 		{
 		}
-		public SRankingUserSingleCore(SRankingUserSingleCore Obj_) : base(Obj_)
+		public override void Push(JsonDataObject Value_)
 		{
-			Wave = Obj_.Wave;
-			Second = Obj_.Second;
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SingleBattleEndNetSc : SProto
+	{
+		public Int64 Tick = default(Int64);
+		public TResource[] ResourcesLeft = new TResource[6];
+		public TDoneQuests DoneQuests = new TDoneQuests();
+		public SingleBattleEndNetSc()
+		{
+			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
+				ResourcesLeft[iResourcesLeft] = default(TResource);
+		}
+		public SingleBattleEndNetSc(SingleBattleEndNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public SingleBattleEndNetSc(Int64 Tick_, TResource[] ResourcesLeft_, TDoneQuests DoneQuests_)
+		{
+			Tick = Tick_;
+			ResourcesLeft = ResourcesLeft_;
+			DoneQuests = DoneQuests_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref ResourcesLeft);
+			Stream_.Pop(ref DoneQuests);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
+			Value_.Pop("DoneQuests", ref DoneQuests);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Tick);
+			Stream_.Push(ResourcesLeft);
+			Stream_.Push(DoneQuests);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Tick", Tick);
+			Value_.Push("ResourcesLeft", ResourcesLeft);
+			Value_.Push("DoneQuests", DoneQuests);
+		}
+		public void Set(SingleBattleEndNetSc Obj_)
+		{
+			Tick = Obj_.Tick;
+			ResourcesLeft = Obj_.ResourcesLeft;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(ResourcesLeft) + "," + 
+				SEnumChecker.GetStdName(DoneQuests);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft") + "," + 
+				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
+		}
+	}
+	public class SArrowDodgeBattleJoinNetCs : SProto
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SArrowDodgeBattleJoinNetSc : SProto
+	{
+		public TResource GoldCost = default(TResource);
+		public Int32 PlayCount = default(Int32);
+		public TimePoint RefreshTime = default(TimePoint);
+		public TDoneQuests DoneQuests = new TDoneQuests();
+		public SArrowDodgeBattleJoinNetSc()
+		{
+		}
+		public SArrowDodgeBattleJoinNetSc(SArrowDodgeBattleJoinNetSc Obj_)
+		{
+			GoldCost = Obj_.GoldCost;
+			PlayCount = Obj_.PlayCount;
+			RefreshTime = Obj_.RefreshTime;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public SArrowDodgeBattleJoinNetSc(TResource GoldCost_, Int32 PlayCount_, TimePoint RefreshTime_, TDoneQuests DoneQuests_)
+		{
+			GoldCost = GoldCost_;
+			PlayCount = PlayCount_;
+			RefreshTime = RefreshTime_;
+			DoneQuests = DoneQuests_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref GoldCost);
+			Stream_.Pop(ref PlayCount);
+			Stream_.Pop(ref RefreshTime);
+			Stream_.Pop(ref DoneQuests);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("GoldCost", ref GoldCost);
+			Value_.Pop("PlayCount", ref PlayCount);
+			Value_.Pop("RefreshTime", ref RefreshTime);
+			Value_.Pop("DoneQuests", ref DoneQuests);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(GoldCost);
+			Stream_.Push(PlayCount);
+			Stream_.Push(RefreshTime);
+			Stream_.Push(DoneQuests);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("GoldCost", GoldCost);
+			Value_.Push("PlayCount", PlayCount);
+			Value_.Push("RefreshTime", RefreshTime);
+			Value_.Push("DoneQuests", DoneQuests);
+		}
+		public void Set(SArrowDodgeBattleJoinNetSc Obj_)
+		{
+			GoldCost = Obj_.GoldCost;
+			PlayCount = Obj_.PlayCount;
+			RefreshTime = Obj_.RefreshTime;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(GoldCost) + "," + 
+				SEnumChecker.GetStdName(PlayCount) + "," + 
+				SEnumChecker.GetStdName(RefreshTime) + "," + 
+				SEnumChecker.GetStdName(DoneQuests);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(GoldCost, "GoldCost") + "," + 
+				SEnumChecker.GetMemberName(PlayCount, "PlayCount") + "," + 
+				SEnumChecker.GetMemberName(RefreshTime, "RefreshTime") + "," + 
+				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
+		}
+	}
+	public class SArrow : SProto
+	{
+		public SPoint LocalPosition = new SPoint();
+		public SPoint Velocity = new SPoint();
+		public SArrow()
+		{
+		}
+		public SArrow(SArrow Obj_)
+		{
+			LocalPosition = Obj_.LocalPosition;
+			Velocity = Obj_.Velocity;
+		}
+		public SArrow(SPoint LocalPosition_, SPoint Velocity_)
+		{
+			LocalPosition = LocalPosition_;
+			Velocity = Velocity_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref LocalPosition);
+			Stream_.Pop(ref Velocity);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("LocalPosition", ref LocalPosition);
+			Value_.Pop("Velocity", ref Velocity);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(LocalPosition);
+			Stream_.Push(Velocity);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("LocalPosition", LocalPosition);
+			Value_.Push("Velocity", Velocity);
+		}
+		public void Set(SArrow Obj_)
+		{
+			LocalPosition.Set(Obj_.LocalPosition);
+			Velocity.Set(Obj_.Velocity);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(LocalPosition) + "," + 
+				SEnumChecker.GetStdName(Velocity);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(LocalPosition, "LocalPosition") + "," + 
+				SEnumChecker.GetMemberName(Velocity, "Velocity");
+		}
+	}
+	public enum EArrowDodgeItemType
+	{
+		Coin,
+		GoldBar,
+		Shield,
+		Stamina,
+		Max,
+		Null,
+	}
+	public class SArrowDodgeItem : SProto
+	{
+		public SPoint LocalPosition = new SPoint();
+		public EArrowDodgeItemType ItemType = default(EArrowDodgeItemType);
+		public SArrowDodgeItem()
+		{
+		}
+		public SArrowDodgeItem(SArrowDodgeItem Obj_)
+		{
+			LocalPosition = Obj_.LocalPosition;
+			ItemType = Obj_.ItemType;
+		}
+		public SArrowDodgeItem(SPoint LocalPosition_, EArrowDodgeItemType ItemType_)
+		{
+			LocalPosition = LocalPosition_;
+			ItemType = ItemType_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref LocalPosition);
+			Stream_.Pop(ref ItemType);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("LocalPosition", ref LocalPosition);
+			Value_.Pop("ItemType", ref ItemType);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(LocalPosition);
+			Stream_.Push(ItemType);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("LocalPosition", LocalPosition);
+			Value_.Push("ItemType", ItemType);
+		}
+		public void Set(SArrowDodgeItem Obj_)
+		{
+			LocalPosition.Set(Obj_.LocalPosition);
+			ItemType = Obj_.ItemType;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(LocalPosition) + "," + 
+				"bb.EArrowDodgeItemType";
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(LocalPosition, "LocalPosition") + "," + 
+				SEnumChecker.GetMemberName(ItemType, "ItemType");
+		}
+	}
+	public class SingleBattleInfo : BattleInfo
+	{
+		public TResource Gold = default(TResource);
+		public SingleBattleInfo()
+		{
+		}
+		public SingleBattleInfo(SingleBattleInfo Obj_) : base(Obj_)
+		{
 			Gold = Obj_.Gold;
 		}
-		public SRankingUserSingleCore(SRankingUserCore Super_, Int32 Wave_, Int32 Second_, Int32 Gold_) : base(Super_)
+		public SingleBattleInfo(BattleInfo Super_, TResource Gold_) : base(Super_)
 		{
-			Wave = Wave_;
-			Second = Second_;
 			Gold = Gold_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref Wave);
-			Stream_.Pop(ref Second);
 			Stream_.Pop(ref Gold);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("Wave", ref Wave);
-			Value_.Pop("Second", ref Second);
 			Value_.Pop("Gold", ref Gold);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(Wave);
-			Stream_.Push(Second);
 			Stream_.Push(Gold);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("Wave", Wave);
-			Value_.Push("Second", Second);
 			Value_.Push("Gold", Gold);
 		}
-		public void Set(SRankingUserSingleCore Obj_)
+		public void Set(SingleBattleInfo Obj_)
 		{
 			base.Set(Obj_);
-			Wave = Obj_.Wave;
-			Second = Obj_.Second;
 			Gold = Obj_.Gold;
 		}
 		public override string StdName()
 		{
 			return 
 				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Wave) + "," + 
-				SEnumChecker.GetStdName(Second) + "," + 
 				SEnumChecker.GetStdName(Gold);
 		}
 		public override string MemberName()
 		{
 			return 
 				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Wave, "Wave") + "," + 
-				SEnumChecker.GetMemberName(Second, "Second") + "," + 
 				SEnumChecker.GetMemberName(Gold, "Gold");
 		}
 	}
-	public class SRankingUserSingle : SRankingUserSingleCore
+	public class SArrowDodgeBattleInfo : SingleBattleInfo
 	{
-		public TUID UID = default(TUID);
-		public Int32 Point = default(Int32);
-		public SRankingUserSingle()
+		public SArrowDodgeBattleInfo()
 		{
 		}
-		public SRankingUserSingle(SRankingUserSingle Obj_) : base(Obj_)
+		public SArrowDodgeBattleInfo(SArrowDodgeBattleInfo Obj_) : base(Obj_)
 		{
-			UID = Obj_.UID;
-			Point = Obj_.Point;
 		}
-		public SRankingUserSingle(SRankingUserSingleCore Super_, TUID UID_, Int32 Point_) : base(Super_)
+		public SArrowDodgeBattleInfo(SingleBattleInfo Super_) : base(Super_)
 		{
-			UID = UID_;
-			Point = Point_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref UID);
-			Stream_.Pop(ref Point);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("UID", ref UID);
-			Value_.Pop("Point", ref Point);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(UID);
-			Stream_.Push(Point);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("UID", UID);
-			Value_.Push("Point", Point);
 		}
-		public void Set(SRankingUserSingle Obj_)
+		public void Set(SArrowDodgeBattleInfo Obj_)
 		{
 			base.Set(Obj_);
-			UID = Obj_.UID;
-			Point = Obj_.Point;
 		}
 		public override string StdName()
 		{
 			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(UID) + "," + 
-				SEnumChecker.GetStdName(Point);
+				base.StdName();
 		}
 		public override string MemberName()
 		{
 			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(UID, "UID") + "," + 
-				SEnumChecker.GetMemberName(Point, "Point");
+				base.MemberName();
 		}
 	}
-	public class SRankingUserIslandCore : SRankingUserCore
+	public class SArrowDodgeBattleBuf : SProto
 	{
-		public Int32 PassedIslandCount = default(Int32);
-		public Int32 Gold = default(Int32);
-		public SRankingUserIslandCore()
+		public Boolean Enabled = default(Boolean);
+		public Int64 EndTick = default(Int64);
+		public SArrowDodgeBattleBuf()
 		{
 		}
-		public SRankingUserIslandCore(SRankingUserIslandCore Obj_) : base(Obj_)
+		public SArrowDodgeBattleBuf(SArrowDodgeBattleBuf Obj_)
 		{
-			PassedIslandCount = Obj_.PassedIslandCount;
-			Gold = Obj_.Gold;
+			Enabled = Obj_.Enabled;
+			EndTick = Obj_.EndTick;
 		}
-		public SRankingUserIslandCore(SRankingUserCore Super_, Int32 PassedIslandCount_, Int32 Gold_) : base(Super_)
+		public SArrowDodgeBattleBuf(Boolean Enabled_, Int64 EndTick_)
 		{
-			PassedIslandCount = PassedIslandCount_;
-			Gold = Gold_;
+			Enabled = Enabled_;
+			EndTick = EndTick_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			base.Push(Stream_);
-			Stream_.Pop(ref PassedIslandCount);
-			Stream_.Pop(ref Gold);
+			Stream_.Pop(ref Enabled);
+			Stream_.Pop(ref EndTick);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			base.Push(Value_);
-			Value_.Pop("PassedIslandCount", ref PassedIslandCount);
-			Value_.Pop("Gold", ref Gold);
+			Value_.Pop("Enabled", ref Enabled);
+			Value_.Pop("EndTick", ref EndTick);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			base.Pop(Stream_);
-			Stream_.Push(PassedIslandCount);
-			Stream_.Push(Gold);
+			Stream_.Push(Enabled);
+			Stream_.Push(EndTick);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			base.Pop(Value_);
-			Value_.Push("PassedIslandCount", PassedIslandCount);
-			Value_.Push("Gold", Gold);
+			Value_.Push("Enabled", Enabled);
+			Value_.Push("EndTick", EndTick);
 		}
-		public void Set(SRankingUserIslandCore Obj_)
+		public void Set(SArrowDodgeBattleBuf Obj_)
 		{
-			base.Set(Obj_);
-			PassedIslandCount = Obj_.PassedIslandCount;
-			Gold = Obj_.Gold;
+			Enabled = Obj_.Enabled;
+			EndTick = Obj_.EndTick;
 		}
 		public override string StdName()
 		{
 			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(PassedIslandCount) + "," + 
-				SEnumChecker.GetStdName(Gold);
+				SEnumChecker.GetStdName(Enabled) + "," + 
+				SEnumChecker.GetStdName(EndTick);
 		}
 		public override string MemberName()
 		{
 			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(PassedIslandCount, "PassedIslandCount") + "," + 
-				SEnumChecker.GetMemberName(Gold, "Gold");
+				SEnumChecker.GetMemberName(Enabled, "Enabled") + "," + 
+				SEnumChecker.GetMemberName(EndTick, "EndTick");
 		}
 	}
-	public class SRankingUserIsland : SRankingUserIslandCore
+	public class SArrowDodgeBattleBufs : SProto
 	{
-		public TUID UID = default(TUID);
-		public Int32 Point = default(Int32);
-		public SRankingUserIsland()
+		public SArrowDodgeBattleBuf Shield = new SArrowDodgeBattleBuf();
+		public SArrowDodgeBattleBuf Stamina = new SArrowDodgeBattleBuf();
+		public SArrowDodgeBattleBufs()
 		{
 		}
-		public SRankingUserIsland(SRankingUserIsland Obj_) : base(Obj_)
+		public SArrowDodgeBattleBufs(SArrowDodgeBattleBufs Obj_)
 		{
-			UID = Obj_.UID;
-			Point = Obj_.Point;
+			Shield = Obj_.Shield;
+			Stamina = Obj_.Stamina;
 		}
-		public SRankingUserIsland(SRankingUserIslandCore Super_, TUID UID_, Int32 Point_) : base(Super_)
+		public SArrowDodgeBattleBufs(SArrowDodgeBattleBuf Shield_, SArrowDodgeBattleBuf Stamina_)
 		{
-			UID = UID_;
-			Point = Point_;
+			Shield = Shield_;
+			Stamina = Stamina_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Shield);
+			Stream_.Pop(ref Stamina);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Shield", ref Shield);
+			Value_.Pop("Stamina", ref Stamina);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Shield);
+			Stream_.Push(Stamina);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Shield", Shield);
+			Value_.Push("Stamina", Stamina);
+		}
+		public void Set(SArrowDodgeBattleBufs Obj_)
+		{
+			Shield.Set(Obj_.Shield);
+			Stamina.Set(Obj_.Stamina);
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Shield) + "," + 
+				SEnumChecker.GetStdName(Stamina);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Shield, "Shield") + "," + 
+				SEnumChecker.GetMemberName(Stamina, "Stamina");
+		}
+	}
+	public class SingleBattleBeginNetSc : SProto
+	{
+		public SBattlePlayer Player = new SBattlePlayer();
+		public SCharacterNet Character = new SCharacterNet();
+		public Int64 Tick = default(Int64);
+		public UInt32 RandomSeed = default(UInt32);
+		public Boolean Started = default(Boolean);
+		public SingleBattleBeginNetSc()
+		{
+		}
+		public SingleBattleBeginNetSc(SingleBattleBeginNetSc Obj_)
+		{
+			Player = Obj_.Player;
+			Character = Obj_.Character;
+			Tick = Obj_.Tick;
+			RandomSeed = Obj_.RandomSeed;
+			Started = Obj_.Started;
+		}
+		public SingleBattleBeginNetSc(SBattlePlayer Player_, SCharacterNet Character_, Int64 Tick_, UInt32 RandomSeed_, Boolean Started_)
+		{
+			Player = Player_;
+			Character = Character_;
+			Tick = Tick_;
+			RandomSeed = RandomSeed_;
+			Started = Started_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref Player);
+			Stream_.Pop(ref Character);
+			Stream_.Pop(ref Tick);
+			Stream_.Pop(ref RandomSeed);
+			Stream_.Pop(ref Started);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("Player", ref Player);
+			Value_.Pop("Character", ref Character);
+			Value_.Pop("Tick", ref Tick);
+			Value_.Pop("RandomSeed", ref RandomSeed);
+			Value_.Pop("Started", ref Started);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(Player);
+			Stream_.Push(Character);
+			Stream_.Push(Tick);
+			Stream_.Push(RandomSeed);
+			Stream_.Push(Started);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("Player", Player);
+			Value_.Push("Character", Character);
+			Value_.Push("Tick", Tick);
+			Value_.Push("RandomSeed", RandomSeed);
+			Value_.Push("Started", Started);
+		}
+		public void Set(SingleBattleBeginNetSc Obj_)
+		{
+			Player.Set(Obj_.Player);
+			Character.Set(Obj_.Character);
+			Tick = Obj_.Tick;
+			RandomSeed = Obj_.RandomSeed;
+			Started = Obj_.Started;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(Player) + "," + 
+				SEnumChecker.GetStdName(Character) + "," + 
+				SEnumChecker.GetStdName(Tick) + "," + 
+				SEnumChecker.GetStdName(RandomSeed) + "," + 
+				SEnumChecker.GetStdName(Started);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(Player, "Player") + "," + 
+				SEnumChecker.GetMemberName(Character, "Character") + "," + 
+				SEnumChecker.GetMemberName(Tick, "Tick") + "," + 
+				SEnumChecker.GetMemberName(RandomSeed, "RandomSeed") + "," + 
+				SEnumChecker.GetMemberName(Started, "Started");
+		}
+	}
+	public class SArrowDodgeBattleBeginNetSc : SingleBattleBeginNetSc
+	{
+		public SArrowDodgeBattleInfo BattleInfo = new SArrowDodgeBattleInfo();
+		public SArrowDodgeBattleBufs Bufs = new SArrowDodgeBattleBufs();
+		public Int64 NextDownArrowTick = default(Int64);
+		public Int64 NextLeftArrowTick = default(Int64);
+		public Int64 NextRightArrowTick = default(Int64);
+		public Int64 NextItemTick = default(Int64);
+		public List<SArrow> Arrows = new List<SArrow>();
+		public List<SArrowDodgeItem> Items = new List<SArrowDodgeItem>();
+		public SArrowDodgeBattleBeginNetSc()
+		{
+		}
+		public SArrowDodgeBattleBeginNetSc(SArrowDodgeBattleBeginNetSc Obj_) : base(Obj_)
+		{
+			BattleInfo = Obj_.BattleInfo;
+			Bufs = Obj_.Bufs;
+			NextDownArrowTick = Obj_.NextDownArrowTick;
+			NextLeftArrowTick = Obj_.NextLeftArrowTick;
+			NextRightArrowTick = Obj_.NextRightArrowTick;
+			NextItemTick = Obj_.NextItemTick;
+			Arrows = Obj_.Arrows;
+			Items = Obj_.Items;
+		}
+		public SArrowDodgeBattleBeginNetSc(SingleBattleBeginNetSc Super_, SArrowDodgeBattleInfo BattleInfo_, SArrowDodgeBattleBufs Bufs_, Int64 NextDownArrowTick_, Int64 NextLeftArrowTick_, Int64 NextRightArrowTick_, Int64 NextItemTick_, List<SArrow> Arrows_, List<SArrowDodgeItem> Items_) : base(Super_)
+		{
+			BattleInfo = BattleInfo_;
+			Bufs = Bufs_;
+			NextDownArrowTick = NextDownArrowTick_;
+			NextLeftArrowTick = NextLeftArrowTick_;
+			NextRightArrowTick = NextRightArrowTick_;
+			NextItemTick = NextItemTick_;
+			Arrows = Arrows_;
+			Items = Items_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
-			Stream_.Pop(ref UID);
-			Stream_.Pop(ref Point);
+			Stream_.Pop(ref BattleInfo);
+			Stream_.Pop(ref Bufs);
+			Stream_.Pop(ref NextDownArrowTick);
+			Stream_.Pop(ref NextLeftArrowTick);
+			Stream_.Pop(ref NextRightArrowTick);
+			Stream_.Pop(ref NextItemTick);
+			Stream_.Pop(ref Arrows);
+			Stream_.Pop(ref Items);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
-			Value_.Pop("UID", ref UID);
-			Value_.Pop("Point", ref Point);
+			Value_.Pop("BattleInfo", ref BattleInfo);
+			Value_.Pop("Bufs", ref Bufs);
+			Value_.Pop("NextDownArrowTick", ref NextDownArrowTick);
+			Value_.Pop("NextLeftArrowTick", ref NextLeftArrowTick);
+			Value_.Pop("NextRightArrowTick", ref NextRightArrowTick);
+			Value_.Pop("NextItemTick", ref NextItemTick);
+			Value_.Pop("Arrows", ref Arrows);
+			Value_.Pop("Items", ref Items);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
-			Stream_.Push(UID);
-			Stream_.Push(Point);
+			Stream_.Push(BattleInfo);
+			Stream_.Push(Bufs);
+			Stream_.Push(NextDownArrowTick);
+			Stream_.Push(NextLeftArrowTick);
+			Stream_.Push(NextRightArrowTick);
+			Stream_.Push(NextItemTick);
+			Stream_.Push(Arrows);
+			Stream_.Push(Items);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
-			Value_.Push("UID", UID);
-			Value_.Push("Point", Point);
+			Value_.Push("BattleInfo", BattleInfo);
+			Value_.Push("Bufs", Bufs);
+			Value_.Push("NextDownArrowTick", NextDownArrowTick);
+			Value_.Push("NextLeftArrowTick", NextLeftArrowTick);
+			Value_.Push("NextRightArrowTick", NextRightArrowTick);
+			Value_.Push("NextItemTick", NextItemTick);
+			Value_.Push("Arrows", Arrows);
+			Value_.Push("Items", Items);
 		}
-		public void Set(SRankingUserIsland Obj_)
+		public void Set(SArrowDodgeBattleBeginNetSc Obj_)
 		{
 			base.Set(Obj_);
-			UID = Obj_.UID;
-			Point = Obj_.Point;
+			BattleInfo.Set(Obj_.BattleInfo);
+			Bufs.Set(Obj_.Bufs);
+			NextDownArrowTick = Obj_.NextDownArrowTick;
+			NextLeftArrowTick = Obj_.NextLeftArrowTick;
+			NextRightArrowTick = Obj_.NextRightArrowTick;
+			NextItemTick = Obj_.NextItemTick;
+			Arrows = Obj_.Arrows;
+			Items = Obj_.Items;
 		}
 		public override string StdName()
 		{
 			return 
 				base.StdName() + "," + 
-				SEnumChecker.GetStdName(UID) + "," + 
-				SEnumChecker.GetStdName(Point);
+				SEnumChecker.GetStdName(BattleInfo) + "," + 
+				SEnumChecker.GetStdName(Bufs) + "," + 
+				SEnumChecker.GetStdName(NextDownArrowTick) + "," + 
+				SEnumChecker.GetStdName(NextLeftArrowTick) + "," + 
+				SEnumChecker.GetStdName(NextRightArrowTick) + "," + 
+				SEnumChecker.GetStdName(NextItemTick) + "," + 
+				SEnumChecker.GetStdName(Arrows) + "," + 
+				SEnumChecker.GetStdName(Items);
 		}
 		public override string MemberName()
 		{
 			return 
 				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(UID, "UID") + "," + 
-				SEnumChecker.GetMemberName(Point, "Point");
+				SEnumChecker.GetMemberName(BattleInfo, "BattleInfo") + "," + 
+				SEnumChecker.GetMemberName(Bufs, "Bufs") + "," + 
+				SEnumChecker.GetMemberName(NextDownArrowTick, "NextDownArrowTick") + "," + 
+				SEnumChecker.GetMemberName(NextLeftArrowTick, "NextLeftArrowTick") + "," + 
+				SEnumChecker.GetMemberName(NextRightArrowTick, "NextRightArrowTick") + "," + 
+				SEnumChecker.GetMemberName(NextItemTick, "NextItemTick") + "," + 
+				SEnumChecker.GetMemberName(Arrows, "Arrows") + "," + 
+				SEnumChecker.GetMemberName(Items, "Items");
+		}
+	}
+	public class SArrowDodgeBattleStartNetSc : SingleBattleStartNetSc
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SArrowDodgeBattleEndNetCs : SProto
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SArrowDodgeBattleEndNetSc : SingleBattleEndNetSc
+	{
+		public SArrowDodgeBattleEndNetSc()
+		{
+		}
+		public SArrowDodgeBattleEndNetSc(SArrowDodgeBattleEndNetSc Obj_) : base(Obj_)
+		{
+		}
+		public SArrowDodgeBattleEndNetSc(SingleBattleEndNetSc Super_) : base(Super_)
+		{
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+		}
+		public void Set(SArrowDodgeBattleEndNetSc Obj_)
+		{
+			base.Set(Obj_);
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName();
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName();
+		}
+	}
+	public class FlyAwayPathMakerState : SProto
+	{
+		public Int32 currentLevel = default(Int32);
+		public Int32 levelDirection = default(Int32);
+		public Int32 destMainLevel = default(Int32);
+		public Int32 currentCount = default(Int32);
+		public Int32 destCount = default(Int32);
+		public FlyAwayPathMakerState()
+		{
+		}
+		public FlyAwayPathMakerState(FlyAwayPathMakerState Obj_)
+		{
+			currentLevel = Obj_.currentLevel;
+			levelDirection = Obj_.levelDirection;
+			destMainLevel = Obj_.destMainLevel;
+			currentCount = Obj_.currentCount;
+			destCount = Obj_.destCount;
+		}
+		public FlyAwayPathMakerState(Int32 currentLevel_, Int32 levelDirection_, Int32 destMainLevel_, Int32 currentCount_, Int32 destCount_)
+		{
+			currentLevel = currentLevel_;
+			levelDirection = levelDirection_;
+			destMainLevel = destMainLevel_;
+			currentCount = currentCount_;
+			destCount = destCount_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref currentLevel);
+			Stream_.Pop(ref levelDirection);
+			Stream_.Pop(ref destMainLevel);
+			Stream_.Pop(ref currentCount);
+			Stream_.Pop(ref destCount);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("currentLevel", ref currentLevel);
+			Value_.Pop("levelDirection", ref levelDirection);
+			Value_.Pop("destMainLevel", ref destMainLevel);
+			Value_.Pop("currentCount", ref currentCount);
+			Value_.Pop("destCount", ref destCount);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(currentLevel);
+			Stream_.Push(levelDirection);
+			Stream_.Push(destMainLevel);
+			Stream_.Push(currentCount);
+			Stream_.Push(destCount);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("currentLevel", currentLevel);
+			Value_.Push("levelDirection", levelDirection);
+			Value_.Push("destMainLevel", destMainLevel);
+			Value_.Push("currentCount", currentCount);
+			Value_.Push("destCount", destCount);
+		}
+		public void Set(FlyAwayPathMakerState Obj_)
+		{
+			currentLevel = Obj_.currentLevel;
+			levelDirection = Obj_.levelDirection;
+			destMainLevel = Obj_.destMainLevel;
+			currentCount = Obj_.currentCount;
+			destCount = Obj_.destCount;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(currentLevel) + "," + 
+				SEnumChecker.GetStdName(levelDirection) + "," + 
+				SEnumChecker.GetStdName(destMainLevel) + "," + 
+				SEnumChecker.GetStdName(currentCount) + "," + 
+				SEnumChecker.GetStdName(destCount);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(currentLevel, "currentLevel") + "," + 
+				SEnumChecker.GetMemberName(levelDirection, "levelDirection") + "," + 
+				SEnumChecker.GetMemberName(destMainLevel, "destMainLevel") + "," + 
+				SEnumChecker.GetMemberName(currentCount, "currentCount") + "," + 
+				SEnumChecker.GetMemberName(destCount, "destCount");
+		}
+	}
+	public class SFlyAwayBattleJoinNetCs : SProto
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SFlyAwayBattleJoinNetSc : SProto
+	{
+		public TResource GoldCost = default(TResource);
+		public Int32 PlayCount = default(Int32);
+		public TimePoint RefreshTime = default(TimePoint);
+		public TDoneQuests DoneQuests = new TDoneQuests();
+		public SFlyAwayBattleJoinNetSc()
+		{
+		}
+		public SFlyAwayBattleJoinNetSc(SFlyAwayBattleJoinNetSc Obj_)
+		{
+			GoldCost = Obj_.GoldCost;
+			PlayCount = Obj_.PlayCount;
+			RefreshTime = Obj_.RefreshTime;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public SFlyAwayBattleJoinNetSc(TResource GoldCost_, Int32 PlayCount_, TimePoint RefreshTime_, TDoneQuests DoneQuests_)
+		{
+			GoldCost = GoldCost_;
+			PlayCount = PlayCount_;
+			RefreshTime = RefreshTime_;
+			DoneQuests = DoneQuests_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref GoldCost);
+			Stream_.Pop(ref PlayCount);
+			Stream_.Pop(ref RefreshTime);
+			Stream_.Pop(ref DoneQuests);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("GoldCost", ref GoldCost);
+			Value_.Pop("PlayCount", ref PlayCount);
+			Value_.Pop("RefreshTime", ref RefreshTime);
+			Value_.Pop("DoneQuests", ref DoneQuests);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(GoldCost);
+			Stream_.Push(PlayCount);
+			Stream_.Push(RefreshTime);
+			Stream_.Push(DoneQuests);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("GoldCost", GoldCost);
+			Value_.Push("PlayCount", PlayCount);
+			Value_.Push("RefreshTime", RefreshTime);
+			Value_.Push("DoneQuests", DoneQuests);
+		}
+		public void Set(SFlyAwayBattleJoinNetSc Obj_)
+		{
+			GoldCost = Obj_.GoldCost;
+			PlayCount = Obj_.PlayCount;
+			RefreshTime = Obj_.RefreshTime;
+			DoneQuests = Obj_.DoneQuests;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(GoldCost) + "," + 
+				SEnumChecker.GetStdName(PlayCount) + "," + 
+				SEnumChecker.GetStdName(RefreshTime) + "," + 
+				SEnumChecker.GetStdName(DoneQuests);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(GoldCost, "GoldCost") + "," + 
+				SEnumChecker.GetMemberName(PlayCount, "PlayCount") + "," + 
+				SEnumChecker.GetMemberName(RefreshTime, "RefreshTime") + "," + 
+				SEnumChecker.GetMemberName(DoneQuests, "DoneQuests");
+		}
+	}
+	public enum EFlyAwayLandState
+	{
+		Normal,
+		Shaking,
+		Falling,
+	}
+	public class SFlyAwayLand : SProto
+	{
+		public SPoint LocalPosition = new SPoint();
+		public Int32 Number = default(Int32);
+		public Int32 Index = default(Int32);
+		public EFlyAwayLandState State = default(EFlyAwayLandState);
+		public Int64 NextActionTick = default(Int64);
+		public SFlyAwayLand()
+		{
+		}
+		public SFlyAwayLand(SFlyAwayLand Obj_)
+		{
+			LocalPosition = Obj_.LocalPosition;
+			Number = Obj_.Number;
+			Index = Obj_.Index;
+			State = Obj_.State;
+			NextActionTick = Obj_.NextActionTick;
+		}
+		public SFlyAwayLand(SPoint LocalPosition_, Int32 Number_, Int32 Index_, EFlyAwayLandState State_, Int64 NextActionTick_)
+		{
+			LocalPosition = LocalPosition_;
+			Number = Number_;
+			Index = Index_;
+			State = State_;
+			NextActionTick = NextActionTick_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref LocalPosition);
+			Stream_.Pop(ref Number);
+			Stream_.Pop(ref Index);
+			Stream_.Pop(ref State);
+			Stream_.Pop(ref NextActionTick);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("LocalPosition", ref LocalPosition);
+			Value_.Pop("Number", ref Number);
+			Value_.Pop("Index", ref Index);
+			Value_.Pop("State", ref State);
+			Value_.Pop("NextActionTick", ref NextActionTick);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(LocalPosition);
+			Stream_.Push(Number);
+			Stream_.Push(Index);
+			Stream_.Push(State);
+			Stream_.Push(NextActionTick);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("LocalPosition", LocalPosition);
+			Value_.Push("Number", Number);
+			Value_.Push("Index", Index);
+			Value_.Push("State", State);
+			Value_.Push("NextActionTick", NextActionTick);
+		}
+		public void Set(SFlyAwayLand Obj_)
+		{
+			LocalPosition.Set(Obj_.LocalPosition);
+			Number = Obj_.Number;
+			Index = Obj_.Index;
+			State = Obj_.State;
+			NextActionTick = Obj_.NextActionTick;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(LocalPosition) + "," + 
+				SEnumChecker.GetStdName(Number) + "," + 
+				SEnumChecker.GetStdName(Index) + "," + 
+				"bb.EFlyAwayLandState" + "," + 
+				SEnumChecker.GetStdName(NextActionTick);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(LocalPosition, "LocalPosition") + "," + 
+				SEnumChecker.GetMemberName(Number, "Number") + "," + 
+				SEnumChecker.GetMemberName(Index, "Index") + "," + 
+				SEnumChecker.GetMemberName(State, "State") + "," + 
+				SEnumChecker.GetMemberName(NextActionTick, "NextActionTick");
+		}
+	}
+	public enum EFlyAwayItemType
+	{
+		Coin,
+		GoldBar,
+		Apple,
+		Meat,
+		Chicken,
+		Max,
+		Null,
+	}
+	public class SFlyAwayItem : SProto
+	{
+		public SPoint LocalPosition = new SPoint();
+		public EFlyAwayItemType ItemType = default(EFlyAwayItemType);
+		public SFlyAwayItem()
+		{
+		}
+		public SFlyAwayItem(SFlyAwayItem Obj_)
+		{
+			LocalPosition = Obj_.LocalPosition;
+			ItemType = Obj_.ItemType;
+		}
+		public SFlyAwayItem(SPoint LocalPosition_, EFlyAwayItemType ItemType_)
+		{
+			LocalPosition = LocalPosition_;
+			ItemType = ItemType_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref LocalPosition);
+			Stream_.Pop(ref ItemType);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("LocalPosition", ref LocalPosition);
+			Value_.Pop("ItemType", ref ItemType);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(LocalPosition);
+			Stream_.Push(ItemType);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("LocalPosition", LocalPosition);
+			Value_.Push("ItemType", ItemType);
+		}
+		public void Set(SFlyAwayItem Obj_)
+		{
+			LocalPosition.Set(Obj_.LocalPosition);
+			ItemType = Obj_.ItemType;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(LocalPosition) + "," + 
+				"bb.EFlyAwayItemType";
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(LocalPosition, "LocalPosition") + "," + 
+				SEnumChecker.GetMemberName(ItemType, "ItemType");
+		}
+	}
+	public class SFlyAwayBattleInfo : SingleBattleInfo
+	{
+		public Int32 PerfectCombo = default(Int32);
+		public SFlyAwayBattleInfo()
+		{
+		}
+		public SFlyAwayBattleInfo(SFlyAwayBattleInfo Obj_) : base(Obj_)
+		{
+			PerfectCombo = Obj_.PerfectCombo;
+		}
+		public SFlyAwayBattleInfo(SingleBattleInfo Super_, Int32 PerfectCombo_) : base(Super_)
+		{
+			PerfectCombo = PerfectCombo_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+			Stream_.Pop(ref PerfectCombo);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+			Value_.Pop("PerfectCombo", ref PerfectCombo);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+			Stream_.Push(PerfectCombo);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+			Value_.Push("PerfectCombo", PerfectCombo);
+		}
+		public void Set(SFlyAwayBattleInfo Obj_)
+		{
+			base.Set(Obj_);
+			PerfectCombo = Obj_.PerfectCombo;
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(PerfectCombo);
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(PerfectCombo, "PerfectCombo");
+		}
+	}
+	public class SFlyAwayBattleBeginNetSc : SingleBattleBeginNetSc
+	{
+		public FlyAwayPathMakerState pathMakerState = new FlyAwayPathMakerState();
+		public SFlyAwayBattleInfo BattleInfo = new SFlyAwayBattleInfo();
+		public Int32 LandCounter = default(Int32);
+		public SPoint LastLandPosition = new SPoint();
+		public List<SFlyAwayLand> Lands = new List<SFlyAwayLand>();
+		public List<SFlyAwayItem> Items = new List<SFlyAwayItem>();
+		public SFlyAwayBattleBeginNetSc()
+		{
+		}
+		public SFlyAwayBattleBeginNetSc(SFlyAwayBattleBeginNetSc Obj_) : base(Obj_)
+		{
+			pathMakerState = Obj_.pathMakerState;
+			BattleInfo = Obj_.BattleInfo;
+			LandCounter = Obj_.LandCounter;
+			LastLandPosition = Obj_.LastLandPosition;
+			Lands = Obj_.Lands;
+			Items = Obj_.Items;
+		}
+		public SFlyAwayBattleBeginNetSc(SingleBattleBeginNetSc Super_, FlyAwayPathMakerState pathMakerState_, SFlyAwayBattleInfo BattleInfo_, Int32 LandCounter_, SPoint LastLandPosition_, List<SFlyAwayLand> Lands_, List<SFlyAwayItem> Items_) : base(Super_)
+		{
+			pathMakerState = pathMakerState_;
+			BattleInfo = BattleInfo_;
+			LandCounter = LandCounter_;
+			LastLandPosition = LastLandPosition_;
+			Lands = Lands_;
+			Items = Items_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+			Stream_.Pop(ref pathMakerState);
+			Stream_.Pop(ref BattleInfo);
+			Stream_.Pop(ref LandCounter);
+			Stream_.Pop(ref LastLandPosition);
+			Stream_.Pop(ref Lands);
+			Stream_.Pop(ref Items);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+			Value_.Pop("pathMakerState", ref pathMakerState);
+			Value_.Pop("BattleInfo", ref BattleInfo);
+			Value_.Pop("LandCounter", ref LandCounter);
+			Value_.Pop("LastLandPosition", ref LastLandPosition);
+			Value_.Pop("Lands", ref Lands);
+			Value_.Pop("Items", ref Items);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+			Stream_.Push(pathMakerState);
+			Stream_.Push(BattleInfo);
+			Stream_.Push(LandCounter);
+			Stream_.Push(LastLandPosition);
+			Stream_.Push(Lands);
+			Stream_.Push(Items);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+			Value_.Push("pathMakerState", pathMakerState);
+			Value_.Push("BattleInfo", BattleInfo);
+			Value_.Push("LandCounter", LandCounter);
+			Value_.Push("LastLandPosition", LastLandPosition);
+			Value_.Push("Lands", Lands);
+			Value_.Push("Items", Items);
+		}
+		public void Set(SFlyAwayBattleBeginNetSc Obj_)
+		{
+			base.Set(Obj_);
+			pathMakerState.Set(Obj_.pathMakerState);
+			BattleInfo.Set(Obj_.BattleInfo);
+			LandCounter = Obj_.LandCounter;
+			LastLandPosition.Set(Obj_.LastLandPosition);
+			Lands = Obj_.Lands;
+			Items = Obj_.Items;
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(pathMakerState) + "," + 
+				SEnumChecker.GetStdName(BattleInfo) + "," + 
+				SEnumChecker.GetStdName(LandCounter) + "," + 
+				SEnumChecker.GetStdName(LastLandPosition) + "," + 
+				SEnumChecker.GetStdName(Lands) + "," + 
+				SEnumChecker.GetStdName(Items);
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(pathMakerState, "pathMakerState") + "," + 
+				SEnumChecker.GetMemberName(BattleInfo, "BattleInfo") + "," + 
+				SEnumChecker.GetMemberName(LandCounter, "LandCounter") + "," + 
+				SEnumChecker.GetMemberName(LastLandPosition, "LastLandPosition") + "," + 
+				SEnumChecker.GetMemberName(Lands, "Lands") + "," + 
+				SEnumChecker.GetMemberName(Items, "Items");
+		}
+	}
+	public class SFlyAwayBattleStartNetSc : SingleBattleStartNetSc
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SFlyAwayBattleEndNetCs : SProto
+	{
+		public override void Push(CStream Stream_)
+		{
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+		}
+		public override void Pop(CStream Stream_)
+		{
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+		}
+		public override string StdName()
+		{
+			return "";
+		}
+		public override string MemberName()
+		{
+			return "";
+		}
+	}
+	public class SFlyAwayBattleEndNetSc : SingleBattleEndNetSc
+	{
+		public SFlyAwayBattleEndNetSc()
+		{
+		}
+		public SFlyAwayBattleEndNetSc(SFlyAwayBattleEndNetSc Obj_) : base(Obj_)
+		{
+		}
+		public SFlyAwayBattleEndNetSc(SingleBattleEndNetSc Super_) : base(Super_)
+		{
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+		}
+		public void Set(SFlyAwayBattleEndNetSc Obj_)
+		{
+			base.Set(Obj_);
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName();
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName();
 		}
 	}
 	public class SRanking : SProto
 	{
-		public TRankingUsers RankingUsers = new TRankingUsers();
-		public TRankingUserSingles RankingUserSingles = new TRankingUserSingles();
-		public TRankingUserIslands RankingUserIslands = new TRankingUserIslands();
+		public SRankingUsers[] RankingUsersArray = new SRankingUsers[3];
 		public SRanking()
 		{
+			for (int iRankingUsersArray = 0; iRankingUsersArray < RankingUsersArray.Length; ++iRankingUsersArray)
+				RankingUsersArray[iRankingUsersArray] = new SRankingUsers();
 		}
 		public SRanking(SRanking Obj_)
 		{
-			RankingUsers = Obj_.RankingUsers;
-			RankingUserSingles = Obj_.RankingUserSingles;
-			RankingUserIslands = Obj_.RankingUserIslands;
+			RankingUsersArray = Obj_.RankingUsersArray;
 		}
-		public SRanking(TRankingUsers RankingUsers_, TRankingUserSingles RankingUserSingles_, TRankingUserIslands RankingUserIslands_)
+		public SRanking(SRankingUsers[] RankingUsersArray_)
 		{
-			RankingUsers = RankingUsers_;
-			RankingUserSingles = RankingUserSingles_;
-			RankingUserIslands = RankingUserIslands_;
+			RankingUsersArray = RankingUsersArray_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref RankingUsers);
-			Stream_.Pop(ref RankingUserSingles);
-			Stream_.Pop(ref RankingUserIslands);
+			Stream_.Pop(ref RankingUsersArray);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("RankingUsers", ref RankingUsers);
-			Value_.Pop("RankingUserSingles", ref RankingUserSingles);
-			Value_.Pop("RankingUserIslands", ref RankingUserIslands);
+			Value_.Pop("RankingUsersArray", ref RankingUsersArray);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(RankingUsers);
-			Stream_.Push(RankingUserSingles);
-			Stream_.Push(RankingUserIslands);
+			Stream_.Push(RankingUsersArray);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("RankingUsers", RankingUsers);
-			Value_.Push("RankingUserSingles", RankingUserSingles);
-			Value_.Push("RankingUserIslands", RankingUserIslands);
+			Value_.Push("RankingUsersArray", RankingUsersArray);
 		}
 		public void Set(SRanking Obj_)
 		{
-			RankingUsers = Obj_.RankingUsers;
-			RankingUserSingles = Obj_.RankingUserSingles;
-			RankingUserIslands = Obj_.RankingUserIslands;
+			RankingUsersArray = Obj_.RankingUsersArray;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(RankingUsers) + "," + 
-				SEnumChecker.GetStdName(RankingUserSingles) + "," + 
-				SEnumChecker.GetStdName(RankingUserIslands);
+				SEnumChecker.GetStdName(RankingUsersArray);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(RankingUsers, "RankingUsers") + "," + 
-				SEnumChecker.GetMemberName(RankingUserSingles, "RankingUserSingles") + "," + 
-				SEnumChecker.GetMemberName(RankingUserIslands, "RankingUserIslands");
-		}
-	}
-	public class SRankingUserPointMin : SProto
-	{
-		public Int32 UserPointMin = default(Int32);
-		public Int32 UserPointMinSingle = default(Int32);
-		public Int32 UserPointMinIsland = default(Int32);
-		public SRankingUserPointMin()
-		{
-		}
-		public SRankingUserPointMin(SRankingUserPointMin Obj_)
-		{
-			UserPointMin = Obj_.UserPointMin;
-			UserPointMinSingle = Obj_.UserPointMinSingle;
-			UserPointMinIsland = Obj_.UserPointMinIsland;
-		}
-		public SRankingUserPointMin(Int32 UserPointMin_, Int32 UserPointMinSingle_, Int32 UserPointMinIsland_)
-		{
-			UserPointMin = UserPointMin_;
-			UserPointMinSingle = UserPointMinSingle_;
-			UserPointMinIsland = UserPointMinIsland_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref UserPointMin);
-			Stream_.Pop(ref UserPointMinSingle);
-			Stream_.Pop(ref UserPointMinIsland);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("UserPointMin", ref UserPointMin);
-			Value_.Pop("UserPointMinSingle", ref UserPointMinSingle);
-			Value_.Pop("UserPointMinIsland", ref UserPointMinIsland);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(UserPointMin);
-			Stream_.Push(UserPointMinSingle);
-			Stream_.Push(UserPointMinIsland);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("UserPointMin", UserPointMin);
-			Value_.Push("UserPointMinSingle", UserPointMinSingle);
-			Value_.Push("UserPointMinIsland", UserPointMinIsland);
-		}
-		public void Set(SRankingUserPointMin Obj_)
-		{
-			UserPointMin = Obj_.UserPointMin;
-			UserPointMinSingle = Obj_.UserPointMinSingle;
-			UserPointMinIsland = Obj_.UserPointMinIsland;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(UserPointMin) + "," + 
-				SEnumChecker.GetStdName(UserPointMinSingle) + "," + 
-				SEnumChecker.GetStdName(UserPointMinIsland);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(UserPointMin, "UserPointMin") + "," + 
-				SEnumChecker.GetMemberName(UserPointMinSingle, "UserPointMinSingle") + "," + 
-				SEnumChecker.GetMemberName(UserPointMinIsland, "UserPointMinIsland");
+				SEnumChecker.GetMemberName(RankingUsersArray, "RankingUsersArray");
 		}
 	}
 	public enum EProtoRankingNetCs
@@ -5247,296 +5581,6 @@ namespace bb
 	{
 		RequestRanking,
 		Max,
-	}
-	public class SGachaNetCs : SProto
-	{
-		public Int32 GachaIndex = default(Int32);
-		public SGachaNetCs()
-		{
-		}
-		public SGachaNetCs(SGachaNetCs Obj_)
-		{
-			GachaIndex = Obj_.GachaIndex;
-		}
-		public SGachaNetCs(Int32 GachaIndex_)
-		{
-			GachaIndex = GachaIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref GachaIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("GachaIndex", ref GachaIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(GachaIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("GachaIndex", GachaIndex);
-		}
-		public void Set(SGachaNetCs Obj_)
-		{
-			GachaIndex = Obj_.GachaIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(GachaIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(GachaIndex, "GachaIndex");
-		}
-	}
-	public class SGachaX10NetCs : SProto
-	{
-		public Int32 GachaIndex = default(Int32);
-		public SGachaX10NetCs()
-		{
-		}
-		public SGachaX10NetCs(SGachaX10NetCs Obj_)
-		{
-			GachaIndex = Obj_.GachaIndex;
-		}
-		public SGachaX10NetCs(Int32 GachaIndex_)
-		{
-			GachaIndex = GachaIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref GachaIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("GachaIndex", ref GachaIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(GachaIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("GachaIndex", GachaIndex);
-		}
-		public void Set(SGachaX10NetCs Obj_)
-		{
-			GachaIndex = Obj_.GachaIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(GachaIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(GachaIndex, "GachaIndex");
-		}
-	}
-	public class SGachaNetSc : SProto
-	{
-		public TResource[] Cost = new TResource[5];
-		public Int32 Index = default(Int32);
-		public Int32 CharCode = default(Int32);
-		public SGachaNetSc()
-		{
-			for (int iCost = 0; iCost < Cost.Length; ++iCost)
-				Cost[iCost] = default(TResource);
-		}
-		public SGachaNetSc(SGachaNetSc Obj_)
-		{
-			Cost = Obj_.Cost;
-			Index = Obj_.Index;
-			CharCode = Obj_.CharCode;
-		}
-		public SGachaNetSc(TResource[] Cost_, Int32 Index_, Int32 CharCode_)
-		{
-			Cost = Cost_;
-			Index = Index_;
-			CharCode = CharCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Cost);
-			Stream_.Pop(ref Index);
-			Stream_.Pop(ref CharCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Cost", ref Cost);
-			Value_.Pop("Index", ref Index);
-			Value_.Pop("CharCode", ref CharCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Cost);
-			Stream_.Push(Index);
-			Stream_.Push(CharCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Cost", Cost);
-			Value_.Push("Index", Index);
-			Value_.Push("CharCode", CharCode);
-		}
-		public void Set(SGachaNetSc Obj_)
-		{
-			Cost = Obj_.Cost;
-			Index = Obj_.Index;
-			CharCode = Obj_.CharCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Cost) + "," + 
-				SEnumChecker.GetStdName(Index) + "," + 
-				SEnumChecker.GetStdName(CharCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Cost, "Cost") + "," + 
-				SEnumChecker.GetMemberName(Index, "Index") + "," + 
-				SEnumChecker.GetMemberName(CharCode, "CharCode");
-		}
-	}
-	public class SGachaX10NetSc : SProto
-	{
-		public TResource[] Cost = new TResource[5];
-		public Int32 Index = default(Int32);
-		public List<Int32> CharCodeList = new List<Int32>();
-		public TResource[] Refund = new TResource[5];
-		public SGachaX10NetSc()
-		{
-			for (int iCost = 0; iCost < Cost.Length; ++iCost)
-				Cost[iCost] = default(TResource);
-			for (int iRefund = 0; iRefund < Refund.Length; ++iRefund)
-				Refund[iRefund] = default(TResource);
-		}
-		public SGachaX10NetSc(SGachaX10NetSc Obj_)
-		{
-			Cost = Obj_.Cost;
-			Index = Obj_.Index;
-			CharCodeList = Obj_.CharCodeList;
-			Refund = Obj_.Refund;
-		}
-		public SGachaX10NetSc(TResource[] Cost_, Int32 Index_, List<Int32> CharCodeList_, TResource[] Refund_)
-		{
-			Cost = Cost_;
-			Index = Index_;
-			CharCodeList = CharCodeList_;
-			Refund = Refund_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Cost);
-			Stream_.Pop(ref Index);
-			Stream_.Pop(ref CharCodeList);
-			Stream_.Pop(ref Refund);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Cost", ref Cost);
-			Value_.Pop("Index", ref Index);
-			Value_.Pop("CharCodeList", ref CharCodeList);
-			Value_.Pop("Refund", ref Refund);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Cost);
-			Stream_.Push(Index);
-			Stream_.Push(CharCodeList);
-			Stream_.Push(Refund);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Cost", Cost);
-			Value_.Push("Index", Index);
-			Value_.Push("CharCodeList", CharCodeList);
-			Value_.Push("Refund", Refund);
-		}
-		public void Set(SGachaX10NetSc Obj_)
-		{
-			Cost = Obj_.Cost;
-			Index = Obj_.Index;
-			CharCodeList = Obj_.CharCodeList;
-			Refund = Obj_.Refund;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(Cost) + "," + 
-				SEnumChecker.GetStdName(Index) + "," + 
-				SEnumChecker.GetStdName(CharCodeList) + "," + 
-				SEnumChecker.GetStdName(Refund);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Cost, "Cost") + "," + 
-				SEnumChecker.GetMemberName(Index, "Index") + "," + 
-				SEnumChecker.GetMemberName(CharCodeList, "CharCodeList") + "," + 
-				SEnumChecker.GetMemberName(Refund, "Refund");
-		}
-	}
-	public class SGachaFailedNetSc : SGachaNetSc
-	{
-		public TResource[] Refund = new TResource[5];
-		public SGachaFailedNetSc()
-		{
-			for (int iRefund = 0; iRefund < Refund.Length; ++iRefund)
-				Refund[iRefund] = default(TResource);
-		}
-		public SGachaFailedNetSc(SGachaFailedNetSc Obj_) : base(Obj_)
-		{
-			Refund = Obj_.Refund;
-		}
-		public SGachaFailedNetSc(SGachaNetSc Super_, TResource[] Refund_) : base(Super_)
-		{
-			Refund = Refund_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			base.Push(Stream_);
-			Stream_.Pop(ref Refund);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			base.Push(Value_);
-			Value_.Pop("Refund", ref Refund);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			base.Pop(Stream_);
-			Stream_.Push(Refund);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			base.Pop(Value_);
-			Value_.Push("Refund", Refund);
-		}
-		public void Set(SGachaFailedNetSc Obj_)
-		{
-			base.Set(Obj_);
-			Refund = Obj_.Refund;
-		}
-		public override string StdName()
-		{
-			return 
-				base.StdName() + "," + 
-				SEnumChecker.GetStdName(Refund);
-		}
-		public override string MemberName()
-		{
-			return 
-				base.MemberName() + "," + 
-				SEnumChecker.GetMemberName(Refund, "Refund");
-		}
 	}
 	public class SRankRewardNetCs : SProto
 	{
@@ -5559,6 +5603,58 @@ namespace bb
 		public override string MemberName()
 		{
 			return "";
+		}
+	}
+	public class SRankRewardNetSc : SRewardInfo
+	{
+		public Int32 NextRewardRankIndex = default(Int32);
+		public SRankRewardNetSc()
+		{
+		}
+		public SRankRewardNetSc(SRankRewardNetSc Obj_) : base(Obj_)
+		{
+			NextRewardRankIndex = Obj_.NextRewardRankIndex;
+		}
+		public SRankRewardNetSc(SRewardInfo Super_, Int32 NextRewardRankIndex_) : base(Super_)
+		{
+			NextRewardRankIndex = NextRewardRankIndex_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			base.Push(Stream_);
+			Stream_.Pop(ref NextRewardRankIndex);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			base.Push(Value_);
+			Value_.Pop("NextRewardRankIndex", ref NextRewardRankIndex);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			base.Pop(Stream_);
+			Stream_.Push(NextRewardRankIndex);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			base.Pop(Value_);
+			Value_.Push("NextRewardRankIndex", NextRewardRankIndex);
+		}
+		public void Set(SRankRewardNetSc Obj_)
+		{
+			base.Set(Obj_);
+			NextRewardRankIndex = Obj_.NextRewardRankIndex;
+		}
+		public override string StdName()
+		{
+			return 
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(NextRewardRankIndex);
+		}
+		public override string MemberName()
+		{
+			return 
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(NextRewardRankIndex, "NextRewardRankIndex");
 		}
 	}
 	public class SQuestSlotIndexCode : SProto
@@ -5661,6 +5757,61 @@ namespace bb
 				SEnumChecker.GetMemberName(Quests, "Quests");
 		}
 	}
+	public class SQuestSetNetSc : SProto
+	{
+		public TQuestSlotIndex SlotIndex = default(TQuestSlotIndex);
+		public Int32 NewQuestCode = default(Int32);
+		public SQuestSetNetSc()
+		{
+		}
+		public SQuestSetNetSc(SQuestSetNetSc Obj_)
+		{
+			SlotIndex = Obj_.SlotIndex;
+			NewQuestCode = Obj_.NewQuestCode;
+		}
+		public SQuestSetNetSc(TQuestSlotIndex SlotIndex_, Int32 NewQuestCode_)
+		{
+			SlotIndex = SlotIndex_;
+			NewQuestCode = NewQuestCode_;
+		}
+		public override void Push(CStream Stream_)
+		{
+			Stream_.Pop(ref SlotIndex);
+			Stream_.Pop(ref NewQuestCode);
+		}
+		public override void Push(JsonDataObject Value_)
+		{
+			Value_.Pop("SlotIndex", ref SlotIndex);
+			Value_.Pop("NewQuestCode", ref NewQuestCode);
+		}
+		public override void Pop(CStream Stream_)
+		{
+			Stream_.Push(SlotIndex);
+			Stream_.Push(NewQuestCode);
+		}
+		public override void Pop(JsonDataObject Value_)
+		{
+			Value_.Push("SlotIndex", SlotIndex);
+			Value_.Push("NewQuestCode", NewQuestCode);
+		}
+		public void Set(SQuestSetNetSc Obj_)
+		{
+			SlotIndex = Obj_.SlotIndex;
+			NewQuestCode = Obj_.NewQuestCode;
+		}
+		public override string StdName()
+		{
+			return 
+				SEnumChecker.GetStdName(SlotIndex) + "," + 
+				SEnumChecker.GetStdName(NewQuestCode);
+		}
+		public override string MemberName()
+		{
+			return 
+				SEnumChecker.GetMemberName(SlotIndex, "SlotIndex") + "," + 
+				SEnumChecker.GetMemberName(NewQuestCode, "NewQuestCode");
+		}
+	}
 	public class SQuestDoneNetSc : SProto
 	{
 		public TQuestSlotIndex SlotIndex = default(TQuestSlotIndex);
@@ -5761,60 +5912,73 @@ namespace bb
 				SEnumChecker.GetMemberName(SlotIndex, "SlotIndex");
 		}
 	}
-	public class SQuestRewardNetSc : SProto
+	public class SQuestRewardNetSc : SRewardInfo
 	{
 		public TQuestSlotIndex SlotIndex = default(TQuestSlotIndex);
+		public Int32 newCode = default(Int32);
 		public TimePoint CoolEndTime = default(TimePoint);
 		public Int32 DailyCompleteCount = default(Int32);
 		public TimePoint DailyCompleteRefreshTime = default(TimePoint);
 		public SQuestRewardNetSc()
 		{
 		}
-		public SQuestRewardNetSc(SQuestRewardNetSc Obj_)
+		public SQuestRewardNetSc(SQuestRewardNetSc Obj_) : base(Obj_)
 		{
 			SlotIndex = Obj_.SlotIndex;
+			newCode = Obj_.newCode;
 			CoolEndTime = Obj_.CoolEndTime;
 			DailyCompleteCount = Obj_.DailyCompleteCount;
 			DailyCompleteRefreshTime = Obj_.DailyCompleteRefreshTime;
 		}
-		public SQuestRewardNetSc(TQuestSlotIndex SlotIndex_, TimePoint CoolEndTime_, Int32 DailyCompleteCount_, TimePoint DailyCompleteRefreshTime_)
+		public SQuestRewardNetSc(SRewardInfo Super_, TQuestSlotIndex SlotIndex_, Int32 newCode_, TimePoint CoolEndTime_, Int32 DailyCompleteCount_, TimePoint DailyCompleteRefreshTime_) : base(Super_)
 		{
 			SlotIndex = SlotIndex_;
+			newCode = newCode_;
 			CoolEndTime = CoolEndTime_;
 			DailyCompleteCount = DailyCompleteCount_;
 			DailyCompleteRefreshTime = DailyCompleteRefreshTime_;
 		}
 		public override void Push(CStream Stream_)
 		{
+			base.Push(Stream_);
 			Stream_.Pop(ref SlotIndex);
+			Stream_.Pop(ref newCode);
 			Stream_.Pop(ref CoolEndTime);
 			Stream_.Pop(ref DailyCompleteCount);
 			Stream_.Pop(ref DailyCompleteRefreshTime);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
+			base.Push(Value_);
 			Value_.Pop("SlotIndex", ref SlotIndex);
+			Value_.Pop("newCode", ref newCode);
 			Value_.Pop("CoolEndTime", ref CoolEndTime);
 			Value_.Pop("DailyCompleteCount", ref DailyCompleteCount);
 			Value_.Pop("DailyCompleteRefreshTime", ref DailyCompleteRefreshTime);
 		}
 		public override void Pop(CStream Stream_)
 		{
+			base.Pop(Stream_);
 			Stream_.Push(SlotIndex);
+			Stream_.Push(newCode);
 			Stream_.Push(CoolEndTime);
 			Stream_.Push(DailyCompleteCount);
 			Stream_.Push(DailyCompleteRefreshTime);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
+			base.Pop(Value_);
 			Value_.Push("SlotIndex", SlotIndex);
+			Value_.Push("newCode", newCode);
 			Value_.Push("CoolEndTime", CoolEndTime);
 			Value_.Push("DailyCompleteCount", DailyCompleteCount);
 			Value_.Push("DailyCompleteRefreshTime", DailyCompleteRefreshTime);
 		}
 		public void Set(SQuestRewardNetSc Obj_)
 		{
+			base.Set(Obj_);
 			SlotIndex = Obj_.SlotIndex;
+			newCode = Obj_.newCode;
 			CoolEndTime = Obj_.CoolEndTime;
 			DailyCompleteCount = Obj_.DailyCompleteCount;
 			DailyCompleteRefreshTime = Obj_.DailyCompleteRefreshTime;
@@ -5822,7 +5986,9 @@ namespace bb
 		public override string StdName()
 		{
 			return 
+				base.StdName() + "," + 
 				SEnumChecker.GetStdName(SlotIndex) + "," + 
+				SEnumChecker.GetStdName(newCode) + "," + 
 				SEnumChecker.GetStdName(CoolEndTime) + "," + 
 				SEnumChecker.GetStdName(DailyCompleteCount) + "," + 
 				SEnumChecker.GetStdName(DailyCompleteRefreshTime);
@@ -5830,209 +5996,86 @@ namespace bb
 		public override string MemberName()
 		{
 			return 
+				base.MemberName() + "," + 
 				SEnumChecker.GetMemberName(SlotIndex, "SlotIndex") + "," + 
+				SEnumChecker.GetMemberName(newCode, "newCode") + "," + 
 				SEnumChecker.GetMemberName(CoolEndTime, "CoolEndTime") + "," + 
 				SEnumChecker.GetMemberName(DailyCompleteCount, "DailyCompleteCount") + "," + 
 				SEnumChecker.GetMemberName(DailyCompleteRefreshTime, "DailyCompleteRefreshTime");
 		}
 	}
-	public class SQuestNextNetCs : SProto
-	{
-		public TQuestSlotIndex SlotIndex = default(TQuestSlotIndex);
-		public SQuestNextNetCs()
-		{
-		}
-		public SQuestNextNetCs(SQuestNextNetCs Obj_)
-		{
-			SlotIndex = Obj_.SlotIndex;
-		}
-		public SQuestNextNetCs(TQuestSlotIndex SlotIndex_)
-		{
-			SlotIndex = SlotIndex_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref SlotIndex);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("SlotIndex", ref SlotIndex);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(SlotIndex);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("SlotIndex", SlotIndex);
-		}
-		public void Set(SQuestNextNetCs Obj_)
-		{
-			SlotIndex = Obj_.SlotIndex;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(SlotIndex);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(SlotIndex, "SlotIndex");
-		}
-	}
-	public class SQuestNextNetSc : SProto
-	{
-		public TQuestSlotIndex SlotIndex = default(TQuestSlotIndex);
-		public Int32 NewCode = default(Int32);
-		public SQuestNextNetSc()
-		{
-		}
-		public SQuestNextNetSc(SQuestNextNetSc Obj_)
-		{
-			SlotIndex = Obj_.SlotIndex;
-			NewCode = Obj_.NewCode;
-		}
-		public SQuestNextNetSc(TQuestSlotIndex SlotIndex_, Int32 NewCode_)
-		{
-			SlotIndex = SlotIndex_;
-			NewCode = NewCode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref SlotIndex);
-			Stream_.Pop(ref NewCode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("SlotIndex", ref SlotIndex);
-			Value_.Pop("NewCode", ref NewCode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(SlotIndex);
-			Stream_.Push(NewCode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("SlotIndex", SlotIndex);
-			Value_.Push("NewCode", NewCode);
-		}
-		public void Set(SQuestNextNetSc Obj_)
-		{
-			SlotIndex = Obj_.SlotIndex;
-			NewCode = Obj_.NewCode;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(SlotIndex) + "," + 
-				SEnumChecker.GetStdName(NewCode);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(SlotIndex, "SlotIndex") + "," + 
-				SEnumChecker.GetMemberName(NewCode, "NewCode");
-		}
-	}
 	public class SQuestDailyCompleteRewardNetCs : SProto
 	{
-		public Boolean WatchAd = default(Boolean);
-		public SQuestDailyCompleteRewardNetCs()
-		{
-		}
-		public SQuestDailyCompleteRewardNetCs(SQuestDailyCompleteRewardNetCs Obj_)
-		{
-			WatchAd = Obj_.WatchAd;
-		}
-		public SQuestDailyCompleteRewardNetCs(Boolean WatchAd_)
-		{
-			WatchAd = WatchAd_;
-		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref WatchAd);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("WatchAd", ref WatchAd);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(WatchAd);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("WatchAd", WatchAd);
-		}
-		public void Set(SQuestDailyCompleteRewardNetCs Obj_)
-		{
-			WatchAd = Obj_.WatchAd;
 		}
 		public override string StdName()
 		{
-			return 
-				SEnumChecker.GetStdName(WatchAd);
+			return "";
 		}
 		public override string MemberName()
 		{
-			return 
-				SEnumChecker.GetMemberName(WatchAd, "WatchAd");
+			return "";
 		}
 	}
-	public class SQuestDailyCompleteRewardNetSc : SProto
+	public class SQuestDailyCompleteRewardNetSc : SRewardInfo
 	{
-		public Boolean WatchAd = default(Boolean);
 		public TimePoint RefreshTime = default(TimePoint);
 		public SQuestDailyCompleteRewardNetSc()
 		{
 		}
-		public SQuestDailyCompleteRewardNetSc(SQuestDailyCompleteRewardNetSc Obj_)
+		public SQuestDailyCompleteRewardNetSc(SQuestDailyCompleteRewardNetSc Obj_) : base(Obj_)
 		{
-			WatchAd = Obj_.WatchAd;
 			RefreshTime = Obj_.RefreshTime;
 		}
-		public SQuestDailyCompleteRewardNetSc(Boolean WatchAd_, TimePoint RefreshTime_)
+		public SQuestDailyCompleteRewardNetSc(SRewardInfo Super_, TimePoint RefreshTime_) : base(Super_)
 		{
-			WatchAd = WatchAd_;
 			RefreshTime = RefreshTime_;
 		}
 		public override void Push(CStream Stream_)
 		{
-			Stream_.Pop(ref WatchAd);
+			base.Push(Stream_);
 			Stream_.Pop(ref RefreshTime);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
-			Value_.Pop("WatchAd", ref WatchAd);
+			base.Push(Value_);
 			Value_.Pop("RefreshTime", ref RefreshTime);
 		}
 		public override void Pop(CStream Stream_)
 		{
-			Stream_.Push(WatchAd);
+			base.Pop(Stream_);
 			Stream_.Push(RefreshTime);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
-			Value_.Push("WatchAd", WatchAd);
+			base.Pop(Value_);
 			Value_.Push("RefreshTime", RefreshTime);
 		}
 		public void Set(SQuestDailyCompleteRewardNetSc Obj_)
 		{
-			WatchAd = Obj_.WatchAd;
+			base.Set(Obj_);
 			RefreshTime = Obj_.RefreshTime;
 		}
 		public override string StdName()
 		{
 			return 
-				SEnumChecker.GetStdName(WatchAd) + "," + 
+				base.StdName() + "," + 
 				SEnumChecker.GetStdName(RefreshTime);
 		}
 		public override string MemberName()
 		{
 			return 
-				SEnumChecker.GetMemberName(WatchAd, "WatchAd") + "," + 
+				base.MemberName() + "," + 
 				SEnumChecker.GetMemberName(RefreshTime, "RefreshTime");
 		}
 	}
@@ -6316,113 +6359,58 @@ namespace bb
 				SEnumChecker.GetMemberName(Key, "Key");
 		}
 	}
-	public class SRewardDB : SProto
+	public class SCouponUseNetSc : SRewardInfo
 	{
-		public TUID UID = default(TUID);
-		public TResource[] ResourcesLeft = new TResource[5];
-		public List<Int32> CharsAdded = new List<Int32>();
-		public SRewardDB()
-		{
-			for (int iResourcesLeft = 0; iResourcesLeft < ResourcesLeft.Length; ++iResourcesLeft)
-				ResourcesLeft[iResourcesLeft] = default(TResource);
-		}
-		public SRewardDB(SRewardDB Obj_)
-		{
-			UID = Obj_.UID;
-			ResourcesLeft = Obj_.ResourcesLeft;
-			CharsAdded = Obj_.CharsAdded;
-		}
-		public SRewardDB(TUID UID_, TResource[] ResourcesLeft_, List<Int32> CharsAdded_)
-		{
-			UID = UID_;
-			ResourcesLeft = ResourcesLeft_;
-			CharsAdded = CharsAdded_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref UID);
-			Stream_.Pop(ref ResourcesLeft);
-			Stream_.Pop(ref CharsAdded);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("UID", ref UID);
-			Value_.Pop("ResourcesLeft", ref ResourcesLeft);
-			Value_.Pop("CharsAdded", ref CharsAdded);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(UID);
-			Stream_.Push(ResourcesLeft);
-			Stream_.Push(CharsAdded);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("UID", UID);
-			Value_.Push("ResourcesLeft", ResourcesLeft);
-			Value_.Push("CharsAdded", CharsAdded);
-		}
-		public void Set(SRewardDB Obj_)
-		{
-			UID = Obj_.UID;
-			ResourcesLeft = Obj_.ResourcesLeft;
-			CharsAdded = Obj_.CharsAdded;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(UID) + "," + 
-				SEnumChecker.GetStdName(ResourcesLeft) + "," + 
-				SEnumChecker.GetStdName(CharsAdded);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(UID, "UID") + "," + 
-				SEnumChecker.GetMemberName(ResourcesLeft, "ResourcesLeft") + "," + 
-				SEnumChecker.GetMemberName(CharsAdded, "CharsAdded");
-		}
-	}
-	public class SCouponUseNetSc : SRewardDB
-	{
+		public TResource[] ResourcesAdded = new TResource[6];
 		public SCouponUseNetSc()
 		{
+			for (int iResourcesAdded = 0; iResourcesAdded < ResourcesAdded.Length; ++iResourcesAdded)
+				ResourcesAdded[iResourcesAdded] = default(TResource);
 		}
 		public SCouponUseNetSc(SCouponUseNetSc Obj_) : base(Obj_)
 		{
+			ResourcesAdded = Obj_.ResourcesAdded;
 		}
-		public SCouponUseNetSc(SRewardDB Super_) : base(Super_)
+		public SCouponUseNetSc(SRewardInfo Super_, TResource[] ResourcesAdded_) : base(Super_)
 		{
+			ResourcesAdded = ResourcesAdded_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			base.Push(Stream_);
+			Stream_.Pop(ref ResourcesAdded);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			base.Push(Value_);
+			Value_.Pop("ResourcesAdded", ref ResourcesAdded);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			base.Pop(Stream_);
+			Stream_.Push(ResourcesAdded);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			base.Pop(Value_);
+			Value_.Push("ResourcesAdded", ResourcesAdded);
 		}
 		public void Set(SCouponUseNetSc Obj_)
 		{
 			base.Set(Obj_);
+			ResourcesAdded = Obj_.ResourcesAdded;
 		}
 		public override string StdName()
 		{
 			return 
-				base.StdName();
+				base.StdName() + "," + 
+				SEnumChecker.GetStdName(ResourcesAdded);
 		}
 		public override string MemberName()
 		{
 			return 
-				base.MemberName();
+				base.MemberName() + "," + 
+				SEnumChecker.GetMemberName(ResourcesAdded, "ResourcesAdded");
 		}
 	}
 	public class SCouponUseFailNetSc : SProto
@@ -6519,76 +6507,58 @@ namespace bb
 	public class SRankingRewardInfoNetSc : SProto
 	{
 		public Int64 Counter = default(Int64);
-		public Int32 Ranking = default(Int32);
-		public Int32 RankingSingle = default(Int32);
-		public Int32 RankingIsland = default(Int32);
+		public Int32[] RankingArray = new Int32[3];
 		public SRankingRewardInfoNetSc()
 		{
+			for (int iRankingArray = 0; iRankingArray < RankingArray.Length; ++iRankingArray)
+				RankingArray[iRankingArray] = default(Int32);
 		}
 		public SRankingRewardInfoNetSc(SRankingRewardInfoNetSc Obj_)
 		{
 			Counter = Obj_.Counter;
-			Ranking = Obj_.Ranking;
-			RankingSingle = Obj_.RankingSingle;
-			RankingIsland = Obj_.RankingIsland;
+			RankingArray = Obj_.RankingArray;
 		}
-		public SRankingRewardInfoNetSc(Int64 Counter_, Int32 Ranking_, Int32 RankingSingle_, Int32 RankingIsland_)
+		public SRankingRewardInfoNetSc(Int64 Counter_, Int32[] RankingArray_)
 		{
 			Counter = Counter_;
-			Ranking = Ranking_;
-			RankingSingle = RankingSingle_;
-			RankingIsland = RankingIsland_;
+			RankingArray = RankingArray_;
 		}
 		public override void Push(CStream Stream_)
 		{
 			Stream_.Pop(ref Counter);
-			Stream_.Pop(ref Ranking);
-			Stream_.Pop(ref RankingSingle);
-			Stream_.Pop(ref RankingIsland);
+			Stream_.Pop(ref RankingArray);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
 			Value_.Pop("Counter", ref Counter);
-			Value_.Pop("Ranking", ref Ranking);
-			Value_.Pop("RankingSingle", ref RankingSingle);
-			Value_.Pop("RankingIsland", ref RankingIsland);
+			Value_.Pop("RankingArray", ref RankingArray);
 		}
 		public override void Pop(CStream Stream_)
 		{
 			Stream_.Push(Counter);
-			Stream_.Push(Ranking);
-			Stream_.Push(RankingSingle);
-			Stream_.Push(RankingIsland);
+			Stream_.Push(RankingArray);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
 			Value_.Push("Counter", Counter);
-			Value_.Push("Ranking", Ranking);
-			Value_.Push("RankingSingle", RankingSingle);
-			Value_.Push("RankingIsland", RankingIsland);
+			Value_.Push("RankingArray", RankingArray);
 		}
 		public void Set(SRankingRewardInfoNetSc Obj_)
 		{
 			Counter = Obj_.Counter;
-			Ranking = Obj_.Ranking;
-			RankingSingle = Obj_.RankingSingle;
-			RankingIsland = Obj_.RankingIsland;
+			RankingArray = Obj_.RankingArray;
 		}
 		public override string StdName()
 		{
 			return 
 				SEnumChecker.GetStdName(Counter) + "," + 
-				SEnumChecker.GetStdName(Ranking) + "," + 
-				SEnumChecker.GetStdName(RankingSingle) + "," + 
-				SEnumChecker.GetStdName(RankingIsland);
+				SEnumChecker.GetStdName(RankingArray);
 		}
 		public override string MemberName()
 		{
 			return 
 				SEnumChecker.GetMemberName(Counter, "Counter") + "," + 
-				SEnumChecker.GetMemberName(Ranking, "Ranking") + "," + 
-				SEnumChecker.GetMemberName(RankingSingle, "RankingSingle") + "," + 
-				SEnumChecker.GetMemberName(RankingIsland, "RankingIsland");
+				SEnumChecker.GetMemberName(RankingArray, "RankingArray");
 		}
 	}
 	public class SRankingRewardNetCs : SProto
@@ -6614,79 +6584,68 @@ namespace bb
 			return "";
 		}
 	}
-	public class SRankingRewardNetSc : SProto
+	public class SRankingRewardNetSc : SRewardInfo
 	{
 		public Int64 Counter = default(Int64);
-		public Int32 RewardCode = default(Int32);
-		public Int32 RewardCodeSingle = default(Int32);
-		public Int32 RewardCodeIsland = default(Int32);
+		public Int32[] myRankingArray = new Int32[3];
 		public SRankingRewardNetSc()
 		{
+			for (int imyRankingArray = 0; imyRankingArray < myRankingArray.Length; ++imyRankingArray)
+				myRankingArray[imyRankingArray] = default(Int32);
 		}
-		public SRankingRewardNetSc(SRankingRewardNetSc Obj_)
+		public SRankingRewardNetSc(SRankingRewardNetSc Obj_) : base(Obj_)
 		{
 			Counter = Obj_.Counter;
-			RewardCode = Obj_.RewardCode;
-			RewardCodeSingle = Obj_.RewardCodeSingle;
-			RewardCodeIsland = Obj_.RewardCodeIsland;
+			myRankingArray = Obj_.myRankingArray;
 		}
-		public SRankingRewardNetSc(Int64 Counter_, Int32 RewardCode_, Int32 RewardCodeSingle_, Int32 RewardCodeIsland_)
+		public SRankingRewardNetSc(SRewardInfo Super_, Int64 Counter_, Int32[] myRankingArray_) : base(Super_)
 		{
 			Counter = Counter_;
-			RewardCode = RewardCode_;
-			RewardCodeSingle = RewardCodeSingle_;
-			RewardCodeIsland = RewardCodeIsland_;
+			myRankingArray = myRankingArray_;
 		}
 		public override void Push(CStream Stream_)
 		{
+			base.Push(Stream_);
 			Stream_.Pop(ref Counter);
-			Stream_.Pop(ref RewardCode);
-			Stream_.Pop(ref RewardCodeSingle);
-			Stream_.Pop(ref RewardCodeIsland);
+			Stream_.Pop(ref myRankingArray);
 		}
 		public override void Push(JsonDataObject Value_)
 		{
+			base.Push(Value_);
 			Value_.Pop("Counter", ref Counter);
-			Value_.Pop("RewardCode", ref RewardCode);
-			Value_.Pop("RewardCodeSingle", ref RewardCodeSingle);
-			Value_.Pop("RewardCodeIsland", ref RewardCodeIsland);
+			Value_.Pop("myRankingArray", ref myRankingArray);
 		}
 		public override void Pop(CStream Stream_)
 		{
+			base.Pop(Stream_);
 			Stream_.Push(Counter);
-			Stream_.Push(RewardCode);
-			Stream_.Push(RewardCodeSingle);
-			Stream_.Push(RewardCodeIsland);
+			Stream_.Push(myRankingArray);
 		}
 		public override void Pop(JsonDataObject Value_)
 		{
+			base.Pop(Value_);
 			Value_.Push("Counter", Counter);
-			Value_.Push("RewardCode", RewardCode);
-			Value_.Push("RewardCodeSingle", RewardCodeSingle);
-			Value_.Push("RewardCodeIsland", RewardCodeIsland);
+			Value_.Push("myRankingArray", myRankingArray);
 		}
 		public void Set(SRankingRewardNetSc Obj_)
 		{
+			base.Set(Obj_);
 			Counter = Obj_.Counter;
-			RewardCode = Obj_.RewardCode;
-			RewardCodeSingle = Obj_.RewardCodeSingle;
-			RewardCodeIsland = Obj_.RewardCodeIsland;
+			myRankingArray = Obj_.myRankingArray;
 		}
 		public override string StdName()
 		{
 			return 
+				base.StdName() + "," + 
 				SEnumChecker.GetStdName(Counter) + "," + 
-				SEnumChecker.GetStdName(RewardCode) + "," + 
-				SEnumChecker.GetStdName(RewardCodeSingle) + "," + 
-				SEnumChecker.GetStdName(RewardCodeIsland);
+				SEnumChecker.GetStdName(myRankingArray);
 		}
 		public override string MemberName()
 		{
 			return 
+				base.MemberName() + "," + 
 				SEnumChecker.GetMemberName(Counter, "Counter") + "," + 
-				SEnumChecker.GetMemberName(RewardCode, "RewardCode") + "," + 
-				SEnumChecker.GetMemberName(RewardCodeSingle, "RewardCodeSingle") + "," + 
-				SEnumChecker.GetMemberName(RewardCodeIsland, "RewardCodeIsland");
+				SEnumChecker.GetMemberName(myRankingArray, "myRankingArray");
 		}
 	}
 	public class SRankingRewardFailNetSc : SProto
@@ -6734,821 +6693,29 @@ namespace bb
 				SEnumChecker.GetMemberName(Ret, "Ret");
 		}
 	}
-	public class SRoomInfo : SProto
-	{
-		public EGameMode Mode = default(EGameMode);
-		public Int32 RoomIdx = default(Int32);
-		public TUID MasterUID = default(TUID);
-		public String MasterUser = string.Empty;
-		public String Password = string.Empty;
-		public Int32 UserCount = default(Int32);
-		public ERoomState State = default(ERoomState);
-		public SRoomInfo()
-		{
-		}
-		public SRoomInfo(SRoomInfo Obj_)
-		{
-			Mode = Obj_.Mode;
-			RoomIdx = Obj_.RoomIdx;
-			MasterUID = Obj_.MasterUID;
-			MasterUser = Obj_.MasterUser;
-			Password = Obj_.Password;
-			UserCount = Obj_.UserCount;
-			State = Obj_.State;
-		}
-		public SRoomInfo(EGameMode Mode_, Int32 RoomIdx_, TUID MasterUID_, String MasterUser_, String Password_, Int32 UserCount_, ERoomState State_)
-		{
-			Mode = Mode_;
-			RoomIdx = RoomIdx_;
-			MasterUID = MasterUID_;
-			MasterUser = MasterUser_;
-			Password = Password_;
-			UserCount = UserCount_;
-			State = State_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Mode);
-			Stream_.Pop(ref RoomIdx);
-			Stream_.Pop(ref MasterUID);
-			Stream_.Pop(ref MasterUser);
-			Stream_.Pop(ref Password);
-			Stream_.Pop(ref UserCount);
-			Stream_.Pop(ref State);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Mode", ref Mode);
-			Value_.Pop("RoomIdx", ref RoomIdx);
-			Value_.Pop("MasterUID", ref MasterUID);
-			Value_.Pop("MasterUser", ref MasterUser);
-			Value_.Pop("Password", ref Password);
-			Value_.Pop("UserCount", ref UserCount);
-			Value_.Pop("State", ref State);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Mode);
-			Stream_.Push(RoomIdx);
-			Stream_.Push(MasterUID);
-			Stream_.Push(MasterUser);
-			Stream_.Push(Password);
-			Stream_.Push(UserCount);
-			Stream_.Push(State);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Mode", Mode);
-			Value_.Push("RoomIdx", RoomIdx);
-			Value_.Push("MasterUID", MasterUID);
-			Value_.Push("MasterUser", MasterUser);
-			Value_.Push("Password", Password);
-			Value_.Push("UserCount", UserCount);
-			Value_.Push("State", State);
-		}
-		public void Set(SRoomInfo Obj_)
-		{
-			Mode = Obj_.Mode;
-			RoomIdx = Obj_.RoomIdx;
-			MasterUID = Obj_.MasterUID;
-			MasterUser = Obj_.MasterUser;
-			Password = Obj_.Password;
-			UserCount = Obj_.UserCount;
-			State = Obj_.State;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EGameMode" + "," + 
-				SEnumChecker.GetStdName(RoomIdx) + "," + 
-				SEnumChecker.GetStdName(MasterUID) + "," + 
-				SEnumChecker.GetStdName(MasterUser) + "," + 
-				SEnumChecker.GetStdName(Password) + "," + 
-				SEnumChecker.GetStdName(UserCount) + "," + 
-				"bb.ERoomState";
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Mode, "Mode") + "," + 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx") + "," + 
-				SEnumChecker.GetMemberName(MasterUID, "MasterUID") + "," + 
-				SEnumChecker.GetMemberName(MasterUser, "MasterUser") + "," + 
-				SEnumChecker.GetMemberName(Password, "Password") + "," + 
-				SEnumChecker.GetMemberName(UserCount, "UserCount") + "," + 
-				SEnumChecker.GetMemberName(State, "State");
-		}
-	}
-	public class SRoomChangeNetSc : SProto
-	{
-		public Int32 RoomIdx = default(Int32);
-		public SRoomInfo RoomInfo = new SRoomInfo();
-		public Boolean IsEmpty = default(Boolean);
-		public SRoomChangeNetSc()
-		{
-		}
-		public SRoomChangeNetSc(SRoomChangeNetSc Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-			RoomInfo = Obj_.RoomInfo;
-			IsEmpty = Obj_.IsEmpty;
-		}
-		public SRoomChangeNetSc(Int32 RoomIdx_, SRoomInfo RoomInfo_, Boolean IsEmpty_)
-		{
-			RoomIdx = RoomIdx_;
-			RoomInfo = RoomInfo_;
-			IsEmpty = IsEmpty_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomIdx);
-			Stream_.Pop(ref RoomInfo);
-			Stream_.Pop(ref IsEmpty);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomIdx", ref RoomIdx);
-			Value_.Pop("RoomInfo", ref RoomInfo);
-			Value_.Pop("IsEmpty", ref IsEmpty);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomIdx);
-			Stream_.Push(RoomInfo);
-			Stream_.Push(IsEmpty);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomIdx", RoomIdx);
-			Value_.Push("RoomInfo", RoomInfo);
-			Value_.Push("IsEmpty", IsEmpty);
-		}
-		public void Set(SRoomChangeNetSc Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-			RoomInfo.Set(Obj_.RoomInfo);
-			IsEmpty = Obj_.IsEmpty;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomIdx) + "," + 
-				SEnumChecker.GetStdName(RoomInfo) + "," + 
-				SEnumChecker.GetStdName(IsEmpty);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx") + "," + 
-				SEnumChecker.GetMemberName(RoomInfo, "RoomInfo") + "," + 
-				SEnumChecker.GetMemberName(IsEmpty, "IsEmpty");
-		}
-	}
-	public class SRoomListNetCs : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SRoomListNetSc : SProto
-	{
-		public SRooms RoomList = new SRooms();
-		public SRoomListNetSc()
-		{
-		}
-		public SRoomListNetSc(SRoomListNetSc Obj_)
-		{
-			RoomList = Obj_.RoomList;
-		}
-		public SRoomListNetSc(SRooms RoomList_)
-		{
-			RoomList = RoomList_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomList);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomList", ref RoomList);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomList);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomList", RoomList);
-		}
-		public void Set(SRoomListNetSc Obj_)
-		{
-			RoomList = Obj_.RoomList;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomList);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomList, "RoomList");
-		}
-	}
-	public class SRoomCreateNetCs : SProto
-	{
-		public EGameMode Mode = default(EGameMode);
-		public String Password = string.Empty;
-		public SRoomCreateNetCs()
-		{
-		}
-		public SRoomCreateNetCs(SRoomCreateNetCs Obj_)
-		{
-			Mode = Obj_.Mode;
-			Password = Obj_.Password;
-		}
-		public SRoomCreateNetCs(EGameMode Mode_, String Password_)
-		{
-			Mode = Mode_;
-			Password = Password_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Mode);
-			Stream_.Pop(ref Password);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Mode", ref Mode);
-			Value_.Pop("Password", ref Password);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Mode);
-			Stream_.Push(Password);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Mode", Mode);
-			Value_.Push("Password", Password);
-		}
-		public void Set(SRoomCreateNetCs Obj_)
-		{
-			Mode = Obj_.Mode;
-			Password = Obj_.Password;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EGameMode" + "," + 
-				SEnumChecker.GetStdName(Password);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Mode, "Mode") + "," + 
-				SEnumChecker.GetMemberName(Password, "Password");
-		}
-	}
-	public class SRoomCreateNetSc : SProto
-	{
-		public SRoomInfo RoomInfo = new SRoomInfo();
-		public SRoomCreateNetSc()
-		{
-		}
-		public SRoomCreateNetSc(SRoomCreateNetSc Obj_)
-		{
-			RoomInfo = Obj_.RoomInfo;
-		}
-		public SRoomCreateNetSc(SRoomInfo RoomInfo_)
-		{
-			RoomInfo = RoomInfo_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomInfo);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomInfo", ref RoomInfo);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomInfo);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomInfo", RoomInfo);
-		}
-		public void Set(SRoomCreateNetSc Obj_)
-		{
-			RoomInfo.Set(Obj_.RoomInfo);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomInfo);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomInfo, "RoomInfo");
-		}
-	}
-	public class SRoomJoinNetCs : SProto
-	{
-		public Int32 RoomIdx = default(Int32);
-		public SRoomJoinNetCs()
-		{
-		}
-		public SRoomJoinNetCs(SRoomJoinNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public SRoomJoinNetCs(Int32 RoomIdx_)
-		{
-			RoomIdx = RoomIdx_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomIdx);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomIdx", ref RoomIdx);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomIdx);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomIdx", RoomIdx);
-		}
-		public void Set(SRoomJoinNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomIdx);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx");
-		}
-	}
-	public class SRoomJoinNetSc : SProto
-	{
-		public SRoomInfo RoomInfo = new SRoomInfo();
-		public SRoomJoinNetSc()
-		{
-		}
-		public SRoomJoinNetSc(SRoomJoinNetSc Obj_)
-		{
-			RoomInfo = Obj_.RoomInfo;
-		}
-		public SRoomJoinNetSc(SRoomInfo RoomInfo_)
-		{
-			RoomInfo = RoomInfo_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomInfo);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomInfo", ref RoomInfo);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomInfo);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomInfo", RoomInfo);
-		}
-		public void Set(SRoomJoinNetSc Obj_)
-		{
-			RoomInfo.Set(Obj_.RoomInfo);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomInfo);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomInfo, "RoomInfo");
-		}
-	}
-	public class SRoomJoinFailedNetSc : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SRoomOutNetCs : SProto
-	{
-		public Int32 RoomIdx = default(Int32);
-		public SRoomOutNetCs()
-		{
-		}
-		public SRoomOutNetCs(SRoomOutNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public SRoomOutNetCs(Int32 RoomIdx_)
-		{
-			RoomIdx = RoomIdx_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomIdx);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomIdx", ref RoomIdx);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomIdx);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomIdx", RoomIdx);
-		}
-		public void Set(SRoomOutNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomIdx);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx");
-		}
-	}
-	public class SRoomOutFailedNetSc : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SRoomOutNetSc : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SRoomReadyNetCs : SProto
-	{
-		public override void Push(CStream Stream_)
-		{
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-		}
-		public override void Pop(CStream Stream_)
-		{
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-		}
-		public override string StdName()
-		{
-			return "";
-		}
-		public override string MemberName()
-		{
-			return "";
-		}
-	}
-	public class SRoomReadyNetSc : SProto
-	{
-		public EGameMode Mode = default(EGameMode);
-		public SRoomReadyNetSc()
-		{
-		}
-		public SRoomReadyNetSc(SRoomReadyNetSc Obj_)
-		{
-			Mode = Obj_.Mode;
-		}
-		public SRoomReadyNetSc(EGameMode Mode_)
-		{
-			Mode = Mode_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref Mode);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("Mode", ref Mode);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(Mode);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("Mode", Mode);
-		}
-		public void Set(SRoomReadyNetSc Obj_)
-		{
-			Mode = Obj_.Mode;
-		}
-		public override string StdName()
-		{
-			return 
-				"bb.EGameMode";
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(Mode, "Mode");
-		}
-	}
-	public class SRoomChatNetCs : SProto
-	{
-		public Int32 RoomIdx = default(Int32);
-		public String Message = string.Empty;
-		public SRoomChatNetCs()
-		{
-		}
-		public SRoomChatNetCs(SRoomChatNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-			Message = Obj_.Message;
-		}
-		public SRoomChatNetCs(Int32 RoomIdx_, String Message_)
-		{
-			RoomIdx = RoomIdx_;
-			Message = Message_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomIdx);
-			Stream_.Pop(ref Message);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomIdx", ref RoomIdx);
-			Value_.Pop("Message", ref Message);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomIdx);
-			Stream_.Push(Message);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomIdx", RoomIdx);
-			Value_.Push("Message", Message);
-		}
-		public void Set(SRoomChatNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-			Message = Obj_.Message;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomIdx) + "," + 
-				SEnumChecker.GetStdName(Message);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx") + "," + 
-				SEnumChecker.GetMemberName(Message, "Message");
-		}
-	}
-	public class SRoomChatNetSc : SProto
-	{
-		public String UserNick = string.Empty;
-		public String Message = string.Empty;
-		public SRoomChatNetSc()
-		{
-		}
-		public SRoomChatNetSc(SRoomChatNetSc Obj_)
-		{
-			UserNick = Obj_.UserNick;
-			Message = Obj_.Message;
-		}
-		public SRoomChatNetSc(String UserNick_, String Message_)
-		{
-			UserNick = UserNick_;
-			Message = Message_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref UserNick);
-			Stream_.Pop(ref Message);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("UserNick", ref UserNick);
-			Value_.Pop("Message", ref Message);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(UserNick);
-			Stream_.Push(Message);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("UserNick", UserNick);
-			Value_.Push("Message", Message);
-		}
-		public void Set(SRoomChatNetSc Obj_)
-		{
-			UserNick = Obj_.UserNick;
-			Message = Obj_.Message;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(UserNick) + "," + 
-				SEnumChecker.GetStdName(Message);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(UserNick, "UserNick") + "," + 
-				SEnumChecker.GetMemberName(Message, "Message");
-		}
-	}
-	public class SRoomNotiNetCs : SProto
-	{
-		public Int32 RoomIdx = default(Int32);
-		public SRoomNotiNetCs()
-		{
-		}
-		public SRoomNotiNetCs(SRoomNotiNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public SRoomNotiNetCs(Int32 RoomIdx_)
-		{
-			RoomIdx = RoomIdx_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomIdx);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomIdx", ref RoomIdx);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomIdx);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomIdx", RoomIdx);
-		}
-		public void Set(SRoomNotiNetCs Obj_)
-		{
-			RoomIdx = Obj_.RoomIdx;
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomIdx);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomIdx, "RoomIdx");
-		}
-	}
-	public class SRoomNotiNetSc : SProto
-	{
-		public SRoomInfo RoomInfo = new SRoomInfo();
-		public SRoomNotiNetSc()
-		{
-		}
-		public SRoomNotiNetSc(SRoomNotiNetSc Obj_)
-		{
-			RoomInfo = Obj_.RoomInfo;
-		}
-		public SRoomNotiNetSc(SRoomInfo RoomInfo_)
-		{
-			RoomInfo = RoomInfo_;
-		}
-		public override void Push(CStream Stream_)
-		{
-			Stream_.Pop(ref RoomInfo);
-		}
-		public override void Push(JsonDataObject Value_)
-		{
-			Value_.Pop("RoomInfo", ref RoomInfo);
-		}
-		public override void Pop(CStream Stream_)
-		{
-			Stream_.Push(RoomInfo);
-		}
-		public override void Pop(JsonDataObject Value_)
-		{
-			Value_.Push("RoomInfo", RoomInfo);
-		}
-		public void Set(SRoomNotiNetSc Obj_)
-		{
-			RoomInfo.Set(Obj_.RoomInfo);
-		}
-		public override string StdName()
-		{
-			return 
-				SEnumChecker.GetStdName(RoomInfo);
-		}
-		public override string MemberName()
-		{
-			return 
-				SEnumChecker.GetMemberName(RoomInfo, "RoomInfo");
-		}
-	}
 	public partial class global
 	{
-		public const Single c_2_ScreenWidth = c_ScreenWidth*2.0f;
-		public const Single c_AccExt = c_Factor;
-		public const Single c_AirResistance = 1.0f;
+		public const Single arrowDodgeArrowActiveAreaHalfHeight = c_ScreenHeight*(0.5f+arrowDodgeArrowActiveScreenGap);
+		public const Single arrowDodgeArrowActiveAreaHalfWidth = c_ScreenWidth*(0.5f+arrowDodgeArrowActiveScreenGap);
+		public const Single arrowDodgeArrowActiveBottom = -(c_ScreenHeight*arrowDodgeArrowActiveScreenGap);
+		public const Single arrowDodgeArrowActiveScreenGap = 0.2f;
+		public const Single arrowDodgeArrowActiveTop = c_ScreenHeight*(1.0f+arrowDodgeArrowActiveScreenGap);
+		public const Single arrowDodgeArrowBaseVelocity = 0.1f;
+		public const Int64 arrowDodgeArrowBaseVelocityTick = 600000000;
+		public const Single arrowDodgeArrowCreateAreaHalfHeight = c_ScreenHeight*(0.5f+arrowDodgeArrowCreateScreenGap);
+		public const Single arrowDodgeArrowCreateAreaHalfWidth = c_ScreenWidth*(0.5f+arrowDodgeArrowCreateScreenGap);
+		public const Single arrowDodgeArrowCreateScreenGap = 0.1f;
+		public const Int64 arrowDodgeFirstLeftArrowTick = 300000000;
+		public const Int64 arrowDodgeFirstRightArrowTick = 600000000;
+		public const Single arrowDodgeHalfItemScreenHeight = arrowDodgeItemScreenHeight*0.5f;
+		public const Single arrowDodgeHalfItemScreenWidth = arrowDodgeItemScreenWidth*0.5f;
+		public const Single arrowDodgeItemScreenHeight = c_ScreenHeight*0.7f;
+		public const Single arrowDodgeItemScreenWidth = c_ScreenWidth*0.9f;
+		public const Int64 arrowDodgeMaxArrowTick = 900000000;
+		public const Single arrowDodgeMinDownVelocity = 0.7f;
+		public const Single arrowDodgeMinHorizontalVelocity = 0.3f;
+		public const Single arrowDodgePositionPrecision = 1000.0f;
+		public const Single c_AirAccRatio = 2.0f;
 		public const SByte c_BalloonCountForPump = 1;
 		public const SByte c_BalloonCountForRegen = 2;
 		public const Single c_BalloonHeight = 0.27f;
@@ -7558,26 +6725,22 @@ namespace bb
 		public const Int64 c_BattleStartDelayMilliSec = 2000;
 		public const Int64 c_ChainKillDelayTickCount = 50000000;
 		public const Single c_ContactOffset = 0.0001f;
-		public const Single c_DefaultVel = c_Factor*0.22f;
 		public const Single c_DieUpVel = 0.7f;
 		public const Int32 c_FPS = 60;
-		public const Single c_Factor = c_ScreenWidth*0.75f;
-		public const Single c_FlapOnAcc = c_Factor*0.25f;
-		public const Single c_GameHeight = 3.5f;
-		public const Single c_GhostSpeed = 3.0f;
-		public const Single c_Gravity = -c_FlapOnAcc;
+		public const Single c_FlapDeltaVelUp = 0.19f;
+		public const Single c_FlapDeltaVelX = 0.19f;
+		public const Single c_Gravity = -0.6465f;
 		public const Single c_GravityDeadRatio = 2.0f;
 		public const Single c_GravityParachuteRatio = 0.5f;
-		public const Single c_GroundResistance = 0.1f;
-		public const Single c_LandXDragPerFrame = 1.0f/c_FPS;
+		public const Single c_GroundAccRatio = 4.0f;
+		public const Single c_IgnoredGroundMaxDeltaVelocity = 0.01f;
 		public const Int32 c_MaxPlayer = 6;
-		public const Single c_MaxVelDeadY = c_DefaultVel*2.0f;
-		public const Single c_MaxVelParachuteX = c_DefaultVel*1.2f;
-		public const Single c_MaxVelParachuteY = c_DefaultVel*0.5f;
+		public const Single c_MaxVelDeadY = 1.13784f;
+		public const Single c_MaxVelDown = 0.56f;
+		public const Single c_MaxVelParachuteX = 0.682704f;
+		public const Single c_MaxVelParachuteY = 0.28446f;
 		public const Int64 c_NetworkTickBuffer = c_NetworkTickSync+500000;
 		public const Int64 c_NetworkTickSync = 500000;
-		public const Single c_OnePumpDuration = 0.4f;
-		public const Single c_ParachuteAccX = c_FlapOnAcc;
 		public const Single c_ParachuteHeight = 0.25f;
 		public const Single c_ParachuteLocalScale = 0.5f;
 		public const Single c_ParachuteOffsetY = 0.37f;
@@ -7585,15 +6748,30 @@ namespace bb
 		public const Single c_PlayerHeight = 0.150337f;
 		public const Single c_PlayerOffsetY = c_PlayerHeight*0.5f;
 		public const Single c_PlayerWidth = 0.1258713f;
+		public const Single c_PlayerWidth_2 = c_PlayerWidth*0.5f;
 		public const SByte c_PumpCountForBalloon = 6;
 		public const Int32 c_QuestCnt_Max = 5;
 		public const Int64 c_RegenDelayTickCount = 20000000;
-		public const Single c_ScreenCenterX = 3.448f;
-		public const Single c_ScreenCenterY = c_ScreenHeight*0.5f;
-		public const Single c_ScreenHeight = 3.5f;
+		public const Single c_ScreenHeight = 2.0f;
 		public const Single c_ScreenHeight_2 = c_ScreenHeight*0.5f;
-		public const Single c_ScreenWidth = 3.448f;
+		public const Single c_ScreenWidth = 3.55555f;
 		public const Single c_ScreenWidth_2 = c_ScreenWidth*0.5f;
-		public const TVer c_Ver_Main = 38;
+		public const Int64 c_StaminaRegenDelayTick = 10000000;
+		public const Single c_StaminaRegenSpeedInAir = 10.0f;
+		public const Single c_StaminaRegenSpeedOnGround = 10.0f;
+		public const TVer c_Ver_Main = 47;
+		public const Single flyAwayItemCoinXDistanceMultiplier = 3.0f;
+		public const Single flyAwayItemSlopeFactor = 0.7f;
+		public const Single flyAwayLandBottomY = -c_ScreenHeight_2*0.9f;
+		public const Int32 flyAwayLandDistanceBase = 30;
+		public const Single flyAwayLandHeightRange = flyAwayLandTopY-flyAwayLandBottomY;
+		public const Single flyAwayLandTopY = c_ScreenHeight_2*0.6f;
+		public const Int32 flyAwayMainLevelCount = 5;
+		public const Single flyAwayMaxY = 1.7f;
+		public const Single flyAwayMinLandDistance = 0.8f;
+		public const Single flyAwayMinY = 0.4f;
+		public const Int32 flyAwaySubLevelCount = 3;
+		public const Int32 maxNicknameLength = 18;
+		public const Int32 minNicknameLength = 2;
 	}
 }

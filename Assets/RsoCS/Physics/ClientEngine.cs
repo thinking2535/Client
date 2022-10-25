@@ -14,12 +14,12 @@ namespace rso.physics
         {
         }
     }
-    class CClientEngine : CEngine
+    public class CClientEngine : CNetworkEngine
     {
         Int64 _NetworkTickBuffer;
         Queue<CMessage> _MessageQueue = new Queue<CMessage>();
-        public CClientEngine(Int64 NetworkTickSync_, Int64 NetworkTickBuffer_, Int64 CurTick_, Single ContactOffset_, Int32 FPS_, CCollider2D Structure_, List<CMovingObject2D> MovingStructures_, List<CPlayerObject2D> Players_) :
-            base(NetworkTickSync_, CurTick_, ContactOffset_, FPS_, Structure_, MovingStructures_, Players_)
+        public CClientEngine(Int64 CurTick_, Single ContactOffset_, Int32 FPS_, Int64 NetworkTickSync_, Int64 NetworkTickBuffer_) :
+            base(CurTick_, ContactOffset_, FPS_, NetworkTickSync_)
         {
             _NetworkTickBuffer = NetworkTickBuffer_;
         }
@@ -36,7 +36,7 @@ namespace rso.physics
                 Update();
             }
         }
-        public void Update()
+        public override void Update()
         {
             var CurTick = _CurTick.Get();
 

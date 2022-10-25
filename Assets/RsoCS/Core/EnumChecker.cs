@@ -21,7 +21,13 @@ namespace rso
             public static string GetStdName(Double Value_) { return "double"; }
             public static string GetStdName(String Value_) { return "wstring"; }
             public static string GetStdName(TimePoint Value_) { return "time_point"; }
+            public static string GetStdName(Microseconds Value_) { return "microseconds"; }
+            public static string GetStdName(Milliseconds Value_) { return "milliseconds"; }
+            public static string GetStdName(Seconds Value_) { return "seconds"; }
+            public static string GetStdName(Minutes Value_) { return "minutes"; }
+            public static string GetStdName(Hours Value_) { return "hours"; }
             public static string GetStdName(DateTime Value_) { return "datetime"; }
+            public static string GetStdName(CStream Value_) { return "stream"; }
             public static string GetStdName<TValue>(TValue[] Value_)
             {
                 string Name = string.Empty;
@@ -69,18 +75,7 @@ namespace rso
                     case TypeCode.DateTime:
                         return GetStdName(new DateTime());
                     case TypeCode.Object:
-                        {
-                            switch (typeof(TValue).ToString())
-                            {
-                                case "rso.core.TimePoint":
-                                    return "time_point";
-                                case "rso.core.CStream":
-                                    return "stream";
-                                default:
-                                    return ((SProto)(object)Value_).StdName();
-                            }
-                        }
-                    // break;
+                        return ((SProto)(object)Value_).StdName();
                     default:
                         throw new Exception("Invalid TypeCode : " + Type.GetTypeCode(typeof(TValue)).ToString());
                 }
@@ -101,7 +96,13 @@ namespace rso
             public static string GetMemberName(Double Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName(String Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName(TimePoint Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(Microseconds Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(Milliseconds Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(Seconds Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(Minutes Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(Hours Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName(DateTime Value_, string MemberName_) { return MemberName_; }
+            public static string GetMemberName(CStream Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName<TValue>(TValue[] Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName<TValue>(List<TValue> Value_, string MemberName_) { return MemberName_; }
             public static string GetMemberName<TValue>(HashSet<TValue> Value_, string MemberName_) { return MemberName_; }
@@ -129,17 +130,7 @@ namespace rso
                     case TypeCode.DateTime:
                         return MemberName_;
                     case TypeCode.Object:
-                        {
-                            switch (typeof(TValue).ToString())
-                            {
-                                case "rso.core.TimePoint":
-                                case "rso.core.CStream":
-                                    return MemberName_;
-                                default:
-                                    return ((SProto)(object)Value_).MemberName();
-                            }
-                        }
-                    // break;
+                        return ((SProto)(object)Value_).MemberName();
                     default:
                         throw new Exception("GetMemberName() Invalid TypeCode : " + Type.GetTypeCode(typeof(TValue)).ToString());
                 }

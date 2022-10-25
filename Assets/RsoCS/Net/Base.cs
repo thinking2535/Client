@@ -71,7 +71,7 @@ namespace rso
             {
             }
             public CNamePort(TPort Port_) :
-                base("127.0.0.1", Port_)
+                base("0.0.0.0", Port_)
             {
             }
             public CNamePort(IPEndPoint IPEndPoint_)
